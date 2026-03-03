@@ -43,11 +43,16 @@
     });
 
     const media = window.matchMedia('(prefers-color-scheme: dark)');
-    media.addEventListener('change', () => {
+    const onThemeChange = () => {
       if (getStoredThemeMode() === 'auto') {
         applyTheme('auto');
       }
-    });
+    };
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', onThemeChange);
+    } else if (typeof media.addListener === 'function') {
+      media.addListener(onThemeChange);
+    }
   }
 
   function initSlidesFilter() {
@@ -174,8 +179,8 @@
   }
 
   function annotateSectionForStudyMode(details) {
-    const summary = details.querySelector(':scope > summary');
-    const body = details.querySelector(':scope > .study-section-body');
+    const summary = Array.from(details.children).find((el) => el.tagName === 'SUMMARY');
+    const body = Array.from(details.children).find((el) => el.classList?.contains('study-section-body'));
     if (!summary || !body) {
       return;
     }
@@ -263,6 +268,11 @@
     const pageSectionState = allSectionState[pathKey] || {};
 
     headings.forEach((heading, index) => {
+      const parent = heading.parentNode;
+      if (!parent) {
+        return;
+      }
+
       const sectionKey = slugify(heading.textContent || `section-${index + 1}`) || `section-${index + 1}`;
       const details = document.createElement('details');
       details.className = 'study-section';
@@ -271,14 +281,13 @@
       const summary = document.createElement('summary');
       summary.className = 'study-section-summary';
       heading.classList.add('study-section-title');
-      summary.appendChild(heading);
-      details.appendChild(summary);
 
       const body = document.createElement('div');
       body.className = 'study-section-body';
 
-      const parent = heading.parentNode;
       parent.insertBefore(details, heading);
+      details.appendChild(summary);
+      summary.appendChild(heading);
 
       let cursor = details.nextSibling;
       while (cursor) {
@@ -324,8 +333,8 @@
   function extractQuestionAnswer(item) {
     const nestedList = Array.from(item.children).find((el) => el.tagName === 'UL' || el.tagName === 'OL');
     if (nestedList) {
-      const answerRow = Array.from(nestedList.querySelectorAll(':scope > li')).find((li) =>
-        /^(answer|a)\s*:?\s*/i.test((li.textContent || '').trim())
+      const answerRow = Array.from(nestedList.children).find(
+        (child) => child.tagName === 'LI' && /^(answer|a)\s*:?\s*/i.test((child.textContent || '').trim())
       );
       if (answerRow) {
         const questionClone = item.cloneNode(true);
@@ -373,7 +382,9 @@
 
     examHeadings.forEach((heading) => {
       const section = heading.closest('.study-section');
-      const scope = section ? section.querySelector(':scope > .study-section-body') : heading.parentElement;
+      const scope = section
+        ? Array.from(section.children).find((el) => el.classList?.contains('study-section-body'))
+        : heading.parentElement;
       if (!scope) return;
 
       const list = Array.from(scope.children).find((el) => el.tagName === 'OL' || el.tagName === 'UL');
@@ -468,7 +479,7 @@
         const total = cards.length;
         const known = cards.filter((card) => card.dataset.status === 'known').length;
         const unknown = cards.filter((card) => card.dataset.status === 'unknown').length;
-        progress.textContent = `Practice score: ${known}/${total} known${unknown ? ` • ${unknown} unknown` : ''}`;
+        progress.textContent = `Practice score: ${known}/${total} known${unknown ? ` | ${unknown} unknown` : ''}`;
       };
 
       updateProgress();
