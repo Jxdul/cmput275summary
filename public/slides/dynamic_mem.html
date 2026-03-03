@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dynamic_mem.pdf - CMPUT 275 Summaries</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="global-nav">
+    <a href="/">Home</a>
+    <a href="/slides/" class="active">Slides</a>
+    <a href="/code/">Code</a>
+  </nav>
+
+  <main class="page-content">
+    <div class="breadcrumb">
+      <a href="/slides/">Slides</a>
+      <span>/</span>
+      <span>dynamic_mem.pdf</span>
+    </div>
+    <article class="summary-content">
+      <h1>Lecture Identity</h1>
+<p><strong>File/lecture name:</strong> dynamic_mem.pdf
+<strong>Main theme:</strong> Dynamic Memory Management in C: Allocation, Deallocation, and Lifetime Safety
+<strong>Prereqs assumed by slides:</strong> Basic C syntax (loops, functions, arrays), understanding of stack frames and scope.
+<strong>What this lecture enables you to do:</strong></p>
+<ul>
+<li>Allocate memory on the heap using <code>malloc</code> and deallocate it using <code>free</code>.</li>
+<li>Implement dynamic array growth strategies (specifically the doubling strategy) to achieve amortized constant time insertion.</li>
+<li>Reason about data lifetimes to prevent dangling pointers and memory leaks.</li>
+<li>Safely return pointers from functions by ensuring the pointed-to data outlives the function call.</li>
+</ul>
+<h1>Big Picture Map (High-Level)</h1>
+<ol>
+<li><strong>The Problem:</strong> Fixed-size stack arrays fail when input size is unknown or exceeds compile-time limits.</li>
+<li><strong>Memory Regions:</strong> Distinction between Stack (compile-time size, automatic lifetime) and Heap (programmer-managed lifetime).</li>
+<li><strong>Allocation:</strong> Using <code>malloc</code> to request contiguous bytes on the heap; understanding <code>size_t</code> and <code>NULL</code>.</li>
+<li><strong>Deallocation:</strong> Using <code>free</code> to release memory; the critical rule of setting pointers to <code>NULL</code> after freeing.</li>
+<li><strong>Growing Arrays:</strong> Strategies for resizing arrays dynamically; comparing &quot;grow by 1&quot; (O(n�)) vs. &quot;double capacity&quot; (amortized O(1)).</li>
+<li><strong>Returning Pointers:</strong> The danger of returning pointers to local stack variables (dangling pointers) vs. returning pointers to heap-allocated data.</li>
+<li><strong>Lifetime Management:</strong> Ensuring the data pointed to by a pointer remains valid for the duration of its use.</li>
+<li><strong>Practice:</strong> Applying these concepts to functions like <code>strchr</code> and generating digit arrays.</li>
+</ol>
+<h1>Key Concepts &amp; Definitions</h1>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Definition</th>
+<th align="left">Why it matters</th>
+<th align="left">Common confusion / misconception</th>
+<th align="left">Tiny example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Stack</strong></td>
+<td align="left">Memory region for data with lifetime tied to enclosing scope; size known at compile time.</td>
+<td align="left">Fast allocation/deallocation; automatic cleanup.</td>
+<td align="left">Thinking stack memory is infinite or that it persists after function return.</td>
+<td align="left"><code>int arr[10];</code> (Stack)</td>
+</tr>
+<tr>
+<td align="left"><strong>Heap</strong></td>
+<td align="left">Memory region for data whose lifetime is dictated by the programmer; size unknown at compile time.</td>
+<td align="left">Allows dynamic sizing; essential for unknown input sizes.</td>
+<td align="left">Thinking heap is faster than stack (it is not; it is slower to manage).</td>
+<td align="left"><code>int *p = malloc(100);</code> (Heap)</td>
+</tr>
+<tr>
+<td align="left"><strong>malloc</strong></td>
+<td align="left">Standard library function to allocate contiguous bytes on the heap. Returns pointer or <code>NULL</code> on failure.</td>
+<td align="left">Enables dynamic memory allocation.</td>
+<td align="left">Forgetting to multiply <code>sizeof(type)</code> by count.</td>
+<td align="left"><code>int *p = malloc(sizeof(int)*10);</code></td>
+</tr>
+<tr>
+<td align="left"><strong>free</strong></td>
+<td align="left">Standard library function to deallocate heap memory. Returns <code>void</code>.</td>
+<td align="left">Prevents memory leaks; returns memory to system.</td>
+<td align="left">Forgetting to free, or freeing memory that wasn&#39;t allocated with <code>malloc</code>.</td>
+<td align="left"><code>free(p);</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Dangling Pointer</strong></td>
+<td align="left">A pointer that stores an address of memory that has already been freed or gone out of scope.</td>
+<td align="left">Dereferencing causes undefined behavior (crash/corruption).</td>
+<td align="left">Thinking the pointer is still &quot;valid&quot; just because the number isn&#39;t zero.</td>
+<td align="left"><code>free(p); p = NULL;</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Memory Leak</strong></td>
+<td align="left">Failure to free heap memory when finished with it.</td>
+<td align="left">Program consumes more memory over time; eventually crashes.</td>
+<td align="left">Thinking &quot;it works now&quot; means it&#39;s safe to leak.</td>
+<td align="left"><code>malloc</code> without <code>free</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>size_t</strong></td>
+<td align="left">Unsigned integral type guaranteed large enough to store size of any data type.</td>
+<td align="left">Used for array lengths and sizes to avoid signed/unsigned mismatch warnings.</td>
+<td align="left">Using <code>int</code> for array sizes (can lead to logic errors).</td>
+<td align="left"><code>for (size_t i = 0; ...)</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Amortized</strong></td>
+<td align="left">Average cost per operation over a sequence of operations.</td>
+<td align="left">Explains why doubling strategy is efficient despite occasional expensive copies.</td>
+<td align="left">Confusing worst-case cost (O(n)) with average cost (O(1)).</td>
+<td align="left">Doubling array capacity.</td>
+</tr>
+<tr>
+<td align="left"><strong>Lifetime</strong></td>
+<td align="left">The duration during which a variable or memory block is valid and accessible.</td>
+<td align="left">Critical for determining if a pointer is safe to use.</td>
+<td align="left">Assuming a pointer is safe just because it was initialized.</td>
+<td align="left">Returning stack pointer.</td>
+</tr>
+</tbody></table>
+<h1>Core Mechanics / How-To</h1>
+<h3>How to allocate heap memory safely</h3>
+<ol>
+<li><strong>Include headers:</strong> Ensure <code>&lt;stdlib.h&gt;</code> is included for <code>malloc</code> and <code>free</code>.</li>
+<li><strong>Calculate size:</strong> Multiply <code>sizeof(type)</code> by the number of elements needed.</li>
+<li><strong>Call malloc:</strong> Assign the result to a pointer variable.</li>
+<li><strong>Check for NULL:</strong> Always check if <code>malloc</code> returned <code>NULL</code> (allocation failed).</li>
+<li><strong>Initialize:</strong> Heap memory is not guaranteed to be zero-initialized.</li>
+</ol>
+<pre><code class="language-c">int *arr = malloc(sizeof(int) * 10);
+if (arr == NULL) {
+    // Handle error
+}
+</code></pre>
+<h3>How to free memory safely</h3>
+<ol>
+<li><strong>Call free:</strong> Pass the pointer to the block allocated by <code>malloc</code>.</li>
+<li><strong>Nullify pointer:</strong> Immediately set the pointer to <code>NULL</code> after freeing.</li>
+<li><strong>Do not access:</strong> Never read or write to the memory after <code>free</code>.</li>
+</ol>
+<pre><code class="language-c">free(arr);
+arr = NULL; // Prevents dangling pointer
+</code></pre>
+<h3>How to grow a dynamic array (Doubling Strategy)</h3>
+<ol>
+<li><strong>Check capacity:</strong> If <code>len == size</code>, the array is full.</li>
+<li><strong>Allocate new:</strong> <code>malloc(sizeof(int) * (size * 2))</code>.</li>
+<li><strong>Copy data:</strong> Copy existing <code>len</code> elements from old array to new array.</li>
+<li><strong>Update pointers:</strong> <code>free(arr)</code>, <code>arr = newArr</code>, <code>size = size * 2</code>.</li>
+<li><strong>Repeat:</strong> Continue until <code>len &lt; size</code>.</li>
+</ol>
+<h3>How to return pointers from functions</h3>
+<ol>
+<li><strong>Never return stack pointers:</strong> Do not return a pointer to a local variable.</li>
+<li><strong>Use heap for returns:</strong> Allocate memory on the heap inside the function.</li>
+<li><strong>Document responsibility:</strong> The caller must <code>free</code> the returned pointer.</li>
+<li><strong>Or use arguments:</strong> Pass a pointer to a buffer provided by the caller.</li>
+</ol>
+<pre><code class="language-c">// BAD: Returns pointer to local stack variable
+int *bad(int n) {
+    int arr[4];
+    return arr; // Undefined behavior
+}
+
+// GOOD: Returns heap pointer
+int *good(int n) {
+    int *arr = malloc(sizeof(int) * 4);
+    // fill arr
+    return arr; // Caller must free(arr)
+}
+</code></pre>
+<h1>Code Patterns &amp; Idioms</h1>
+<table>
+<thead>
+<tr>
+<th align="left">Pattern name</th>
+<th align="left">When to use it</th>
+<th align="left">Correct minimal example</th>
+<th align="left">Common bug + how to avoid it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Safe Allocation</strong></td>
+<td align="left">Whenever using <code>malloc</code>.</td>
+<td align="left"><code>int *p = malloc(sizeof(int) * n);</code></td>
+<td align="left">Forgetting <code>sizeof</code>. <strong>Fix:</strong> Always use <code>sizeof(type) * count</code>.</td>
+</tr>
+<tr>
+<td align="left"><strong>Safe Free</strong></td>
+<td align="left">Whenever using <code>malloc</code>.</td>
+<td align="left"><code>free(p); p = NULL;</code></td>
+<td align="left">Accessing <code>p</code> after <code>free</code>. <strong>Fix:</strong> Set <code>p = NULL</code> immediately.</td>
+</tr>
+<tr>
+<td align="left"><strong>Growing Array</strong></td>
+<td align="left">When input size is unknown.</td>
+<td align="left"><code>if (len == size) { ... double size; ... }</code></td>
+<td align="left">Growing by 1. <strong>Fix:</strong> Always double capacity (<code>size * 2</code>).</td>
+</tr>
+<tr>
+<td align="left"><strong>Heap Return</strong></td>
+<td align="left">Function creates data to return.</td>
+<td align="left"><code>int *ret = malloc(...); return ret;</code></td>
+<td align="left">Caller forgetting to <code>free</code>. <strong>Fix:</strong> Caller must <code>free</code> returned pointer.</td>
+</tr>
+<tr>
+<td align="left"><strong>Argument Pointer</strong></td>
+<td align="left">Function modifies caller&#39;s data.</td>
+<td align="left"><code>void func(int *arr, int len);</code></td>
+<td align="left">Returning pointer to local. <strong>Fix:</strong> Use heap or pass caller&#39;s buffer.</td>
+</tr>
+</tbody></table>
+<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<ul>
+<li><strong>Memory Leak:</strong> Allocating with <code>malloc</code> but never calling <code>free</code>.<ul>
+<li><em>Symptom:</em> Program runs fine but consumes increasing memory; crashes eventually.</li>
+<li><em>Fix:</em> Ensure every <code>malloc</code> has a corresponding <code>free</code>.</li>
+</ul>
+</li>
+<li><strong>Dangling Pointer:</strong> Accessing memory after <code>free</code>.<ul>
+<li><em>Symptom:</em> Crash (segfault) or garbage values printed.</li>
+<li><em>Fix:</em> Set pointer to <code>NULL</code> after <code>free</code>.</li>
+</ul>
+</li>
+<li><strong>Returning Stack Pointer:</strong> Returning address of local variable.<ul>
+<li><em>Symptom:</em> Crash or garbage values (undefined behavior).</li>
+<li><em>Fix:</em> Allocate on heap or pass buffer as argument.</li>
+</ul>
+</li>
+<li><strong>Fixed Size Heap Array:</strong> Allocating fixed size on heap but not growing.<ul>
+<li><em>Symptom:</em> Program fails if input exceeds allocated size.</li>
+<li><em>Fix:</em> Implement growing array logic (doubling).</li>
+</ul>
+</li>
+<li><strong>Incorrect <code>sizeof</code>:</strong> Using <code>sizeof(arr)</code> instead of <code>sizeof(int)</code>.<ul>
+<li><em>Symptom:</em> Allocating only 4 bytes for an array of ints.</li>
+<li><em>Fix:</em> Use <code>sizeof(type) * count</code>.</li>
+</ul>
+</li>
+<li><strong><code>realloc</code> Avoidance:</strong> Slides explicitly advise against <code>realloc</code> for beginners.<ul>
+<li><em>Symptom:</em> Mistakes in <code>realloc</code> usage lead to data loss.</li>
+<li><em>Fix:</em> Use the &quot;allocate new, copy, free old&quot; pattern.</li>
+</ul>
+</li>
+<li><strong><code>size_t</code> Usage:</strong> Using <code>int</code> for array indices/sizes.<ul>
+<li><em>Symptom:</em> Compiler warnings or logic errors with large sizes.</li>
+<li><em>Fix:</em> Use <code>size_t</code> for sizes and indices.</li>
+</ul>
+</li>
+<li><strong><code>NULL</code> Check:</strong> Not checking if <code>malloc</code> returned <code>NULL</code>.<ul>
+<li><em>Symptom:</em> Dereferencing <code>NULL</code> pointer immediately.</li>
+<li><em>Fix:</em> <code>if (ptr == NULL) { error handling; }</code>.</li>
+</ul>
+</li>
+<li><strong>Lifetime Mismatch:</strong> Using a pointer after the scope it was created ends.<ul>
+<li><em>Symptom:</em> Crash or garbage.</li>
+<li><em>Fix:</em> Ensure data lifetime &gt; pointer usage lifetime.</li>
+</ul>
+</li>
+<li><strong>Compiler Differences:</strong> <code>gcc</code> might return <code>NULL</code> for returning stack pointer; <code>clang</code> might overwrite stack.<ul>
+<li><em>Symptom:</em> Inconsistent behavior across compilers.</li>
+<li><em>Fix:</em> Never rely on undefined behavior; use heap for returns.</li>
+</ul>
+</li>
+<li><strong>Memory Diagram Confusion:</strong> Confusing stack addresses with heap addresses.<ul>
+<li><em>Symptom:</em> Misinterpreting memory layout.</li>
+<li><em>Fix:</em> Remember stack grows down, heap grows up (conceptually).</li>
+</ul>
+</li>
+<li><strong><code>free</code> Return Value:</strong> <code>free</code> returns <code>void</code>.<ul>
+<li><em>Symptom:</em> Trying to assign result of <code>free</code>.</li>
+<li><em>Fix:</em> <code>free(p);</code> (no return value).</li>
+</ul>
+</li>
+<li><strong><code>sizeof</code> on Pointer:</strong> <code>sizeof(p)</code> gives pointer size, not array size.<ul>
+<li><em>Symptom:</em> Allocating wrong amount of memory.</li>
+<li><em>Fix:</em> Use <code>sizeof(int)</code> for element size.</li>
+</ul>
+</li>
+<li><strong>Global/Static Data:</strong> Returning pointers to global/static is valid.<ul>
+<li><em>Symptom:</em> Thinking all pointers are dangerous.</li>
+<li><em>Fix:</em> Valid lifetimes include global/static data.</li>
+</ul>
+</li>
+<li><strong><code>strchr</code> Example:</strong> Returning pointer to found char in string.<ul>
+<li><em>Symptom:</em> Not understanding why it works (pointer to input string).</li>
+<li><em>Fix:</em> Input string lifetime must outlive function call.</li>
+</ul>
+</li>
+<li><strong><code>digits</code> Practice:</strong> Returning array of digits.<ul>
+<li><em>Symptom:</em> Returning stack array.</li>
+<li><em>Fix:</em> Must allocate heap array inside function.</li>
+</ul>
+</li>
+</ul>
+<h1>Exam-Style Questions (with answers)</h1>
+<ol>
+<li><p><strong>Q:</strong> What is the output of the following code?</p>
+<pre><code class="language-c">int *p = malloc(sizeof(int) * 10);
+p[0] = 5;
+free(p);
+printf(&quot;%d&quot;, p[0]);
+</code></pre>
+<p><strong>A:</strong> Undefined behavior (likely crash or garbage). <code>p</code> is a dangling pointer after <code>free</code>.</p>
+</li>
+<li><p><strong>Q:</strong> Why is <code>int arr[1000];</code> inside <code>main</code> different from <code>int *arr = malloc(sizeof(int)*1000);</code>?
+<strong>A:</strong> The first is on the stack with lifetime tied to <code>main</code>&#39;s scope. The second is on the heap with lifetime tied to when <code>free</code> is called.</p>
+</li>
+<li><p><strong>Q:</strong> If you allocate memory with <code>malloc</code>, what must you do before the program exits?
+<strong>A:</strong> You must call <code>free</code> to prevent memory leaks.</p>
+</li>
+<li><p><strong>Q:</strong> What is the time complexity of appending to an array that grows by 1 element each time?
+<strong>A:</strong> O(n�) total for n insertions (worst case O(n) per append).</p>
+</li>
+<li><p><strong>Q:</strong> Why do we set a pointer to <code>NULL</code> after calling <code>free</code>?
+<strong>A:</strong> To prevent accidental dereferencing of a dangling pointer.</p>
+</li>
+<li><p><strong>Q:</strong> Can you return a pointer to a local variable from a function?
+<strong>A:</strong> No, it is undefined behavior because the stack frame is deallocated when the function returns.</p>
+</li>
+<li><p><strong>Q:</strong> What is the difference between <code>size_t</code> and <code>int</code>?
+<strong>A:</strong> <code>size_t</code> is an unsigned type guaranteed to be large enough for any object size; <code>int</code> is signed and may be smaller.</p>
+</li>
+<li><p><strong>Q:</strong> In the doubling strategy, why do we double the capacity instead of adding 1?
+<strong>A:</strong> Doubling ensures amortized constant time insertion (O(1) average), whereas adding 1 leads to O(n) per insertion.</p>
+</li>
+<li><p><strong>Q:</strong> What happens if you call <code>free</code> on a pointer that was never allocated with <code>malloc</code>?
+<strong>A:</strong> Undefined behavior (likely crash).</p>
+</li>
+<li><p><strong>Q:</strong> If a function returns a pointer to heap memory, who is responsible for freeing it?
+<strong>A:</strong> The caller is responsible for freeing the memory.</p>
+</li>
+<li><p><strong>Q:</strong> What is the purpose of <code>size_t</code> in <code>malloc</code>?
+<strong>A:</strong> To specify the number of bytes to allocate.</p>
+</li>
+<li><p><strong>Q:</strong> Why is <code>realloc</code> avoided in this lecture?
+<strong>A:</strong> Users often make mistakes with <code>realloc</code>, and there is no analogous function in C++ (so we avoid the habit).</p>
+</li>
+</ol>
+<h1>Quick Reference / Cheat Sheet</h1>
+<ul>
+<li><strong>Allocation:</strong> <code>int *ptr = malloc(sizeof(int) * count);</code></li>
+<li><strong>Deallocation:</strong> <code>free(ptr); ptr = NULL;</code></li>
+<li><strong>Check Allocation:</strong> <code>if (ptr == NULL) { /* error */ }</code></li>
+<li><strong>Growing Array:</strong><ol>
+<li><code>newArr = malloc(sizeof(int) * (size * 2));</code></li>
+<li><code>copy(oldArr, newArr, len);</code></li>
+<li><code>free(oldArr);</code></li>
+<li><code>ptr = newArr;</code></li>
+</ol>
+</li>
+<li><strong>Return Pointer:</strong> Must be heap-allocated or global/static.</li>
+<li><strong>Size Type:</strong> Always use <code>size_t</code> for sizes/indices.</li>
+<li><strong>Rule:</strong> Never access memory after <code>free</code>.</li>
+<li><strong>Rule:</strong> Never return pointer to local stack variable.</li>
+<li><strong>Rule:</strong> Caller must <code>free</code> heap memory returned by function.</li>
+</ul>
+<h1>Mini Glossary</h1>
+<ol>
+<li><strong>Stack:</strong> Memory region for automatic variables; lifetime tied to scope.</li>
+<li><strong>Heap:</strong> Memory region for dynamic variables; lifetime managed by programmer.</li>
+<li><strong>Pointer:</strong> Variable storing a memory address.</li>
+<li><strong>Dangling Pointer:</strong> Pointer to freed or out-of-scope memory.</li>
+<li><strong>Memory Leak:</strong> Failure to free allocated memory.</li>
+<li><strong>malloc:</strong> Function to allocate heap memory.</li>
+<li><strong>free:</strong> Function to deallocate heap memory.</li>
+<li><strong>size_t:</strong> Unsigned integer type for sizes.</li>
+<li><strong>Undefined Behavior:</strong> Behavior not specified by the language standard (e.g., accessing freed memory).</li>
+<li><strong>Amortized:</strong> Average cost over a sequence of operations.</li>
+<li><strong>Scope:</strong> Region of code where a variable is visible.</li>
+<li><strong>Lifetime:</strong> Duration a variable/memory is valid.</li>
+<li><strong>Stack Frame:</strong> Memory block for a function call on the stack.</li>
+<li><strong>Heap Block:</strong> Contiguous memory allocated on the heap.</li>
+<li><strong>NULL:</strong> Null pointer constant (0).</li>
+<li><strong>sizeof:</strong> Operator to get size of type/variable in bytes.</li>
+<li><strong>Dereference:</strong> Accessing memory pointed to by a pointer.</li>
+<li><strong>Allocation Failure:</strong> When <code>malloc</code> returns <code>NULL</code>.</li>
+<li><strong>Global Data:</strong> Data stored in global scope (lifetime = program).</li>
+<li><strong>Static Data:</strong> Data stored in static storage (lifetime = program).</li>
+</ol>
+<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<ul>
+<li><strong>C++ Smart Pointers:</strong> <code>std::unique_ptr</code>, <code>std::shared_ptr</code>, <code>std::vector</code> are not covered (slides focus on raw C pointers).</li>
+<li><strong><code>realloc</code>:</strong> The slides explicitly advise against using <code>realloc</code> for beginners.</li>
+<li><strong>Memory Alignment:</strong> Details about memory alignment requirements are not covered.</li>
+<li><strong>Stack Overflow:</strong> While stack size limits are implied, specific stack overflow handling is not detailed.</li>
+<li><strong>Heap Fragmentation:</strong> The internal workings of the heap allocator (fragmentation) are not covered.</li>
+<li><strong><code>strchr</code> Implementation:</strong> While <code>strchr</code> is used as an example, its full standard behavior (handling <code>NULL</code> input) is not detailed beyond the snippet.</li>
+<li><strong><code>digits</code> Function:</strong> The practice question for <code>digits</code> is listed but not solved in the slides.</li>
+<li><strong><code>primes</code> Function:</strong> The practice question for <code>primes</code> is listed but not solved.</li>
+<li><strong><code>str_to_int</code> Function:</strong> The practice question for <code>str_to_int</code> is listed but not solved.</li>
+</ul>
+<h1>Slide Anchors (Traceability)</h1>
+<ul>
+<li><strong>Problem of Unknown Input Size:</strong> (Slide 2) &quot;We don&#39;t know how many integers the user is going to type.&quot;</li>
+<li><strong>Stack vs Heap vs Data:</strong> (Slide 5) &quot;stack | stores data whose lifetime is tied to their enclosing scope.&quot;</li>
+<li><strong><code>malloc</code> Definition:</strong> (Slide 7) &quot;mallocallocates the bytes asked for (if able) and returns a pointer to the first byte allocated.&quot;</li>
+<li><strong><code>size_t</code> Type:</strong> (Slide 8) &quot;sizetis an unsigned integral type that is guaranteed to be large enough to store the size of any possible data type.&quot;</li>
+<li><strong><code>free</code> Definition:</strong> (Slide 11) &quot;Whenever you are finished with heap-allocated memory you must free it | failure to do so is called a memory leak.&quot;</li>
+<li><strong>Dangling Pointers:</strong> (Slide 13) &quot;Pointers that store an address of memory that has already been freed are said to be dangling.&quot;</li>
+<li><strong>Growing Array Strategy:</strong> (Slide 16) &quot;We can grow our array by allocating a new and larger copy each time we reach our capacity.&quot;</li>
+<li><strong>Doubling Strategy:</strong> (Slide 23) &quot;Solution: every time our array requires more space, double the capacity.&quot;</li>
+<li><strong>Amortized Constant:</strong> (Slide 24) &quot;By doubling everytime we have an amortized constant append time.&quot;</li>
+<li><strong>Returning Stack Pointers (Bad):</strong> (Slide 31) &quot;genMultiplesis returning a dangling pointer!&quot;</li>
+<li><strong>When to Return Pointer:</strong> (Slide 34) &quot;A pointer can be returned when the lifetime of the data it points at is longer than the function which was called.&quot;</li>
+<li><strong>Caller Responsibility:</strong> (Slide 37) &quot;The caller must be aware this function returns a heap-allocated array and they, the caller, are responsible for freeing it.&quot;</li>
+<li><strong>Lifetime Details:</strong> (Slide 38) &quot;Whenever using pointers you must be be aware of the lifetime of the data you assign a pointer to!&quot;</li>
+<li><strong>Practice Questions:</strong> (Slide 26, 39) Lists <code>primes</code>, <code>str_to_int</code>, <code>digits</code> as exercises.y</li>
+</ul>
+
+    </article>
+  </main>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>structs.pdf - CMPUT 275 Summaries</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="global-nav">
+    <a href="/">Home</a>
+    <a href="/slides/" class="active">Slides</a>
+    <a href="/code/">Code</a>
+  </nav>
+
+  <main class="page-content">
+    <div class="breadcrumb">
+      <a href="/slides/">Slides</a>
+      <span>/</span>
+      <span>structs.pdf</span>
+    </div>
+    <article class="summary-content">
+      <h1>Lecture Identity</h1>
+<p><strong>File/lecture name:</strong> structs.pdf
+<strong>Main theme:</strong> C Structures, Memory Layout, and Abstract Data Types (ADTs)
+<strong>Prereqs assumed by slides:</strong> Basic C syntax (variables, functions, <code>malloc</code>, <code>free</code>), understanding of stack frames and memory addresses.
+<strong>What this lecture enables you to do:</strong></p>
+<ul>
+<li>Group multiple variables into a single logical unit using <code>struct</code>.</li>
+<li>Decide when to pass structures by value vs. by pointer (and how to handle mutation).</li>
+<li>Implement a simple Abstract Data Type (ADT) using a linked list.</li>
+<li>Manage memory for dynamic data structures (nodes and lists) safely.</li>
+<li>Understand the memory layout of structures and the difference between <code>.</code> and <code>-&gt;</code> operators.</li>
+</ul>
+<h1>Big Picture Map (High-Level)</h1>
+<ol>
+<li><strong>Motivation:</strong> Introduction to aggregate data types to solve the &quot;too many parameters&quot; problem in functions (e.g., <code>collides</code>).</li>
+<li><strong>Basic Structures:</strong> Defining a <code>struct</code>, declaring variables, and accessing members with the dot operator.</li>
+<li><strong>Memory Layout:</strong> Understanding that struct fields are contiguous in memory and how copying works.</li>
+<li><strong>Structures and Functions:</strong> Passing structs by value vs. by pointer; the <code>translate</code> function example showing mutation issues.</li>
+<li><strong>The Arrow Operator:</strong> Syntax for accessing struct members through pointers (<code>-&gt;</code>) vs. dereferencing (<code>(*p).f</code>).</li>
+<li><strong>Abstract Data Types (ADTs):</strong> Concept of hiding implementation details (e.g., <code>List</code> ADT).</li>
+<li><strong>Linked List Implementation:</strong> Defining <code>Node</code> and <code>List</code> structs, and implementing <code>createList</code>, <code>addToFront</code>, <code>ith</code>, <code>setElem</code>, <code>removeItem</code>.</li>
+<li><strong>Memory Management:</strong> Recursive <code>deleteNode</code> and <code>deleteList</code> to prevent memory leaks and dangling pointers.</li>
+<li><strong>Encapsulation Issues:</strong> Problems with exposing internal <code>Node</code> structs to the client programmer.</li>
+<li><strong>Reusability:</strong> Challenges of copying ADT definitions across programs and the need for better hiding.</li>
+</ol>
+<h1>Key Concepts &amp; Definitions</h1>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Definition</th>
+<th align="left">Why it matters</th>
+<th align="left">Common confusion / misconception</th>
+<th align="left">Tiny example</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Structure (<code>struct</code>)</strong></td>
+<td align="left">A user-defined aggregate data type that groups related variables of different types.</td>
+<td align="left">Allows passing complex data as a single unit to functions.</td>
+<td align="left">Structures are not objects (no methods/constructors in C).</td>
+<td align="left"><code>struct Rect { int x, y, w, h; };</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Dot Operator (<code>.</code>)</strong></td>
+<td align="left">Accesses a member of a structure when the left operand is a structure variable.</td>
+<td align="left">Direct access to fields without dereferencing.</td>
+<td align="left">Cannot be used on pointers to structures.</td>
+<td align="left"><code>r1.x = 5;</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Arrow Operator (<code>-&gt;</code>)</strong></td>
+<td align="left">Accesses a member of a structure when the left operand is a pointer to that structure.</td>
+<td align="left">Shorthand for <code>(*ptr).member</code>.</td>
+<td align="left"><code>ptr-&gt;x</code> is preferred over <code>(*ptr).x</code>.</td>
+<td align="left"><code>r-&gt;y = r-&gt;y + y;</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Structure Memory Layout</strong></td>
+<td align="left">Fields are stored contiguously in memory in declaration order (with potential padding).</td>
+<td align="left">Affects <code>sizeof</code> and how copying works.</td>
+<td align="left">Fields are not necessarily adjacent due to alignment/padding.</td>
+<td align="left"><code>sizeof(r1)</code> includes padding.</td>
+</tr>
+<tr>
+<td align="left"><strong>Abstract Data Type (ADT)</strong></td>
+<td align="left">A data type where the user interacts only via an interface, not the internal implementation.</td>
+<td align="left">Enables encapsulation and reusability.</td>
+<td align="left">C does not have built-in ADTs like Python&#39;s <code>list</code>.</td>
+<td align="left"><code>List</code> ADT hides <code>Node</code> details.</td>
+</tr>
+<tr>
+<td align="left"><strong>Linked List</strong></td>
+<td align="left">A data structure where nodes contain data and a pointer to the next node.</td>
+<td align="left">Allows dynamic sizing and efficient insertion/deletion at front.</td>
+<td align="left"><code>ith</code> operation is $O(n)$, not $O(1)$.</td>
+<td align="left"><code>struct Node { int data; struct Node *next; };</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Dangling Pointer</strong></td>
+<td align="left">A pointer that points to memory that has been freed.</td>
+<td align="left">Accessing it causes undefined behavior/crashes.</td>
+<td align="left"><code>free(n)</code> before accessing <code>n-&gt;next</code>.</td>
+<td align="left"><code>deleteNode(n-&gt;next); free(n);</code></td>
+</tr>
+<tr>
+<td align="left"><strong>Stack Frame Copy</strong></td>
+<td align="left">C copies structures by value onto the stack frame when passed to functions.</td>
+<td align="left">Efficient for small structs, inefficient for large ones.</td>
+<td align="left">Large structs should be passed by pointer.</td>
+<td align="left"><code>translate(r1, ...)</code> copies <code>r1</code>.</td>
+</tr>
+</tbody></table>
+<h1>Core Mechanics / How-To</h1>
+<ol>
+<li><p><strong>How to Define a Structure:</strong></p>
+<ul>
+<li>Use <code>struct TypeName { ... };</code></li>
+<li><strong>Crucial:</strong> End the definition with a semicolon (<code>;</code>).</li>
+<li><strong>Example:</strong><pre><code class="language-c">struct Rect {
+    int x, y, w, h;
+};
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p><strong>How to Declare and Initialize a Structure:</strong></p>
+<ul>
+<li>Use <code>struct TypeName varName;</code></li>
+<li>Use aggregate initialization <code>{ .field = val, ... }</code> for clarity.</li>
+<li><strong>Example:</strong><pre><code class="language-c">struct Rect r1 = {.x=1, .y=5, .h=1, .w=1};
+</code></pre>
+</li>
+</ul>
+</li>
+<li><p><strong>How to Choose Passing Style (Value vs. Pointer):</strong></p>
+<ul>
+<li><strong>Pass by Value:</strong> Use when the function does not need to mutate the struct, or the struct is small.</li>
+<li><strong>Pass by Pointer:</strong> Use when the function needs to mutate the struct or the struct is large (to avoid copying).</li>
+<li><strong>Decision:</strong> If you want to change <code>r.x</code> inside the function, you <em>must</em> pass <code>&amp;r</code> or a pointer.</li>
+</ul>
+</li>
+<li><p><strong>How to Access Members via Pointer:</strong></p>
+<ul>
+<li><strong>Syntax:</strong> <code>ptr-&gt;member</code></li>
+<li><strong>Logic:</strong> <code>ptr-&gt;member</code> is equivalent to <code>(*ptr).member</code>.</li>
+<li><strong>Precedence:</strong> The dot operator binds tighter than dereference. <code>*r.x</code> is wrong; <code>(*r).x</code> or <code>r-&gt;x</code> is correct.</li>
+</ul>
+</li>
+<li><p><strong>How to Implement an ADT Interface:</strong></p>
+<ul>
+<li><strong>Hide Implementation:</strong> Do not expose <code>struct Node</code> to the client.</li>
+<li><strong>Provide Interface:</strong> Create functions like <code>createList()</code>, <code>addToFront()</code>, <code>deleteList()</code>.</li>
+<li><strong>Return Pointers:</strong> Return pointers from creation functions to avoid copying the whole struct.</li>
+</ul>
+</li>
+<li><p><strong>How to Free a Linked List Safely:</strong></p>
+<ul>
+<li><strong>Rule:</strong> Free the <code>next</code> node <em>before</em> freeing the current node.</li>
+<li><strong>Reason:</strong> If you free the current node, <code>next</code> becomes a dangling pointer.</li>
+<li><strong>Pattern:</strong> Recursive <code>deleteNode(n-&gt;next); free(n);</code>.</li>
+</ul>
+</li>
+</ol>
+<h1>Code Patterns &amp; Idioms</h1>
+<table>
+<thead>
+<tr>
+<th align="left">Pattern Name</th>
+<th align="left">When to use it</th>
+<th align="left">Correct minimal example</th>
+<th align="left">Common bug + how to avoid it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>Struct Initialization</strong></td>
+<td align="left">When declaring a struct variable.</td>
+<td align="left"><code>struct Rect r = {.x=0, .y=0};</code></td>
+<td align="left">Forgetting the semicolon after the closing brace.</td>
+</tr>
+<tr>
+<td align="left"><strong>Pointer Member Access</strong></td>
+<td align="left">When the variable is a pointer to a struct.</td>
+<td align="left"><code>r-&gt;x = 5;</code></td>
+<td align="left">Using <code>r.x</code> when <code>r</code> is a pointer (compile error).</td>
+</tr>
+<tr>
+<td align="left"><strong>Const Pointer to Struct</strong></td>
+<td align="left">When passing a struct to a function without mutation.</td>
+<td align="left"><code>void func(const struct Rect *r);</code></td>
+<td align="left">Forgetting <code>const</code> (allows accidental mutation).</td>
+</tr>
+<tr>
+<td align="left"><strong>Recursive Deletion</strong></td>
+<td align="left">When freeing a linked list.</td>
+<td align="left"><code>deleteNode(n-&gt;next); free(n);</code></td>
+<td align="left">Freeing <code>n</code> before <code>n-&gt;next</code> (dangling pointer).</td>
+</tr>
+<tr>
+<td align="left"><strong>ADT Creation</strong></td>
+<td align="left">When initializing a dynamic list.</td>
+<td align="left"><code>struct List *l = createList();</code></td>
+<td align="left">Declaring <code>struct List l;</code> directly (stack allocation).</td>
+</tr>
+</tbody></table>
+<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<ul>
+<li><strong>Symptom:</strong> <code>r.x</code> works, but <code>r-&gt;x</code> fails.<ul>
+<li><strong>Likely cause:</strong> <code>r</code> is a pointer, not a struct variable.</li>
+<li><strong>Fix:</strong> Use <code>r-&gt;x</code> or dereference <code>(*r).x</code>.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>translate</code> function does not change <code>r1</code> in <code>main</code>.<ul>
+<li><strong>Likely cause:</strong> <code>translate</code> takes <code>struct Rect r</code> (copy), so changes are local.</li>
+<li><strong>Fix:</strong> Change signature to <code>void translate(struct Rect *r, ...)</code> and pass <code>&amp;r1</code>.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> Program crashes after <code>deleteList</code>.<ul>
+<li><strong>Likely cause:</strong> Accessing memory after <code>free</code> (dangling pointer).</li>
+<li><strong>Fix:</strong> Ensure <code>deleteList</code> is called exactly once and no pointers to freed nodes are used.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>sizeof(r1)</code> is larger than expected.<ul>
+<li><strong>Likely cause:</strong> Memory padding for byte alignment.</li>
+<li><strong>Fix:</strong> Accept this; it is standard behavior for performance.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>ith</code> function is slow ($O(n)$).<ul>
+<li><strong>Likely cause:</strong> Linked list traversal required for random access.</li>
+<li><strong>Fix:</strong> Use an array-based list or expose <code>Node</code> pointer (breaks ADT).</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> Memory leak in <code>deleteList</code>.<ul>
+<li><strong>Likely cause:</strong> <code>free(l)</code> called but nodes inside <code>l-&gt;head</code> not freed.</li>
+<li><strong>Fix:</strong> Call <code>deleteNode(l-&gt;head)</code> before <code>free(l)</code>.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> Client can modify <code>Node</code> fields directly.<ul>
+<li><strong>Likely cause:</strong> <code>struct Node</code> is exposed in header.</li>
+<li><strong>Fix:</strong> Hide <code>struct Node</code> definition; only expose <code>struct List</code>.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>(*r).x</code> vs <code>r-&gt;x</code> confusion.<ul>
+<li><strong>Likely cause:</strong> Operator precedence misunderstanding.</li>
+<li><strong>Fix:</strong> Memorize <code>ptr-&gt;field</code> is the standard idiom.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>malloc</code> returns <code>NULL</code>.<ul>
+<li><strong>Likely cause:</strong> System memory exhausted.</li>
+<li><strong>Fix:</strong> Check return value of <code>malloc</code> before dereferencing.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>removeItem</code> fails to update <code>len</code>.<ul>
+<li><strong>Likely cause:</strong> Forgetting <code>l-&gt;len = l-&gt;len - 1;</code>.</li>
+<li><strong>Fix:</strong> Always update metadata fields after structural change.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>createList</code> returns pointer to stack variable.<ul>
+<li><strong>Likely cause:</strong> <code>struct List l;</code> inside function, returned by value.</li>
+<li><strong>Fix:</strong> Use <code>malloc</code> for heap allocation in <code>createList</code>.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>struct</code> definition missing semicolon.<ul>
+<li><strong>Likely cause:</strong> Typo in definition line.</li>
+<li><strong>Fix:</strong> Add <code>;</code> after closing brace.</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>sizeof</code> returns wrong size.<ul>
+<li><strong>Likely cause:</strong> Compiler padding differences.</li>
+<li><strong>Fix:</strong> Use <code>#pragma pack</code> if strict layout is needed (advanced).</li>
+</ul>
+</li>
+<li><strong>Symptom:</strong> <code>translate</code> modifies <code>r</code> but <code>main</code> sees old value.<ul>
+<li><strong>Likely cause:</strong> Passing by value.</li>
+<li><strong>Fix:</strong> Pass by pointer <code>struct Rect *r</code>.</li>
+</ul>
+</li>
+</ul>
+<h1>Exam-Style Questions (with answers)</h1>
+<ol>
+<li><strong>Q:</strong> What is the output of <code>printf(&quot;%lu\n&quot;, sizeof(r1));</code> if <code>struct Rect</code> has 4 <code>int</code> fields?
+<strong>A:</strong> Depends on architecture (e.g., 16 or 32 bytes), but it will be a multiple of the alignment unit (e.g., 4 or 8). It is not necessarily 16 bytes due to padding.</li>
+<li><strong>Q:</strong> Why does <code>r1.x = 5;</code> work but <code>r1-&gt;x = 5;</code> fail if <code>r1</code> is declared as <code>struct Rect r1</code>?
+<strong>A:</strong> <code>r1</code> is a struct variable, not a pointer. The arrow operator <code>-&gt;</code> is only for pointers.</li>
+<li><strong>Q:</strong> In <code>void translate(struct Rect *r, int x, int y)</code>, why is <code>(*r).x</code> valid but <code>r.x</code> invalid?
+<strong>A:</strong> <code>r</code> is a pointer. <code>r.x</code> tries to access a member of the pointer itself (which is an address), not the struct it points to. <code>(*r)</code> dereferences it first.</li>
+<li><strong>Q:</strong> What happens if you call <code>free(l)</code> in <code>deleteList</code> before calling <code>deleteNode(l-&gt;head)</code>?
+<strong>A:</strong> Undefined behavior. <code>l-&gt;head</code> becomes a dangling pointer. Accessing it later crashes.</li>
+<li><strong>Q:</strong> Why is <code>ith</code> function $O(n)$?
+<strong>A:</strong> Linked lists do not support random access. You must traverse from <code>head</code> to the <code>ind</code>-th node.</li>
+<li><strong>Q:</strong> How do you prevent a client from creating <code>struct Node</code> directly?
+<strong>A:</strong> Do not expose the <code>struct Node</code> definition in the header file; only expose functions that operate on <code>struct List</code>.</li>
+<li><strong>Q:</strong> What is the difference between <code>struct List l;</code> and <code>struct List *l = malloc(...)</code>?
+<strong>A:</strong> The first is a stack variable (local scope, fixed size). The second is a heap variable (dynamic size, must be freed).</li>
+<li><strong>Q:</strong> Why is <code>struct Rect r1 = {.x=1, ...};</code> valid syntax?
+<strong>A:</strong> It uses aggregate initialization, allowing you to specify fields by name.</li>
+<li><strong>Q:</strong> If <code>r</code> is a pointer to <code>struct Rect</code>, what does <code>r-&gt;x</code> mean?
+<strong>A:</strong> It means <code>(*r).x</code>. It accesses the <code>x</code> field of the struct pointed to by <code>r</code>.</li>
+<li><strong>Q:</strong> What is the purpose of <code>assert(ind &lt; l-&gt;len);</code> in <code>ith</code>?
+<strong>A:</strong> It checks for out-of-bounds access before traversing the list.</li>
+<li><strong>Q:</strong> Why is <code>return l;</code> in <code>addToFront</code> necessary?
+<strong>A:</strong> To allow the caller to continue using the list pointer without needing to update the local variable manually.</li>
+<li><strong>Q:</strong> What is the memory layout of <code>struct Rect</code>?
+<strong>A:</strong> Fields are contiguous in memory in declaration order (<code>x</code>, <code>y</code>, <code>w</code>, <code>h</code>), potentially with padding between them.</li>
+</ol>
+<h1>Quick Reference / Cheat Sheet</h1>
+<ul>
+<li><strong>Struct Definition:</strong> <code>struct Name { type field; };</code> (Semicolon required!)</li>
+<li><strong>Variable Declaration:</strong> <code>struct Name var;</code></li>
+<li><strong>Member Access (Value):</strong> <code>var.field</code></li>
+<li><strong>Member Access (Pointer):</strong> <code>ptr-&gt;field</code></li>
+<li><strong>Dereference + Access:</strong> <code>(*ptr).field</code></li>
+<li><strong>Size of Struct:</strong> <code>sizeof(var)</code> (includes padding)</li>
+<li><strong>Dynamic Allocation:</strong> <code>malloc(sizeof(struct Name))</code></li>
+<li><strong>Freeing:</strong> <code>free(ptr)</code> (Only once per allocation)</li>
+<li><strong>Const Pointer:</strong> <code>const struct Name *ptr</code> (Read-only access)</li>
+<li><strong>ADT Creation:</strong> <code>struct Name *createName() { ... malloc ... return ptr; }</code></li>
+<li><strong>Linked List Node:</strong> <code>struct Node { int data; struct Node *next; };</code></li>
+<li><strong>Linked List List:</strong> <code>struct List { struct Node *head; size_t len; };</code></li>
+<li><strong>Delete Pattern:</strong> <code>deleteNode(n-&gt;next); free(n);</code></li>
+</ul>
+<h1>Mini Glossary</h1>
+<ol>
+<li><strong>Aggregate Data Type:</strong> A type that groups multiple data items into a single unit (e.g., <code>struct</code>).</li>
+<li><strong>Structure (<code>struct</code>):</strong> A C type that bundles variables of different types.</li>
+<li><strong>Dot Operator (<code>.</code>):</strong> Accesses a member of a structure variable.</li>
+<li><strong>Arrow Operator (<code>-&gt;</code>):</strong> Accesses a member of a structure via a pointer.</li>
+<li><strong>Stack Frame:</strong> The memory block allocated for a function call, containing local variables.</li>
+<li><strong>Heap:</strong> Memory allocated dynamically (via <code>malloc</code>) that persists beyond the stack frame.</li>
+<li><strong>Padding:</strong> Extra bytes inserted between struct fields for memory alignment.</li>
+<li><strong>Abstract Data Type (ADT):</strong> A type defined by its behavior (interface) rather than implementation.</li>
+<li><strong>Linked List:</strong> A linear collection of data elements where each element points to the next.</li>
+<li><strong>Dangling Pointer:</strong> A pointer that points to memory that has been freed.</li>
+<li><strong>Mutation:</strong> Changing the value of a variable (e.g., <code>r.x = 5</code>).</li>
+<li><strong>Encapsulation:</strong> Hiding internal implementation details from the user.</li>
+<li><strong>Reusability:</strong> The ability to use code in multiple programs without modification.</li>
+<li><strong>Node:</strong> A single element in a linked list containing data and a pointer.</li>
+<li><strong>Head:</strong> The pointer to the first node in a linked list.</li>
+<li><strong>Len:</strong> The number of elements in a list (metadata).</li>
+<li><strong>Free:</strong> Function to deallocate memory returned by <code>malloc</code>.</li>
+<li><strong>Malloc:</strong> Function to allocate memory on the heap.</li>
+<li><strong>Undefined Behavior:</strong> Behavior that is not specified by the C standard (e.g., using freed memory).</li>
+<li><strong>Contiguous:</strong> Memory locations that are adjacent to each other.</li>
+</ol>
+<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<ul>
+<li><strong>C++ Classes:</strong> The slides explicitly state &quot;C is not object-oriented. C does not have classes.&quot;</li>
+<li><strong>C++ Constructors/Methods:</strong> Structures in C do not have constructors or methods.</li>
+<li><strong>STL Containers:</strong> The slides implement a custom linked list, not <code>std::vector</code> or <code>std::list</code>.</li>
+<li><strong>Graph Algorithms:</strong> While mentioned in the course description, shortest paths and graphs are not in these slides.</li>
+<li><strong>Dynamic Programming:</strong> Mentioned in course description, not covered in these slides.</li>
+<li><strong>Client-Server Computing:</strong> Mentioned in course description, not covered in these slides.</li>
+<li><strong>Recursion (Advanced):</strong> Only used for <code>deleteNode</code>, not general recursion patterns.</li>
+<li><strong>Bitwise Operations:</strong> Not covered in struct memory layout section.</li>
+<li><strong>Union Types:</strong> Not covered in this lecture.</li>
+<li><strong>Enum Types:</strong> Not covered in this lecture.</li>
+</ul>
+<h1>Slide Anchors (Traceability)</h1>
+<ul>
+<li><strong>Motivation for Structs:</strong> (Slide 3) &quot;That is a lot of parameters, which also means a lot of arguments we have to pass... lots of places for mistakes to occur.&quot;</li>
+<li><strong>Defining a Struct:</strong> (Slide 5) &quot;struct Rect { int x, y, w, h; };// semicolon important here!&quot;</li>
+<li><strong>Structs are not Objects:</strong> (Slide 5) &quot;Structures are not objects. We don&#39;t have constructors, we don&#39;t have methods...&quot;</li>
+<li><strong>Dot Operator Usage:</strong> (Slide 7) &quot;We use the dot operator when the operand on the left hand side is a structure...&quot;</li>
+<li><strong>Passing Structs by Value:</strong> (Slide 10) &quot;r1 hasn&#39;t changed... why?&quot; (Demonstrates copy semantics).</li>
+<li><strong>Structure Memory Layout:</strong> (Slide 11) &quot;Structures fields are contiguous in memory. They are laid out in the order they were declared...&quot;</li>
+<li><strong>Passing Pointers to Structures:</strong> (Slide 12) &quot;Copying large structures is inefficient. Passing a pointer is fast.&quot;</li>
+<li><strong>Arrow Operator:</strong> (Slide 14) &quot;The dot operator cannot be applied to pointers... there is an operator specifically for member access through a pointer | the arrow operator.&quot;</li>
+<li><strong>ADT Concept:</strong> (Slide 18) &quot;The user of an ADT should not need to know the implementation of an ADT...&quot;</li>
+<li><strong>Linked List Node:</strong> (Slide 20) &quot;struct Node { int data; struct Node *next; };&quot;</li>
+<li><strong>Initialization Function:</strong> (Slide 22) &quot;Why return a pointer? One reason is... it is typically more efficient to copy just a pointer...&quot;</li>
+<li><strong>addToFront Function:</strong> (Slide 24) &quot;struct List *addToFront(struct List *l, int val) { ... return l; }&quot;</li>
+<li><strong>ith Function Limitation:</strong> (Slide 25) &quot;Note: ith is O(n) which is very poor | it should be constant.&quot;</li>
+<li><strong>removeItem Function:</strong> (Slide 29) &quot;We must be careful to remove the old node from the list as well as freeing it.&quot;</li>
+<li><strong>Freeing Linked List:</strong> (Slide 30) &quot;One of the most effective methods to freeing an entire linked is is recursion.&quot;</li>
+<li><strong>Encapsulation Problem:</strong> (Slide 33) &quot;The client shouldn&#39;t even be able to create List structures directly, or Node structures at all!&quot;</li>
+<li><strong>Reusability Issue:</strong> (Slide 34) &quot;What if we decide to change how our List is implemented? We&#39;d have to change it in every program...&quot;</li>
+</ul>
+
+    </article>
+  </main>
+</body>
+</html>

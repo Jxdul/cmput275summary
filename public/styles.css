@@ -1,0 +1,282 @@
+/* CMPUT 275 Summaries - Global Styles */
+
+:root {
+  --color-bg: #0f1419;
+  --color-surface: #1a2332;
+  --color-surface-hover: #243044;
+  --color-text: #e6edf3;
+  --color-text-muted: #8b949e;
+  --color-accent: #58a6ff;
+  --color-accent-hover: #79b8ff;
+  --color-border: #30363d;
+  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  --max-content: 720px;
+  --nav-height: 56px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Global Navigation */
+.global-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: var(--nav-height);
+  padding: 0 2rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.global-nav a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.global-nav a:hover {
+  color: var(--color-accent);
+}
+
+.global-nav a.active {
+  color: var(--color-accent);
+}
+
+/* Page Content */
+.page-content {
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Intro Block (Home) */
+.intro-block {
+  margin-bottom: 3rem;
+}
+
+.intro-block h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 1rem;
+}
+
+.intro-description {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+/* Menu Cards */
+.menu-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.menu-card {
+  display: block;
+  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.menu-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+
+.menu-card h2 {
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem;
+}
+
+.menu-card p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Section Header */
+.section-header {
+  margin-bottom: 2rem;
+}
+
+.section-header h1 {
+  font-size: 1.75rem;
+  margin: 0;
+}
+
+/* Coming Soon */
+.coming-soon {
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  border-radius: 8px;
+}
+
+.coming-soon p {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+}
+
+.coming-soon-sub {
+  margin-top: 0.5rem !important;
+  font-size: 0.95rem !important;
+}
+
+/* Slides Index - Summary Cards */
+.slides-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.slide-card {
+  display: block;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.slide-card:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-accent);
+}
+
+.slide-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.35rem;
+}
+
+.slide-card .slide-theme {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb span {
+  color: var(--color-text-muted);
+  margin: 0 0.35rem;
+}
+
+/* Summary Content (generated pages) */
+.summary-content {
+  font-size: 0.95rem;
+}
+
+.summary-content h1 {
+  font-size: 1.5rem;
+  margin: 2rem 0 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.summary-content h1:first-of-type {
+  margin-top: 0;
+}
+
+.summary-content h2 {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.summary-content h3 {
+  font-size: 1.05rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.summary-content p {
+  margin: 0 0 1rem;
+}
+
+.summary-content ul,
+.summary-content ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.summary-content li {
+  margin-bottom: 0.35rem;
+}
+
+.summary-content strong {
+  color: var(--color-text);
+}
+
+.summary-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 0.15em 0.4em;
+  background: var(--color-surface);
+  border-radius: 4px;
+}
+
+.summary-content pre {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.summary-content pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .global-nav {
+    padding: 0 1rem;
+    gap: 1rem;
+  }
+
+  .page-content {
+    padding: 1.5rem;
+  }
+
+  .intro-block h1 {
+    font-size: 1.5rem;
+  }
+}

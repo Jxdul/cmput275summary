@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The shell and bash (Rob Hackman, Winter 2025, University of Alberta) - CMPUT 275 Summaries</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <nav class="global-nav">
+    <a href="/">Home</a>
+    <a href="/slides/" class="active">Slides</a>
+    <a href="/code/">Code</a>
+  </nav>
+
+  <main class="page-content">
+    <div class="breadcrumb">
+      <a href="/slides/">Slides</a>
+      <span>/</span>
+      <span>The shell and bash (Rob Hackman, Winter 2025, University of Alberta)</span>
+    </div>
+    <article class="summary-content">
+      <h1>Lecture Identity</h1>
+<p><strong>File/lecture name:</strong> The shell and bash (Rob Hackman, Winter 2025, University of Alberta)
+<strong>Main theme:</strong> Introduction to Operating System interfaces, Shell capabilities, and I/O redirection mechanisms.
+<strong>Prereqs assumed by slides:</strong> Basic familiarity with file systems, command line usage, and hardware resources.
+<strong>What this lecture enables you to do:</strong></p>
+<ul>
+<li>Understand the fundamental purposes of an operating system (resource management, security, file access).</li>
+<li>Define and utilize a Shell as a textual interface for system tasks.</li>
+<li>Chain programs together using pipes to process data streams.</li>
+<li>Redirect standard error and input streams to manage program output and file sources.</li>
+<li>Locate and execute system utilities using the PATH environment.</li>
+</ul>
+<h1>Big Picture Map (High-Level)</h1>
+<ol>
+<li><strong>Operating System Fundamentals:</strong> Review of OS purposes (hardware management, security, file access).</li>
+<li><strong>Shell Definition:</strong> Introduction to the Shell as a textual interface for tasks (run programs, manage files, terminate programs).</li>
+<li><strong>Variable Handling:</strong> Best practices for temporary files (<code>mktemp</code>) and variable expansion (<code>$()</code> vs <code>$</code>).</li>
+<li><strong>Pipes:</strong> Mechanism for passing output of one program as input to another (Unix philosophy of small single-purpose programs).</li>
+<li><strong>Standard Streams:</strong> Overview of <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> default connections.</li>
+<li><strong>Redirection:</strong> Overriding default connections using <code>&gt;</code> and <code>2&gt;</code> to write to files.</li>
+<li><strong>Input Methods:</strong> Comparing command line arguments vs. input redirection (<code>&lt;</code>).</li>
+<li><strong>Command Location:</strong> Understanding where programs exist (PATH and system utilities).</li>
+</ol>
+<h1>Key Concepts &amp; Definitions</h1>
+<p><strong>Shell</strong></p>
+<ul>
+<li><strong>Definition:</strong> A textual interface allowing users to ask the operating system to perform tasks.</li>
+<li><strong>Why it matters:</strong> It acts as the bridge between the user and the OS kernel, enabling program execution and file management.</li>
+<li><strong>Common confusion:</strong> Confusing the Shell (interface) with the Operating System (kernel/hardware manager).</li>
+<li><strong>Tiny example:</strong> <code>ls</code> (Run a program via shell).</li>
+</ul>
+<p><strong>Pipe (<code>|</code>)</strong></p>
+<ul>
+<li><strong>Definition:</strong> A mechanism to provide the output of one program as the input to another.</li>
+<li><strong>Why it matters:</strong> Enables chaining small, single-purpose programs to solve complex tasks (Unix philosophy).</li>
+<li><strong>Common confusion:</strong> Thinking pipes connect files directly; they connect program streams.</li>
+<li><strong>Tiny example:</strong> <code>head -20 alice.txt | wc</code>.</li>
+</ul>
+<p><strong>Standard Error (<code>stderr</code>)</strong></p>
+<ul>
+<li><strong>Definition:</strong> A default stream for error messages, distinct from standard output (<code>stdout</code>).</li>
+<li><strong>Why it matters:</strong> Allows error messages to be captured separately from normal program output.</li>
+<li><strong>Common confusion:</strong> Assuming all output goes to the screen; errors can be redirected independently.</li>
+<li><strong>Tiny example:</strong> <code>wc 2&gt; errorFile.txt</code>.</li>
+</ul>
+<p><strong>PATH</strong></p>
+<ul>
+<li><strong>Definition:</strong> A variable indicating where the system looks for executable programs.</li>
+<li><strong>Why it matters:</strong> Determines where commands like <code>wc</code> or <code>ls</code> are located on the machine.</li>
+<li><strong>Common confusion:</strong> Thinking commands are magic; they are utilities provided with the OS (e.g., Ubuntu).</li>
+<li><strong>Tiny example:</strong> <code>wc alice.txt</code>.</li>
+</ul>
+<p><strong>Input Redirection (<code>&lt;</code>)</strong></p>
+<ul>
+<li><strong>Definition:</strong> Feeding a file as input to a command instead of typing arguments.</li>
+<li><strong>Why it matters:</strong> Allows processing of large files without passing them as arguments.</li>
+<li><strong>Common confusion:</strong> Output difference between argument and redirection (slides note output is &quot;slightly different&quot;).</li>
+<li><strong>Tiny example:</strong> <code>wc &lt; /usr/share/dict/words</code>.</li>
+</ul>
+<h1>Core Mechanics / How-To</h1>
+<p><strong>How to use a Pipe</strong></p>
+<ol>
+<li>Identify the command that produces the data (left side).</li>
+<li>Identify the command that consumes the data (right side).</li>
+<li>Combine them with the pipe character <code>|</code>.</li>
+<li><strong>Syntax:</strong> <code>cmd1 | cmd2 | cmd3</code>.</li>
+<li><strong>Decision Point:</strong> Ensure the left command writes to stdout and the right reads from stdin.</li>
+</ol>
+<p><strong>How to Redirect Standard Error</strong></p>
+<ol>
+<li>Identify the command producing errors (e.g., <code>wc</code>).</li>
+<li>Use <code>2&gt;</code> followed by the target filename.</li>
+<li><strong>Syntax:</strong> <code>command 2&gt; filename</code>.</li>
+<li><strong>Warning:</strong> The operating system creates the file; it will overwrite (delete) any existing file with that name.</li>
+</ol>
+<p><strong>How to Read from a File as Input</strong></p>
+<ol>
+<li>Identify the command expecting input.</li>
+<li>Use <code>&lt;</code> followed by the filename.</li>
+<li><strong>Syntax:</strong> <code>command &lt; filename</code>.</li>
+<li><strong>Note:</strong> This differs from passing the filename as an argument (e.g., <code>wc file.txt</code> vs <code>wc &lt; file.txt</code>).</li>
+</ol>
+<p><strong>How to Handle Temporary Files Safely</strong></p>
+<ol>
+<li>Use <code>mktemp</code> to create a temporary file.</li>
+<li>Store the result in a variable (e.g., <code>myTemp</code>).</li>
+<li>Use <code>$()</code> when running the command to capture output into the variable.</li>
+<li>Use <code>$</code> when reading the variable later.</li>
+<li><strong>Crucial Step:</strong> Ensure you delete the temp file with <code>rm</code> to avoid clutter.</li>
+</ol>
+<h1>Code Patterns &amp; Idioms</h1>
+<p><strong>Pattern: Command Chaining</strong></p>
+<ul>
+<li><strong>When to use it:</strong> When the output of one tool is needed as input for another.</li>
+<li><strong>Correct minimal example:</strong> <code>head -20 alice.txt | wc</code>.</li>
+<li><strong>Common bug:</strong> Forgetting the pipe character, resulting in two separate commands running sequentially.</li>
+</ul>
+<p><strong>Pattern: Error Redirection</strong></p>
+<ul>
+<li><strong>When to use it:</strong> When you want to log errors to a file instead of the terminal.</li>
+<li><strong>Correct minimal example:</strong> <code>wc 2&gt; errorFile.txt</code>.</li>
+<li><strong>Common bug:</strong> Using <code>&gt;</code> instead of <code>2&gt;</code>, which redirects standard output (data) instead of errors.</li>
+</ul>
+<p><strong>Pattern: Input Redirection</strong></p>
+<ul>
+<li><strong>When to use it:</strong> When a command expects input from a file rather than arguments.</li>
+<li><strong>Correct minimal example:</strong> <code>wc &lt; /usr/share/dict/words</code>.</li>
+<li><strong>Common bug:</strong> Confusing this with <code>wc /usr/share/dict/words</code> (argument passing), which may yield different output behavior.</li>
+</ul>
+<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<ol>
+<li><strong>File Overwrite:</strong> <code>2&gt; filename</code> creates the file if it doesn&#39;t exist, but overwrites it if it does.<ul>
+<li><em>Symptom:</em> Data loss in <code>filename</code>.</li>
+<li><em>Cause:</em> Existing file with same name.</li>
+<li><em>Fix:</em> Check if file exists before redirecting or use <code>&gt;&gt;</code> (append) if appropriate (not covered in slides, but implied risk).</li>
+</ul>
+</li>
+<li><strong>Variable Expansion:</strong> Using <code>$</code> vs <code>$()</code> changes how output is captured.<ul>
+<li><em>Symptom:</em> Command fails or variable is empty.</li>
+<li><em>Cause:</em> Incorrect expansion syntax for command substitution.</li>
+<li><em>Fix:</em> Use <code>$()</code> for command output, <code>$</code> for variable content.</li>
+</ul>
+</li>
+<li><strong>Temp File Cleanup:</strong> Failing to delete <code>mktemp</code> files.<ul>
+<li><em>Symptom:</em> Disk space usage increases over time.</li>
+<li><em>Cause:</em> <code>rm</code> command omitted.</li>
+<li><em>Fix:</em> Always run <code>rm</code> on the temp variable.</li>
+</ul>
+</li>
+<li><strong>Input Method Difference:</strong> <code>wc file</code> vs <code>wc &lt; file</code>.<ul>
+<li><em>Symptom:</em> Output is &quot;slightly different&quot; (as per slides).</li>
+<li><em>Cause:</em> Argument parsing vs stream redirection differences.</li>
+<li><em>Fix:</em> Understand which method the specific utility expects.</li>
+</ul>
+</li>
+<li><strong>Standard Stream Confusion:</strong> Mixing up <code>stdout</code> and <code>stderr</code>.<ul>
+<li><em>Symptom:</em> Errors appear on screen instead of file.</li>
+<li><em>Cause:</em> Using <code>&gt;</code> instead of <code>2&gt;</code>.</li>
+<li><em>Fix:</em> Use <code>2&gt;</code> for errors specifically.</li>
+</ul>
+</li>
+<li><strong>PATH Issues:</strong> Commands not found.<ul>
+<li><em>Symptom:</em> <code>command not found</code>.</li>
+<li><em>Cause:</em> Program not in PATH or not installed.</li>
+<li><em>Fix:</em> Check PATH or install utility (e.g., Ubuntu utilities).</li>
+</ul>
+</li>
+<li><strong>Pipe Chain Breakage:</strong> One command in a chain fails.<ul>
+<li><em>Symptom:</em> Downstream commands receive no input.</li>
+<li><em>Cause:</em> Upstream command error or empty output.</li>
+<li><em>Fix:</em> Check exit status of upstream commands.</li>
+</ul>
+</li>
+<li><strong>File Permissions:</strong> OS manages access to resources.<ul>
+<li><em>Symptom:</em> Cannot read/write files.</li>
+<li><em>Cause:</em> OS security environment.</li>
+<li><em>Fix:</em> Check file permissions (covered in &quot;Executing Programs and File Permissions&quot; section).</li>
+</ul>
+</li>
+<li><strong>Variable Scope:</strong> Shell variables vs environment variables.<ul>
+<li><em>Symptom:</em> Variable not accessible in subshells.</li>
+<li><em>Cause:</em> Local vs global scope.</li>
+<li><em>Fix:</em> Export variables if needed (not explicitly covered, but implied by &quot;environment&quot;).</li>
+</ul>
+</li>
+<li><strong>Redirection Overwrite Risk:</strong> Overwriting critical system files.<ul>
+<li><em>Symptom:</em> System error.</li>
+<li><em>Cause:</em> Redirecting to a system file path.</li>
+<li><em>Fix:</em> Use unique filenames for redirection.</li>
+</ul>
+</li>
+<li><strong>Input Stream Closure:</strong> Closing stdin prematurely.<ul>
+<li><em>Symptom:</em> Program waits for input.</li>
+<li><em>Cause:</em> Input redirection not set up.</li>
+<li><em>Fix:</em> Use <code>&lt;</code> to provide input source.</li>
+</ul>
+</li>
+<li><strong>Command Substitution Syntax:</strong> Mixing <code>$</code> and <code>$()</code>.<ul>
+<li><em>Symptom:</em> Syntax error or empty variable.</li>
+<li><em>Cause:</em> Using <code>$</code> for command output.</li>
+<li><em>Fix:</em> Use <code>$()</code> for command output.</li>
+</ul>
+</li>
+<li><strong>Temp File Persistence:</strong> Leaving temp files behind.<ul>
+<li><em>Symptom:</em> Disk full.</li>
+<li><em>Cause:</em> <code>mktemp</code> result not deleted.</li>
+<li><em>Fix:</em> <code>rm</code> the variable content.</li>
+</ul>
+</li>
+<li><strong>Standard Error Capture:</strong> Capturing errors to wrong stream.<ul>
+<li><em>Symptom:</em> Errors mixed with output.</li>
+<li><em>Cause:</em> Redirecting <code>1&gt;</code> instead of <code>2&gt;</code>.</li>
+<li><em>Fix:</em> Use <code>2&gt;</code> for errors.</li>
+</ul>
+</li>
+<li><strong>File Creation Behavior:</strong> OS creates file on redirect.<ul>
+<li><em>Symptom:</em> Unexpected file creation.</li>
+<li><em>Cause:</em> <code>2&gt;</code> creates file if missing.</li>
+<li><em>Fix:</em> Be aware of side effects of redirection.</li>
+</ul>
+</li>
+</ol>
+<h1>Exam-Style Questions (with answers)</h1>
+<ol>
+<li><strong>Concept Check:</strong> What is the primary purpose of a Shell?<ul>
+<li><em>Answer:</em> To provide a textual interface for users to ask the OS to perform tasks (run programs, manage files).</li>
+</ul>
+</li>
+<li><strong>Predict-the-output:</strong> What happens if you run <code>wc 2&gt; errorFile.txt</code>?<ul>
+<li><em>Answer:</em> Standard error from <code>wc</code> is sent to <code>errorFile.txt</code> instead of the screen. The file is created/overwritten.</li>
+</ul>
+</li>
+<li><strong>Trace Reasoning:</strong> Why did we store the result of <code>mktemp</code> in a variable?<ul>
+<li><em>Answer:</em> To reference the temporary file path later (e.g., for deletion or processing).</li>
+</ul>
+</li>
+<li><strong>Bug Finding:</strong> Why is <code>wc &lt; file</code> different from <code>wc file</code>?<ul>
+<li><em>Answer:</em> The slides note the output is &quot;slightly different&quot; between input redirection and command line arguments.</li>
+</ul>
+</li>
+<li><strong>Design Question:</strong> How do you chain three commands to process data?<ul>
+<li><em>Answer:</em> Use <code>cmd1 | cmd2 | cmd3</code>.</li>
+</ul>
+</li>
+<li><strong>Concept Check:</strong> What does the pipe character <code>|</code> do?<ul>
+<li><em>Answer:</em> It redirects the standard output of the left command to the standard input of the right command.</li>
+</ul>
+</li>
+<li><strong>Predict-the-output:</strong> What happens to an existing file named <code>errorFile.txt</code> when using <code>2&gt; errorFile.txt</code>?<ul>
+<li><em>Answer:</em> It is overwritten (deleted) by the operating system.</li>
+</ul>
+</li>
+<li><strong>What goes wrong here?</strong> What is the issue with <code>wc $myTemp</code> vs <code>wc $()myTemp</code>?<ul>
+<li><em>Answer:</em> <code>$()</code> is for command substitution (running a command), <code>$</code> is for variable expansion. Using <code>$()</code> without a command is invalid.</li>
+</ul>
+</li>
+<li><strong>Design Question:</strong> Why does Unix advocate for small single-purpose programs?<ul>
+<li><em>Answer:</em> To combine them with other programs to solve many tasks using pipes.</li>
+</ul>
+</li>
+<li><strong>Concept Check:</strong> Where do Ubuntu utilities typically exist?<ul>
+<li><em>Answer:</em> Somewhere on the machine, located via the PATH.</li>
+</ul>
+</li>
+<li><strong>Trace Reasoning:</strong> If <code>head -20 alice.txt | wc</code> is run, what is the input to <code>wc</code>?<ul>
+<li><em>Answer:</em> The first 20 lines of <code>alice.txt</code> (stdout of <code>head</code>).</li>
+</ul>
+</li>
+<li><strong>Bug Finding:</strong> Why might a temp file persist on disk?<ul>
+<li><em>Answer:</em> The <code>rm</code> command was not executed to delete the file created by <code>mktemp</code>.</li>
+</ul>
+</li>
+</ol>
+<h1>Quick Reference / Cheat Sheet</h1>
+<ul>
+<li><strong>Pipe:</strong> <code>cmd1 | cmd2</code> (Output of 1 -&gt; Input of 2).</li>
+<li><strong>Stdout Redirection:</strong> <code>cmd &gt; file</code> (Write output to file).</li>
+<li><strong>Stderr Redirection:</strong> <code>cmd 2&gt; file</code> (Write errors to file).</li>
+<li><strong>Input Redirection:</strong> <code>cmd &lt; file</code> (Read input from file).</li>
+<li><strong>Command Substitution:</strong> <code>$()</code> (Capture command output into variable).</li>
+<li><strong>Variable Expansion:</strong> <code>$var</code> (Use stored value).</li>
+<li><strong>Temp File:</strong> <code>mktemp</code> (Create), <code>rm</code> (Delete).</li>
+<li><strong>Unix Philosophy:</strong> Write small programs, combine with pipes.</li>
+<li><strong>File Overwrite:</strong> <code>2&gt; file</code> creates/overwrites file.</li>
+<li><strong>PATH:</strong> Location of system utilities.</li>
+</ul>
+<h1>Mini Glossary</h1>
+<ol>
+<li><strong>Shell:</strong> Textual interface to the operating system.</li>
+<li><strong>Pipe (<code>|</code>):</strong> Connects stdout of one program to stdin of another.</li>
+<li><strong>Stdin:</strong> Standard input stream.</li>
+<li><strong>Stdout:</strong> Standard output stream.</li>
+<li><strong>Stderr:</strong> Standard error stream.</li>
+<li><strong>Redirection:</strong> Overriding default stream connections.</li>
+<li><strong>PATH:</strong> Environment variable for program locations.</li>
+<li><strong>mktemp:</strong> Command to create temporary files.</li>
+<li><strong>Variable:</strong> Storage for data values in the shell.</li>
+<li><strong>Utility:</strong> Small single-purpose program (Unix philosophy).</li>
+<li><strong>Overwrite:</strong> Deleting existing file content when creating a new one.</li>
+<li><strong>Command Substitution:</strong> Capturing output into a variable.</li>
+<li><strong>Input Redirection:</strong> Feeding a file as input to a command.</li>
+<li><strong>Operating System:</strong> Manages hardware, security, and files.</li>
+<li><strong>File Permissions:</strong> Controls access to resources.</li>
+<li><strong>Ubuntu:</strong> The operating system used in this course context.</li>
+<li><strong>CMPUT 274:</strong> Course context mentioned in slides (ignored for content).</li>
+<li><strong>Terminal:</strong> Interface for shell commands.</li>
+<li><strong>Stream:</strong> Data flow channel (stdin/stdout/stderr).</li>
+<li><strong>Argument:</strong> Data passed to a command.</li>
+</ol>
+<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<ul>
+<li><strong>C++ Programming:</strong> Not covered in these slides (Course description mentions C++, but slides focus on Shell).</li>
+<li><strong>Object-Oriented Programming:</strong> Not covered in these slides.</li>
+<li><strong>Graph Algorithms:</strong> Not covered in these slides.</li>
+<li><strong>Dynamic Programming:</strong> Not covered in these slides.</li>
+<li><strong>Client-Server Computing:</strong> Not covered in these slides.</li>
+<li><strong>Recursion:</strong> Not covered in these slides.</li>
+<li><strong>Advanced Bash Scripting:</strong> Only basic commands and redirection are covered.</li>
+<li><strong>File Permissions Details:</strong> Mentioned as a purpose, but specific permission bits not detailed.</li>
+<li><strong>Network Working:</strong> Mentioned in Table of Contents, but content not in provided snippets.</li>
+</ul>
+<h1>Slide Anchors (Traceability)</h1>
+<ul>
+<li><strong>OS Purposes:</strong> (Citation 1, Section 2) &quot;Manage and provide interfaces for access to your resources (physical hardware) ... Provide environment to run programs safely and securely&quot;.</li>
+<li><strong>Shell Definition:</strong> (Citation 1, Section 3) &quot;A shell is a textual interface to allow users to ask their operating system to perform tasks&quot;.</li>
+<li><strong>Shell Tasks:</strong> (Citation 1, Section 3) &quot;Run a program, Create, read, or delete a file, Terminate a program&quot;.</li>
+<li><strong>mktemp Variable Usage:</strong> (Citation 2, Section 32) &quot;Why did we have to store the result of mktemp in a variable? ... Note that we made sure to delete the temp file we created with rm!&quot;.</li>
+<li><strong>Variable Expansion:</strong> (Citation 2, Section 32) &quot;Why did we use $() when running the mktemp command but $ when reading myTemp?&quot;.</li>
+<li><strong>Pipes Concept:</strong> (Citation 2, Section 33) &quot;Needing to provide the output of one program as the input to another is a common problem&quot;.</li>
+<li><strong>Unix Philosophy:</strong> (Citation 2, Section 33) &quot;advocate for writing small single-purpose programs which can then be combined with other programs&quot;.</li>
+<li><strong>Pipe Syntax:</strong> (Citation 2, Section 33) &quot;The general form of this is $ cmd1 | cmd2&quot;.</li>
+<li><strong>Pipe Behavior:</strong> (Citation 2, Section 33) &quot;The standard output of a command on the left-hand side of a pipe will be redirected as the standard input to the command on the right-hand side&quot;.</li>
+<li><strong>Standard Error Redirection:</strong> (Citation 3, Section 16) &quot;Redirect stderr with a two followed by the greater than sign (2&gt;) followed by the filename&quot;.</li>
+<li><strong>Stderr File Creation:</strong> (Citation 3, Section 16) &quot;The operating system also creates the file errorFile.txt, which will overwrite (delete) any existing file&quot;.</li>
+<li><strong>Input vs Arguments:</strong> (Citation 3, Section 16) &quot;Consider the following two commands $ wc /usr/share/dict/words $ wc &lt; /usr/share/dict/words ... output is slightly different&quot;.</li>
+<li><strong>PATH:</strong> (Citation 2, Section 35) &quot;The programs we&#39;ve used so far have been utilities provided with Ubuntu and are located somewhere on our machine&quot;.</li>
+</ul>
+
+    </article>
+  </main>
+</body>
+</html>
