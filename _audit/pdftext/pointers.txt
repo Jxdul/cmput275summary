@@ -1,0 +1,1345 @@
+Pointers and Arrays
+Rob Hackman
+Winter 2026
+University of Alberta
+1
+
+-- 1 of 83 --
+
+Table of Contents
+Pointers
+Input
+Arrays
+Strings
+2
+
+-- 2 of 83 --
+
+What is a pointer?
+Another data type we have in C
+is that of a pointer.
+A pointer is a datatype that
+stores a memory address — the
+address of data instead of the
+value.
+The value a pointer stores is the
+address of some data you’re
+interested in, you can then use
+the pointer to read, or write, to
+the data at that location.
+231 − 1 0000 0000
+231 − 2 0000 0001
+Addresses Values
+231 − 3 0000 0011
+231 − 4 0001 1010
+. . .
+3
+
+-- 3 of 83 --
+
+Declaring Pointers
+When declaring a variable you
+can declare a pointer with an
+asterisk (*) character.
+The asterisk is part of your type,
+you must also declare the type
+you wish this variable to be a
+pointer to.
+In this example ptr has the type
+“pointer to an int”
+1 int main() {
+2 int x = 10;
+3 int *ptr;
+4 }
+4
+
+-- 4 of 83 --
+
+Assigning Pointers
+You shouldn’t assign pointers to
+arbitrary numbers — otherwise
+you’ll have a pointer to a random
+piece of your memory.
+The address-of operator (&) can
+be applied to a piece of data —
+it evaluates to the address of
+that data.
+Now ptr stores the address of x
+— we would say ptr is a pointer
+to x.
+1 int main() {
+2 int x = 10;
+3 int *ptr = &x;
+4 }
+5
+
+-- 5 of 83 --
+
+Dereferencing Pointers
+A pointer by itself isn’t
+particularly useful — I’m not
+actually interested in the address
+of x.
+However, the dereference
+operator (unary *) allows us to
+“follow” a pointer to the data it
+points at.
+1 int main() {
+2 int x = 10;
+3 int *ptr = &x;
+4 printf("%p\n", ptr);
+5 printf("%d\n", *ptr);
+6 }
+6
+
+-- 6 of 83 --
+
+Dereferencing Pointers - aliasing
+Dereferencing a pointer is more
+than an expression that evaluates
+to the value at that memory
+address however.
+Dereferencing a pointer acts as a
+complete alias for the data at
+that location — that means you
+can assign to it as well.
+What value is printed when we
+print x?
+1 int main() {
+2 int x = 10;
+3 int *ptr = &x;
+4 printf("%p\n", ptr);
+5 printf("%d\n", *ptr);
+6 *ptr = -1;
+7 printf("%d\n", x);
+8 }
+7
+
+-- 7 of 83 --
+
+The times2 function
+Now, let’s rewrite the times2 function below to make it behave as
+we want.
+1 void times2(int x) {
+2 x = x*2;
+3 }
+4
+5 int main() {
+6 x = 10;
+7 times2(x);
+8 printf("%d\n", x);
+9 }
+8
+
+-- 8 of 83 --
+
+The times2 function
+Now, let’s rewrite the times2 function below to make it behave as
+we want.
+1 void times2(int *p) { // !!
+2 *p = *p*2; // !!
+3 }
+4
+5 int main() {
+6 x = 10;
+7 times2(&x); // !!
+8 printf("%d\n", x);
+9 }
+9
+
+-- 9 of 83 --
+
+The times2 function - example memory layout
+1 void times2(int *p) {
+2 *p = *p*2;
+3 }
+4
+5 int main() {
+6 x = 10;
+7 times2(&x);
+8 printf("%d\n", x);
+9 }
+0xA0088044 x:10
+0xA0088040 ptr: 0xA00088044
+Addresses Values
+. . .
+10
+
+-- 10 of 83 --
+
+Words
+Bytes are grouped together in words — typical word size is 4 or 8
+bytes. We’ll assume 4-byte words for this class.
+In the immediately previous memory diagram and most future
+memory diagrams we’ll only show words, not individual bytes.
+That means each box we’ll show is actually 4 bytes (each with
+their own address), and the addresses between each boxes will
+change by 4 instead of 1.
+11
+
+-- 11 of 83 --
+
+Hexadecimal
+Hexadecimal is often used when
+displaying memory addresses —
+it is the base-16 number system
+Since digits in base-16 can go
+from 0 to 15, letters a-f are used
+to represent digits 10-15
+It is also very easy to convert
+between hexadecimal and binary
+— if you can interpret a 4-bit
+binary number you can translate
+between binary and hex.
+Examples:
+00002 = 016
+10102 = A16
+1101 0011 = D316
+0101 1111 = 5F16
+12
+
+-- 12 of 83 --
+
+Table of Contents
+Pointers
+Input
+Arrays
+Strings
+13
+
+-- 13 of 83 --
+
+scanf
+We can finally (mostly) understand how input is read in C.
+The function scanf from the stdio library can be used to read
+from standard input.
+Much like printf, scanf expects a formatted string passed as the
+first argument, subsequently it expects the addresses you’d like to
+read user input into.
+14
+
+-- 14 of 83 --
+
+Reading an int from standard input
+The formatted string "%d" tells
+scanf we’d like to read an int
+from the user.
+As we’ve seen, if we want scanf
+to be able to mutate our variable
+it must take the address of it —
+so we pass the address of x.
+#include <stdio.h>
+int main() {
+int x;
+scanf("%d", &x);
+printf("%d\n", x*2);
+}
+15
+
+-- 15 of 83 --
+
+Reading an int from standard input
+The formatted string "%d" tells
+scanf we’d like to read an int
+from the user.
+As we’ve seen, if we want scanf
+to be able to mutate our variable
+it must take the address of it —
+so we pass the address of x.
+What if the user doesn’t type an
+integer?
+#include <stdio.h>
+int main() {
+int x;
+scanf("%d", &x);
+printf("%d\n", x*2);
+}
+15
+
+-- 16 of 83 --
+
+scanf — handling errors
+scanf returns the number of
+successfully read items.
+In our case it should be 1 — if
+not, we know the user didn’t give
+us an integer
+Let’s update our program so it
+only prints out when an integer
+was successfully read in
+16
+
+-- 17 of 83 --
+
+scanf — handling errors
+scanf returns the number of
+successfully read items.
+In our case it should be 1 — if
+not, we know the user didn’t give
+us an integer
+Let’s update our program so it
+only prints out when an integer
+was successfully read in
+#include <stdio.h>
+int main() {
+int x;
+int ret = scanf("%d", &x);
+if (ret == 1) {
+printf("%d\n", x*2);
+}
+}
+16
+
+-- 18 of 83 --
+
+Reading an Integer
+Let’s write a program that reads
+exactly one integer from standard
+input and prints out twice its
+value.
+If the user enters non-integer
+input we should ask them to
+please enter an integer, until they
+do so.
+17
+
+-- 19 of 83 --
+
+Reading an Integer
+Let’s write a program that reads
+exactly one integer from standard
+input and prints out twice its
+value.
+If the user enters non-integer
+input we should ask them to
+please enter an integer, until they
+do so.
+Let’s test this program, what
+happens when you do enter an
+integer? What about when you
+dont?
+#include <stdio.h>
+int main() {
+int x;
+while (1) {
+printf("Enter int: ");
+if (1==scanf("%d",&x)) {
+printf("%d\n", x*2);
+break;
+}
+}
+}
+17
+
+-- 20 of 83 --
+
+Reading an Integer
+When we don’t enter an integer
+first our program loops forever,
+even if we type an integer after
+— what’s happening?
+18
+
+-- 21 of 83 --
+
+Reading an Integer
+When we don’t enter an integer
+first our program loops forever,
+even if we type an integer after
+— what’s happening?
+Since scanf was unable to read
+our desired item (an integer) it
+failed to do so, but as such it
+doesn’t remove any data from
+standard input.
+#include <stdio.h>
+int main() {
+int x;
+while (1) {
+printf("Enter int: ");
+if (1==scanf("%d",&x)) {
+printf("%d\n", x*2);
+break;
+}
+}
+}
+18
+
+-- 22 of 83 --
+
+Reading an Integer
+When we don’t enter an integer
+first our program loops forever,
+even if we type an integer after
+— what’s happening?
+Since scanf was unable to read
+our desired item (an integer) it
+failed to do so, but as such it
+doesn’t remove any data from
+standard input.
+When we try to read each
+subsquent time scanf sees the
+same non-digit character at the
+front of the stream and fails.
+#include <stdio.h>
+int main() {
+int x;
+while (1) {
+printf("Enter int: ");
+if (1==scanf("%d",&x)) {
+printf("%d\n", x*2);
+break;
+}
+}
+}
+18
+
+-- 23 of 83 --
+
+Fixing our integer reading
+If we want to fix our program so it always reads exactly one int,
+we’ll have to remove the offending characters from our stream.
+How should we remove the problem characters from our stream?
+How do we know how much to read?
+19
+
+-- 24 of 83 --
+
+Fixing our integer reading
+If we want to fix our program so it always reads exactly one int,
+we’ll have to remove the offending characters from our stream.
+How should we remove the problem characters from our stream?
+How do we know how much to read?
+Solution: try to read an integer, if we fail remove exactly one
+character, since we know at least the very first character was not
+part of an integer. Repeat this process until the read succeeds.
+19
+
+-- 25 of 83 --
+
+Fixed integer read
+#include <stdio.h>
+int main() {
+int x;
+while (1) {
+if (1==scanf("%d", &x)) {
+printf("%d\n", x*2);
+break;
+}
+char c;
+scanf("%c", &c);
+}
+}
+20
+
+-- 26 of 83 --
+
+Reading all integers from stream
+What if we want to read all integers from the stream?
+We could use the same program but just remove the break
+statement.
+How would our program ever end? When do we want it to end?
+21
+
+-- 27 of 83 --
+
+Reading all integers from stream
+What if we want to read all integers from the stream?
+We could use the same program but just remove the break
+statement.
+How would our program ever end? When do we want it to end?
+When the input stream is exhausted — remember what typing
+ctrl+d does!
+21
+
+-- 28 of 83 --
+
+Checking EOF
+We an check if we’ve received an EOF character from a file (or
+input stream) with the feof function.
+The name stdin is defined in stdio.h as our standard input
+stream.
+The function call feof(stdin) will return true when an attempted
+read of stdin received the EOF character — that means until you
+try and read and fail because of EOF it won’t return true.
+22
+
+-- 29 of 83 --
+
+Using feof
+#include <stdio.h>
+int main() {
+int x;
+int rc;
+while (!feof(stdin)) {
+if (1 == scanf("%d", &x)) {
+printf("%d\n", x*2);
+continue;
+}
+char c;
+scanf("%c", &c);
+}
+} 23
+
+-- 30 of 83 --
+
+Using feof — knowledge check
+Knowledge Check: What would happen if we hadn’t switched the
+break to continue? What would happen if we just deleted
+break?
+24
+
+-- 31 of 83 --
+
+Some More I/O tools
+ EOF — constant defined in stdio, used by I/O funtions to
+represent receiving the end of file character.
+ int getchar() — function that reads and returns one
+character from standard input, returns EOF if end of file
+reached.
+25
+
+-- 32 of 83 --
+
+Practice Problem
+Write a C program that mimics the behaviour of the wc tool we’ve
+used when learning about the shell. For now only worry about the
+behaviour of wc when it receives no command-line arguments.
+26
+
+-- 33 of 83 --
+
+Table of Contents
+Pointers
+Input
+Arrays
+Strings
+27
+
+-- 34 of 83 --
+
+Collections of Data
+In Python we had many ways to store collections of data — Lists
+being one of the most commonly used.
+We don’t have anything quite like Lists in C by default.
+What we do have are arrays.
+28
+
+-- 35 of 83 --
+
+Arrays
+Arrays allow us to store a collection of sequential data, and they
+have a few important properties.
+ Are a fixed size, specified when they’re allocated
+ All the items in an array are the same data type
+ Is guaranteed to be contiguous in memory1
+1Well, at least the memory as your program sees it...
+29
+
+-- 36 of 83 --
+
+Declaring an Array
+We can declare an array on the
+stack — however its size must be
+known at compile-time.
+Much like an asterisk is used to
+denote a pointer we use [] to
+declare an array. However the
+brackets come after the identifier.
+Additionally [] is also our index
+operator.
+1 int main() {
+2 int arr[10];
+3 int x = 5;
+4 for (int i=0; i<10; ++i) {
+5 arr[i] = i*2;
+6 }
+7 }
+30
+
+-- 37 of 83 --
+
+The sizeof operator
+The sizeof operator evalutes to the size (in bytes) of its operand.
+1 int main() {
+2 int x;
+3 char c;
+4 int arr[10];
+5 printf("%ld\n", sizeof(x));
+6 printf("%ld\n", sizeof(c));
+7 printf("%ld\n", sizeof(arr));
+8 }
+We can see the size of our array is 40 bytes — because it stores 10
+integers that are each 4 bytes.
+31
+
+-- 38 of 83 --
+
+Iterating over a local statically-allocated array
+Couple things to notice here
+ We can initialize our array with comma-separated values
+inside curly braces, called an initializer list
+ We’ve calculated the length of the array by dividing its size in
+bytes by the size in bytes of the type it holds.
+1 int main() {
+2 int arr[5] = {1, 2, 3, 4, 5};
+3 unsigned int len = sizeof(arr)/sizeof(arr[0]);
+4 for (unsigned int i=0; i<len; ++i) {
+5 printf("%d\n", arr[i]);
+6 }
+7 }
+32
+
+-- 39 of 83 --
+
+Iterating over a local statically-allocated array
+Note: We can also omit the length of the array we’re declaring
+when assigning it to an initializer list. The compiler determines the
+size of the array based on the number of elements in the initializer
+list.
+1 int main() {
+2 int arr[] = {1, 2, 3, 4, 5};
+3 unsigned int len = sizeof(arr)/sizeof(arr[0]);
+4 for (unsigned int i=0; i<len; ++i) {
+5 printf("%d\n", arr[i]);
+6 }
+7 }
+33
+
+-- 40 of 83 --
+
+Arrays and Functions
+Consider the output of the following program — is something odd?
+1 void printArray(int paramArr[]) {
+2 unsigned int len = sizeof(paramArr)/sizeof(paramArr[0]);
+3 for (unsigned int i=0; i<len; ++i) {
+4 printf("%d\n", paramArr[i]);
+5 }
+6 }
+7
+8 int main() {
+9 int arr[5] = {1, 2, 3, 4, 5};
+10 printArray(arr);
+11 }
+34
+
+-- 41 of 83 --
+
+Arrays and Functions
+Consider the output of the following program — is something odd?
+1 void printArray(int paramArr[]) {
+2 unsigned int len = sizeof(paramArr)/sizeof(paramArr[0]);
+3 for (unsigned int i=0; i<len; ++i) {
+4 printf("%d\n", paramArr[i]);
+5 }
+6 }
+7
+8 int main() {
+9 int arr[5] = {1, 2, 3, 4, 5};
+10 printArray(arr);
+11 }
+It only prints 1 and 2 — why?
+34
+
+-- 42 of 83 --
+
+Arrays as parameters
+Consider what is involved in
+copying an array
+For this array of five ints we
+would have to copy 40 bytes into
+the functions stackframe.
+What about for larger arrays?
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr[0]: 1
+paramArr[1]: 2
+paramArr[2]: 3
+paramArr[3]: 4
+paramArr[4]: 5
+main
+printArray
+35
+
+-- 43 of 83 --
+
+Arrays as parameters
+Consider what is involved in
+copying an array
+For this array of five ints we
+would have to copy 40 bytes into
+the functions stackframe.
+What about for larger arrays?
+This is not what C does!
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr[0]: 1
+paramArr[1]: 2
+paramArr[2]: 3
+paramArr[3]: 4
+paramArr[4]: 5
+main
+printArray
+35
+
+-- 44 of 83 --
+
+Array Decay
+In order to avoid copying an
+entire array, C copies only the
+address of the first element of
+the array.
+This means, even when you
+define your function to take an
+array parameter it really takes a
+pointer!
+We call this array decay, as the
+array is “decaying” into the
+pointer to its first element when
+passed as an argument.
+0xf2c0
+0xf2bc
+0xf2b8
+0xf2b4
+0xf2b0
+0xf2ac
+0xf2a8
+0xf2a4
+0xf2a0
+0xf29c
+0xf298
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr: 0xf2b0
+main
+printArray
+36
+
+-- 45 of 83 --
+
+Array Decay
+Array decay also means that our
+function can mutate the caller’s
+array!
+As we’ve seen pointers allow
+mutating data’s memory, since
+the pointer is the address of that
+data.
+0xf2c0
+0xf2bc
+0xf2b8
+0xf2b4
+0xf2b0
+0xf2ac
+0xf2a8
+0xf2a4
+0xf2a0
+0xf29c
+0xf298
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr: 0xf2b0
+main
+printArray
+37
+
+-- 46 of 83 --
+
+Arrays as Parameters
+Array decay means we cannot use sizeof to determine the length
+of an array that is a parameter.
+Functions that operate over array parameters must also be given
+the length — or have some other indication of the end of the
+array1.
+void printArray(int arr[], unsigned int size) {
+for (unsigned int i = 0; i < size; ++i) {
+printf("%d\n", arr[i]);
+}
+}
+1More on this soon
+38
+
+-- 47 of 83 --
+
+Arrays as Parameters
+Another consequence of array decay is that these two functions are
+identical.
+void printArray(int arr[], unsigned int size) {
+for (unsigned int i = 0; i < size; ++i) {
+printf("%d\n", arr[i]);
+}
+}
+void printArray(int *arr, unsigned int size) {
+for (unsigned int i = 0; i < size; ++i) {
+printf("%d\n", arr[i]);
+}
+}
+39
+
+-- 48 of 83 --
+
+Arrays are not pointers!
+Note: While int * and int [] become the same type when
+used as function parameters. That does not mean that arrays
+and pointers are the same thing.
+Arrays are contiguous blocks of memory — pointers are pieces of
+data that store a memory address.
+40
+
+-- 49 of 83 --
+
+Arrays are not pointers!
+1 int main() {
+2 int arr[] = {1, 2, 3, 4, 5};
+3 int *p = arr;
+4 printf("sizeof(arr): %lu\n", sizeof(arr));
+5 printf("sizeof(p): %lu\n", sizeof(p));
+6 printf("p: %p\n", p);
+7 printf("&p: %p\n", &p);
+8 printf("arr: %p\n", arr);
+9 printf("&arr: %p\n", &arr); // !!!
+10 }
+41
+
+-- 50 of 83 --
+
+Arrays are not pointers!
+1 int main() {
+2 int arr[] = {1, 2, 3, 4, 5};
+3 int *p = arr;
+4 printf("sizeof(arr): %lu\n", sizeof(arr));
+5 printf("sizeof(p): %lu\n", sizeof(p));
+6 printf("p: %p\n", p);
+7 printf("&p: %p\n", &p);
+8 printf("arr: %p\n", arr);
+9 printf("&arr: %p\n", &arr); // !!!
+10 }
+When used in an expression an array identifier evalutes to the
+address of its first element.
+41
+
+-- 51 of 83 --
+
+Arrays are not pointers!
+1 int main() {
+2 int arr[] = {1, 2, 3, 4, 5};
+3 int *p = arr;
+4 printf("sizeof(arr): %lu\n", sizeof(arr));
+5 printf("sizeof(p): %lu\n", sizeof(p));
+6 printf("p: %p\n", p);
+7 printf("&p: %p\n", &p);
+8 printf("arr: %p\n", arr);
+9 printf("&arr: %p\n", &arr); // !!!
+10 }
+When used in an expression an array identifier evalutes to the
+address of its first element.
+Unlike a pointer, that address is not stored anywhere, it just is the
+address of the array, so asking for the address of an array produces
+the same value. 41
+
+-- 52 of 83 --
+
+Arrays as Parameters - Mutation
+Since arrays are being passed as pointers, the caller’s array can be
+mutated by the function’s code.
+void doubleArray(int arr[], unsigned int size) {
+for (unsigned int i = 0; i < size; ++i) {
+arr[i] = arr[i]*2;
+}
+}
+void main() {
+int arr[5] = {1, 2, 3, 4, 5};
+doubleArray(arr, 5);
+for (unsigned int i = 0; i < 5; ++i) {
+printf("%d\n", arr[i]);
+} 42
+
+-- 53 of 83 --
+
+Array Storage
+Why, in this diagram, is the first
+element of arr not stored at the
+bottom of the stack?
+Seemingly, the array is stored
+reverse of what we might expect.
+Though we have to consider it is
+only the stack that grows towards
+0, the rest of our memory grows
+towards the largest address.
+To answer this question, we
+consider what arr[0] really
+means.
+0xf2c0
+0xf2bc
+0xf2b8
+0xf2b4
+0xf2b0
+0xf2ac
+0xf2a8
+0xf2a4
+0xf2a0
+0xf29c
+0xf298
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr: 0xf2b0
+main
+printArray
+43
+
+-- 54 of 83 --
+
+Pointer Arithmetic
+Pointer decay implies that the index operator can be applied to
+pointers as well as arrays.
+int *p = ...;
+p[0] = 10;
+So what then does p[0] mean?
+44
+
+-- 55 of 83 --
+
+Pointer Arithmetic
+Pointer decay implies that the index operator can be applied to
+pointers as well as arrays.
+int *p = ...;
+p[0] = 10;
+So what then does p[0] mean?
+T *x = ...;
+x[i] -> *(x+i)
+44
+
+-- 56 of 83 --
+
+Pointer Arithmetic
+We can see this for ourselves:
+int main() {
+int arr[5] = {1, 2, 3, 4, 5};
+for (unsigned int i = 0; i < 5; ++i) {
+printf("%d\n", *(arr+i));
+}
+}
+45
+
+-- 57 of 83 --
+
+Pointer Arithmetic
+We can see this for ourselves:
+int main() {
+int arr[5] = {1, 2, 3, 4, 5};
+for (unsigned int i = 0; i < 5; ++i) {
+printf("%d\n", *(arr+i));
+}
+}
+But arr isn’t a pointer, it’s an array! The same concept as array
+decay is taking place here. More generally, when used in
+expressions an array evaluates to the address of its first element.
+So in the expression *(arr+i), arr evaluates to the address of its
+first element.
+45
+
+-- 58 of 83 --
+
+Pointer Arithmetic
+But the index doesn’t correspond to how much we would have to
+add to the address to resolve to the address of the next item! In
+our array of integers the address of each subsequent item is 4 bytes
+ahead, not 1.
+When performing arithmetic on pointers, C performs pointer
+arithmetic. In general, for any arbitrary type T if we have a pointer
+to type T as such:
+T *x = ...;
+x + i; // Actually performs x + sizeof(T)*i
+46
+
+-- 59 of 83 --
+
+Pointer Arithmetic in Action
+We can see pointer arithmetic in action by printing out the results
+of adding our indices to the address of our first element.
+The output of this program shoes that everytime we add 1 to our
+address we’re actually adding 4 (the size of an int, which our array
+stores).
+int main() {
+int arr[5] = {1, 2, 3, 4, 5};
+char cArr[5] = {'a', 'b', 'c', 'd', 'e'};
+for (unsigned int i = 0; i < 5; ++i) {
+printf("%p: %d\n", arr+i, *(arr+i));
+printf("%p: %c\n", cArr+i, *(cArr+i));
+}
+} 47
+
+-- 60 of 83 --
+
+Array Storage and Pointer Arithemtic
+So our indices into an array are
+really offsets from the start of
+the array.
+As our offsets are added to the
+start of the array, the start of the
+array must be the lowest address
+with the end being the highest.
+0xf2c0
+0xf2bc
+0xf2b8
+0xf2b4
+0xf2b0
+0xf2ac
+0xf2a8
+0xf2a4
+0xf2a0
+0xf29c
+0xf298
+...
+arr[0]: 1
+arr[1]: 2
+arr[2]: 3
+arr[3]: 4
+arr[4]: 5
+paramArr: 0xf2b0
+main
+printArray
+48
+
+-- 61 of 83 --
+
+Practice Question
+Practice Question: Write a function argmax that returns the index
+of the maximal item in an array of integers. What parameters does
+your function need to have?
+Practice Question: Write a function replace which takes in an
+array and is parameterized by two integers tar and repl and
+replaces every instance of tar in the given array with repl.
+49
+
+-- 62 of 83 --
+
+Table of Contents
+Pointers
+Input
+Arrays
+Strings
+50
+
+-- 63 of 83 --
+
+Strings in C
+We’ve mentioned there is no string type in C — so what do we
+have?
+We have arrays of character, we will use arrays of characters to
+implement our basic strings (often called C strings).
+51
+
+-- 64 of 83 --
+
+String literals and storage
+String literals we’ve already seen — but if strings are arrays of
+characters where are these literals stored?
+String literals are stored often in the text or data segment of your
+program1.
+Except when explicitly allocated on the stack by storing a string
+literal in a stack-allocated array.
+1This is implementation dependant, meaning your compiler chooses.
+52
+
+-- 65 of 83 --
+
+String literals and storage
+These two variable definitions are
+quite different.
+1 int main() {
+2 char myS[] = "On Stack";
+3 char *s = "Text/Data";
+4 myS[0] = 'X';
+5 s[0] = 'X'; // Crashes
+6 }
+53
+
+-- 66 of 83 --
+
+String literals and storage
+These two variable definitions are
+quite different.
+The array myS is stored on the
+stack, and as such all of the
+characters that make up the
+string are on the stack — we are
+able to modify our stack so
+assigning myS[0] = ’X’; is
+perfectly fine.
+1 int main() {
+2 char myS[] = "On Stack";
+3 char *s = "Text/Data";
+4 myS[0] = 'X';
+5 s[0] = 'X'; // Crashes
+6 }
+53
+
+-- 67 of 83 --
+
+String literals and storage
+These two variable definitions are
+quite different.
+The pointer s is stored on the
+stack, the data it points at is
+stored in the text or data section.
+Wherever it is stored it is marked
+read-only, so attempting to
+modify that memory with
+s[0] = ’X’; crashes our
+program.
+1 int main() {
+2 char myS[] = "On Stack";
+3 char *s = "Text/Data";
+4 myS[0] = 'X';
+5 s[0] = 'X'; // Crashes
+6 }
+53
+
+-- 68 of 83 --
+
+const type modifier
+You can specify data that should never change with the const
+type modifier.
+Modifying a const variable produces a compilation error.
+Anything you don’t intend to change mark const!
+1 int main() {
+2 const int x = 5;
+3 x = 10; // Error!
+4 }
+54
+
+-- 69 of 83 --
+
+String literals and pointers
+Pointers to string literals should always be pointers to const
+char, so that one does not modify a portion of memory that does
+not belong to them.
+1 int main() {
+2 char myS[] = "On Stack";
+3 const char *s = "Text/Data";
+4 myS[0] = 'X';
+5 s[0] = 'X'; // Compilation error! Better!
+6 }
+55
+
+-- 70 of 83 --
+
+String literals and pointers
+Pointers to string literals should always be pointers to const
+char, so that one does not modify a portion of memory that does
+not belong to them.
+1 int main() {
+2 char myS[] = "On Stack";
+3 const char *s = "Text/Data";
+4 myS[0] = 'X';
+5 s[0] = 'X'; // Compilation error! Better!
+6 }
+We read the type of s here as “pointer to a constant character” —
+this is different than a “constant pointer to a character”
+55
+
+-- 71 of 83 --
+
+Using const
+ px is a pointer to a constant
+int — cannot change the
+int that px points at
+through px.
+ py is a constant pointer to
+an int — can change the
+int that py points at, but
+cannot change py iteslf. i.e.
+py will always point at y’s
+address.
+ pz is also a pointer to a
+constant int — same
+behaviour as px.
+1 int main() {
+2 int x = 0;
+3 int y = 10;
+4 int z = 20;
+5 const int *px = &x;
+6 int * const py = &y;
+7 int const *pz = &y;
+8 *px = 5; // Illegal
+9 *py = 7; // Legal
+10 *pz = 10; // Illegal
+11 px = &y; // Legal
+12 py = &x; // Illegal
+13 pz = &x; // Legal
+14 }
+56
+
+-- 72 of 83 --
+
+More about const
+const can be applied to any types, not just pointers.
+const variables cannot be left uninitialized — since they can’t be
+changed they must have an initial value.
+Anytime you have data you don’t intend to change you should
+mark it as const
+57
+
+-- 73 of 83 --
+
+Example of const!
+1 int contains(const int *arr, const int targ,
+2 const int len) {
+3 for (unsigned int i = 0; i < len; ++i) {
+4 if (arr[i] = targ) return 1;
+5 }
+6 return 0;
+7 }
+8
+9 int main() {
+10 const int SIZE = 5;
+11 int arr[SIZE] = {1, 2, 3, 4, 5};
+12 contains(arr, 3, SIZE);
+13 }
+58
+
+-- 74 of 83 --
+
+The String Library
+While it doesn’t provide a special type for strings, C does have a
+standard string library which provides several useful functions.
+One such function is the strlen function:
+1 int main() {
+2 const char *p = "abcd";
+3 printf("%d\n", strlen(p));
+4 }
+59
+
+-- 75 of 83 --
+
+The String Library
+While it doesn’t provide a special type for strings, C does have a
+standard string library which provides several useful functions.
+One such function is the strlen function:
+1 int main() {
+2 const char *p = "abcd";
+3 printf("%d\n", strlen(p));
+4 }
+But how can the function strlen calculate the length of the
+string, it receives only a pointer to a character array...
+59
+
+-- 76 of 83 --
+
+Strings in C
+How many characters are actually in our string "abcd"?
+Since we can place the whole string in a stack array we can
+calculate the number of characters using sizeof.
+1 int main() {
+2 char arr[] = "abcd";
+3 printf("%lu\n", sizeof(arr)/sizeof(char));
+4 }
+60
+
+-- 77 of 83 --
+
+Strings in C
+How many characters are actually in our string "abcd"?
+Since we can place the whole string in a stack array we can
+calculate the number of characters using sizeof.
+1 int main() {
+2 char arr[] = "abcd";
+3 printf("%lu\n", sizeof(arr)/sizeof(char));
+4 }
+Prints 5 — but we only typed 4 characters in the literal
+60
+
+-- 78 of 83 --
+
+Strings in C
+A string in C is a null-terminated array of characters.
+If an array of characters does not end in the null terminator
+character (ASCII character 0), then it is not a valid C string.
+1 int main() {
+2 char arr[] = "abcd";
+3 char same[] = {'a', 'b', 'c', 'd', '\0'};
+4 printf("%lu\n", sizeof(arr)/sizeof(char));
+5 }
+61
+
+-- 79 of 83 --
+
+Strings in C
+A string in C is a null-terminated array of characters.
+If an array of characters does not end in the null terminator
+character (ASCII character 0), then it is not a valid C string.
+1 int main() {
+2 char arr[] = "abcd";
+3 char same[] = {'a', 'b', 'c', 'd', '\0'};
+4 printf("%lu\n", sizeof(arr)/sizeof(char));
+5 }
+Knowledge Check: how does strlen work without being provided
+a size parameter?
+61
+
+-- 80 of 83 --
+
+strlen sample implementation
+Here is one way one could implement strlen
+1 unsigned int strlen(const char *s) {
+2 unsigned int i = 0;
+3 while (*s != '\0') {
+4 ++i; ++s;
+5 }
+6 return i;
+7 }
+Note: Do you understand this code? It combines several of the
+topics we’ve just discussed.
+62
+
+-- 81 of 83 --
+
+Practice Question
+Practice Question: Write the function str replace as described
+below.
+int str_replace(char *s, char find, char repl);
+str replace replaces every instance of find in string s with the
+character repl and returns the number of instances replaced.
+63
+
+-- 82 of 83 --
+
+Useful string Functions
+You should read up on the functions available in string.h, here
+are a few particularly useful ones:
+ int strcmp(const char *s1, const char *s2) —
+compares two strings lexicographically, returns 0 if strings are
+equal, < 0 if s1 < s2, and > 0 if s1 > s2.
+ char *strchr(const char *s, int c) — searches for
+character c in the string s. If it finds it returns a pointer to
+the first occurrence of the character in the string, otherwise
+returns NULL.
+ char *strcat(char *dest, const char *src) —
+concatenates src on to the end of dest. Note: the array
+pointed at by dest must be large enough to have the
+characters of src appended on, and also dest and src must
+not overlap. 64
+
+-- 83 of 83 --
+

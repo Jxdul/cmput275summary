@@ -56,6 +56,7 @@
             <li>Use shell commands to automate simple workflows.</li>
             <li>Chain programs with pipes for stream processing.</li>
             <li>Control stdin/stdout/stderr using redirection operators.</li>
+            <li>Manage execute permissions and run scripts safely.</li>
             <li>Understand PATH-based command lookup.</li>
             </ul>
           </article>
@@ -74,18 +75,25 @@
 <li>Define and utilize a Shell as a textual interface for system tasks.</li>
 <li>Chain programs together using pipes to process data streams.</li>
 <li>Redirect standard error and input streams to manage program output and file sources.</li>
+<li>Read and modify file execute/read/write permissions with <code>ls -l</code> and <code>chmod</code>.</li>
+<li>Connect to remote systems using <code>ssh username@serverAddress</code>.</li>
+<li>Write and execute basic Bash scripts using shebang, conditionals, and loops.</li>
 <li>Locate and execute system utilities using the PATH environment.</li>
 </ul>
 <h1>Big Picture Map (High-Level)</h1>
 <ol>
 <li><strong>Operating System Fundamentals:</strong> Review of OS purposes (hardware management, security, file access).</li>
 <li><strong>Shell Definition:</strong> Introduction to the Shell as a textual interface for tasks (run programs, manage files, terminate programs).</li>
+<li><strong>Program Execution and PATH:</strong> How command lookup works and when full file paths are needed.</li>
+<li><strong>File Permissions:</strong> Read/write/execute bits, <code>ls -l</code>, and permission changes with <code>chmod</code>.</li>
+<li><strong>Interpreters and Executable Scripts:</strong> Shebang basics and why execute permission is required.</li>
+<li><strong>Working Over a Network:</strong> SSH fundamentals and the <code>ssh username@serverAddress</code> command pattern.</li>
+<li><strong>Bash Scripts:</strong> Script structure, simple conditionals, and <code>for</code> loops for automation.</li>
 <li><strong>Variable Handling:</strong> Best practices for temporary files (<code>mktemp</code>) and variable expansion (<code>$()</code> vs <code>$</code>).</li>
 <li><strong>Pipes:</strong> Mechanism for passing output of one program as input to another (Unix philosophy of small single-purpose programs).</li>
 <li><strong>Standard Streams:</strong> Overview of <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> default connections.</li>
 <li><strong>Redirection:</strong> Overriding default connections using <code>&gt;</code> and <code>2&gt;</code> to write to files.</li>
 <li><strong>Input Methods:</strong> Comparing command line arguments vs. input redirection (<code>&lt;</code>).</li>
-<li><strong>Command Location:</strong> Understanding where programs exist (PATH and system utilities).</li>
 </ol>
 <h1>Key Concepts &amp; Definitions</h1>
 <p><strong>Shell</strong></p>
@@ -362,8 +370,8 @@
 <li><strong>Client-Server Computing:</strong> Not covered in these slides.</li>
 <li><strong>Recursion:</strong> Not covered in these slides.</li>
 <li><strong>Advanced Bash Scripting:</strong> Only basic commands and redirection are covered.</li>
-<li><strong>File Permissions Details:</strong> Mentioned as a purpose, but specific permission bits not detailed.</li>
-<li><strong>Network Working:</strong> Mentioned in Table of Contents, but content not in provided snippets.</li>
+<li><strong>Bash Robustness Features:</strong> Strict mode, traps, and advanced script debugging are not covered.</li>
+<li><strong>Secure File Transfer Tools:</strong> Tools like <code>scp</code> and <code>rsync</code> are not covered.</li>
 </ul>
 <h1>Slide Anchors (Traceability)</h1>
 <ul>

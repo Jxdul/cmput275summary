@@ -1,0 +1,1288 @@
+The C Programming Language
+Rob Hackman
+Winter 2026
+University of Alberta
+1
+
+-- 1 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+2
+
+-- 2 of 96 --
+
+The C Programming Language
+Originally developed at Bell Labs1 by Dennis Ritchie and Ken
+Thompson.
+C was developed for use rewriting the Unix kernel, and has been
+used for many kernels written since.
+The C programming language is a high-level, compiled, and
+statically typed language.
+1Yes, that Bell... sort of
+3
+
+-- 3 of 96 --
+
+High-level Languages
+Programs that run on our computer must be files made up of
+specific machine-code instructions our CPU was designed to
+understand — these instructions are not very human readable.
+High-level languages — languages we’ve created to make
+programming easier, but are removed from the actual machine
+code your computer’s CPU executes.
+Python and C are both high-level languages, however if high-level
+and low-level are instead thought of as a spectrum then C is much
+lower than Python on that spectrum.
+4
+
+-- 4 of 96 --
+
+Compiled Languages
+Compiled languages — compiling is one way we take high-level
+languages and make them usable on our CPU, the compiler
+generates a low-level machine code program from our high-level
+code. We call these files binary files or binaries as machine code is
+all binary.
+Python is interpreted — we used another program (an interpreter)
+to execute our Python programs. The interpreter was the actual
+program executing, using our Python programs as inputs.
+In C we will use a compiler, gcc1, which will generate an
+executable binary file from our C programs
+1Really when we invoke gcc we’ll be executing four tools, a preprocessor,
+compiler, assembler, and linker 5
+
+-- 5 of 96 --
+
+Statically Typed languages
+Statically typed languages — in these languages the programmer
+must specifie the type of all variables when declaring them, and
+this type cannot change.
+Python was dynamically typed which meant it allowed for
+changing the types variables referred to, and one never had to
+specify which type they meant to store with a variable.
+# Python Code
+pythonVar = 5 # pythonVar stores an int
+pythonVar = "Hello" # Now pythonVar stores a string
+// C code
+int cVar = 5; // cVar stores an int
+cVar = "Hello"; // Not what you think... 6
+
+-- 6 of 96 --
+
+Program’s Entry Point
+When asked to execute a program your operating system must
+load that program into memory, and load particular information for
+execution.
+One important piece of information is where to begin executing
+this program — this is called the entry point.
+The compiler defines in the entry point in our binary file based on
+our C code. Our entry point in C will always be the function main.
+Thus, unlike Python, all our programs will require a main function.
+7
+
+-- 7 of 96 --
+
+First C Program
+This program may seem simple, but there’s actually a lot to
+unpack here.
+1 #include <stdio.h>
+2
+3 int main(int argc, char **argv) {
+4 printf("Hello, world!\n");
+5 return 0;
+6 }
+8
+
+-- 8 of 96 --
+
+First C Program
+#include <stdio.h>
+This line is an include preprocessor directive. We’ll talk about
+the preprocessor shortly — for now think of this like an import
+statement in Python in that we will also get access to the library
+functions inside.
+The stdio library is C’s standard libray of I/O functions. It is from
+this library that we have access to the function printf
+9
+
+-- 9 of 96 --
+
+First C Program
+int main(int argc, char **argv) { ... }
+This is a declaration and definition of our function main. We have
+begun our definition of our main function by opening up the
+function body with curly braces.
+The int at the beginning is the return type of our main function
+Our main function has two parameters argc and argv. argc
+stores how many command line arguments our program received
+when it was ran. argv is how we access the values passed as
+command line arguments.
+10
+
+-- 10 of 96 --
+
+First C Program
+return 0;
+This line is a return statement. Much like Python this ends our
+function’s execution and produces that value to the caller of the
+function.
+But if main is our entry point to the
+program who is the caller of this function receiving the return value?
+11
+
+-- 11 of 96 --
+
+First C Program
+return 0;
+This line is a return statement. Much like Python this ends our
+function’s execution and produces that value to the caller of the
+function.
+But if main is our entry point to the program who is the caller of
+this function receiving the return value?
+The operating system! When the call to main which began the
+program returns the value produced is the exit status of our
+program!
+11
+
+-- 12 of 96 --
+
+First C Program
+printf("Hello, world!\n");
+Line 4 is calling the printf function which will be our main
+function for printing to the screen.
+printf requires we provide a string as the first argument, and
+"Hello, world!\n" here is called a string literal — however C
+does not have a “string” type like Python... so what does it have?
+12
+
+-- 13 of 96 --
+
+C Types
+The types built-in to C are not classes like Python - they are
+simply numbers stored a particular way.
+The types we’ll concern ourselves with, for now, are:
+ int — for representing integers
+ char — for representing characters
+ float — for representing floating point numbers
+We’ll learn a lot more about the types in C soon.
+13
+
+-- 14 of 96 --
+
+Compiling and Running our Program
+Let’s save our program from the previous slides in the file
+hello world.c
+In order to run our program we must first compile it to machine
+code. Let’s use the program gcc to do so.
+$ gcc hello_world.c
+By default gcc names our newly compiled program a.out, so we
+can run it by following up with the command
+$ ./a.out
+Note we didn’t have to make a.out executable before being able
+to run it. The executable binary files produced by gcc already have
+the executable bit set.
+14
+
+-- 15 of 96 --
+
+Compiling and Running our Program
+If we want gcc to give our program a different name we can
+provide the -o command line argument followed by the name we’d
+like our newly compiled program to have:
+$ gcc hello_world.c -o hello_world
+$ ./hello_world
+Warning: Be careful not to ask gcc to output to a filename you
+already have in use! gcc will overwrite any file already existing at
+that filepath.
+15
+
+-- 16 of 96 --
+
+How Numbers are Stored in C
+All values in our computer are stored in binary as 1’s and 0’s1.
+In Python this is hidden away and Python creates its own data
+structures to abstract these details away from the programmer
+In C one must be aware of how numbers are really stored in our
+computers.
+1Well, we choose to view it as 1’s and 0’s, really how it is physically stored
+depends on what device in our computer its stored in.
+16
+
+-- 17 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+17
+
+-- 18 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+18
+
+-- 19 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+2 × 103
+18
+
+-- 20 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+2 × 103 + 3 × 102
+18
+
+-- 21 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+2 × 103 + 3 × 102 + 5 × 101
+18
+
+-- 22 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+2 × 103 + 3 × 102 + 5 × 101 + 7 × 100
+18
+
+-- 23 of 96 --
+
+Number Systems - Base 10
+Consider what you know about decimal (base-10) integers. What
+does the number 2357 really mean?
+2 × 103 + 3 × 102 + 5 × 101 + 7 × 100
+This is what the 10 in base-10 means. It is also why our digits only
+go from 0 to 9, to go above 9 would mean we have 10 of the
+previous power of 10 which would “roll over” to then next digit.
+18
+
+-- 24 of 96 --
+
+Number Systems - Base 8
+We could instead represent numbers where our base is 8 (octal).
+This means our digits would only go from 0 to 7. Consider the
+following octal number 47281. The value it represents is:
+4 × 82 + 7 × 81 + 2 × 80
+The equivalent number in base-10 would be 314.
+1The subscripted 8 just indicates this is a base-8 number.
+19
+
+-- 25 of 96 --
+
+Number Systems - Generic Radices
+We can select any integer b to be a base for a number system.
+The base in number systems is also called the radix. Then our
+digits2 would be from 0 to b − 1 and each digit in our numbers in
+that base would successively represent (right to left) how many of
+each power b0, b1, b2, ... bn we have.
+1Digit comes from the latin word for fingers, chosen since the median number
+of human fingers is 10. There isn’t really a commonly used generic term for
+“digits” in other bases!
+20
+
+-- 26 of 96 --
+
+Number Systems - Binary
+Binary is the name given to the base-2 number system. Our digits
+in binary then are only 0 and 1 and are called bits. The binary
+number 10112 then represents:
+1 × 23 + 0 × 22 + 1 × 21 + 1 × 20
+21
+
+-- 27 of 96 --
+
+Number Systems - Binary
+Since our computers are built of circuits which hold electricity we
+use a simple scheme for holding values — whether voltage is high
+or low.
+Since we only have these two options we find it very useful to
+encode numbers in our computer’s circuits in binary. We can
+choose a simple mapping, for example a high voltage represents a
+1 and a low voltage represents a 0.
+Then with several high and low voltages in an order we can
+represent numbers.
+Note: We find it useful in computer science to group bits together,
+we call 8-bits a byte. 22
+
+-- 28 of 96 --
+
+Integers in our Computer - Unsigned Binary
+Unsigned integers in your computer are stored as binary numbers,
+encoded exactly as one would interpret any base-2 number.
+However we do not have infinite circuits on our computer. As such
+we must bound the size of our integers. Commonly integers are 64
+or 32 bits long.
+Knowledge Check: What’s the largest number you could represent
+in base-10 with 6 digits? What about 15 digits? What’s the largest
+number you could represent in binary with 12 bits? What about
+with 32 bits?
+23
+
+-- 29 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+1011 1101
++ 0001 0101
+24
+
+-- 30 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+1
+1011 1101
++ 0001 0101
+0
+24
+
+-- 31 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+1
+1011 1101
++ 0001 0101
+10
+24
+
+-- 32 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+1 1
+1011 1101
++ 0001 0101
+010
+24
+
+-- 33 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+1 1 1
+1011 1101
++ 0001 0101
+0010
+24
+
+-- 34 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+11 1 1
+1011 1101
++ 0001 0101
+1 0010
+24
+
+-- 35 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+111 1 1
+1011 1101
++ 0001 0101
+01 0010
+24
+
+-- 36 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+111 1 1
+1011 1101
++ 0001 0101
+101 0010
+24
+
+-- 37 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+111 1 1
+1011 1101
++ 0001 0101
+1101 0010
+24
+
+-- 38 of 96 --
+
+Unsigned Binary - Addition
+Addition is performed on our binary numbers the same way we
+perform addition on decimal numbers.
+111 1 1
+1011 1101
++ 0001 0101
+1101 0010
+What happens if we have to carry over from the most significant
+digit? — Overflow, the extra bit “carries over” but since we are
+8-bit fixed-width it has no where to go and is simply lost.
+24
+
+-- 39 of 96 --
+
+Data in our Computer
+Everything in your computer is represented in binary - not just
+numbers. How?
+25
+
+-- 40 of 96 --
+
+Data in our Computer
+Everything in your computer is represented in binary - not just
+numbers. How?
+Simple answer - beauty is in the eye of the beholder.
+25
+
+-- 41 of 96 --
+
+Data in our Computer
+Everything in your computer is represented in binary - not just
+numbers. How?
+Simple answer - beauty is in the eye of the beholder.
+We can make up any mapping we desire of collections of bits to
+any other data. Then our programs reading those bits can choose
+to interpret them that way.
+25
+
+-- 42 of 96 --
+
+Integers in our Computer - Signed Binary
+What about negative integers? If we were writing a binary number
+on paper we could just slap a negative sign in front of it, e.g.
+−10112
+We don’t have such a luxury inside our computers. So what can
+we do? Remember our integers are fixed size - let’s work with 8-bit
+integers for now
+Remember - beauty is in the eye of the beholder
+26
+
+-- 43 of 96 --
+
+Integers in our Computer - Signed Binary
+What about negative integers? If we were writing a binary number
+on paper we could just slap a negative sign in front of it, e.g.
+−10112
+We don’t have such a luxury inside our computers. So what can
+we do? Remember our integers are fixed size - let’s work with 8-bit
+integers for now
+Remember - beauty is in the eye of the beholder
+First Idea: stop using the left-most bit to represent part of the
+value of our number, instead let the left-most bit be a sign-bit
+where a 1 in that location signifies that the number is negative, a 0
+in that location means it is a positive number. 26
+
+-- 44 of 96 --
+
+First Attempt Signed Binary
+If we use the left-most bit to represent sign instead of part of our
+value then some numbers in our signed 8-bit binary look like so:
+110 = 0000 0001
+−110 = 1000 0001
+1710 = 0001 0001
+−1710 = 1001 0001
+27
+
+-- 45 of 96 --
+
+First Attempt Signed Binary - Problem 1
+If our only change to implement signed binary is using the
+left-most bit to represent sign, we have a couple problems.
+28
+
+-- 46 of 96 --
+
+First Attempt Signed Binary - Problem 1
+If our only change to implement signed binary is using the
+left-most bit to represent sign, we have a couple problems.
+First, what do the following two numbers represent?
+0000 0000
+1000 0000
+28
+
+-- 47 of 96 --
+
+First Attempt Signed Binary - Problem 1
+If our only change to implement signed binary is using the
+left-most bit to represent sign, we have a couple problems.
+First, what do the following two numbers represent?
+0000 0000
+1000 0000
+The represent 010 and −010 — not ideal
+28
+
+-- 48 of 96 --
+
+First Attempt Signed Binary - Problem 2
+We have a worse problem... consider the following addition with
+our representation:
+1000 0001
++ 0000 0001
+1000 0010
+29
+
+-- 49 of 96 --
+
+First Attempt Signed Binary - Problem 2
+We have a worse problem... consider the following addition with
+our representation:
+1000 0001
++ 0000 0001
+1000 0010
+This shows −1 + 1 = −2 which is a big problem.
+29
+
+-- 50 of 96 --
+
+Second Attempt Signed Binary - Ones’ Complement
+When the sign bit is not set, treat the number as a normal binary
+integer.
+To make a positive number into its negative equivalent, set the
+sign bit and flip the rest of the bits. This representation is called
+Ones’ Complement.
+110 = 0000 0001
+−110 = 1111 1110
+1710 = 0001 0001
+−1710 = 1110 1110
+30
+
+-- 51 of 96 --
+
+Second Attempt Signed Binary - Ones’ Complement
+When the sign bit is not set, treat the number as a normal binary
+integer.
+To make a positive number into its negative equivalent, set the
+sign bit and flip the rest of the bits. This representation is called
+Ones’ Complement.
+110 = 0000 0001
+−110 = 1111 1110
+1710 = 0001 0001
+−1710 = 1110 1110
+Addition works, still has the double zero problem.
+30
+
+-- 52 of 96 --
+
+Signed Binary in our Computers - Two’s Complement
+When the sign bit is not set, treat the number as a normal binary
+number.
+To make a positive number into its negative equivalent, set the
+sign bit, flip the rest of the bits, and add one to it. This
+representation is called Twos’ Complement.
+110 = 0000 0001
+−110 = 1111 1111
+1710 = 0001 0001
+−1710 = 1110 1111
+31
+
+-- 53 of 96 --
+
+Signed Binary in our Computers - Two’s Complement
+When the sign bit is not set, treat the number as a normal binary
+number.
+To make a positive number into its negative equivalent, set the
+sign bit, flip the rest of the bits, and add one to it. This
+representation is called Twos’ Complement.
+110 = 0000 0001
+−110 = 1111 1111
+1710 = 0001 0001
+−1710 = 1110 1111
+Addition works, doesn’t have two zero problem. This is how our
+computers store signed integers.
+31
+
+-- 54 of 96 --
+
+Numbers in C
+The C standard does not specify what size type int must be.
+Most implementations have a 32-bit default int type.
+Numbers, by default, in C are signed. For integers that means
+they’re represented using 32-bit twos’ complement by default. You
+can specified the signedness of your types with the type modifiers
+signed and unsigned.
+int x; // signed 32-bit int
+signed int y; // signed 32-bit int
+unsigned int z; // unsigned 32-bit int
+32
+
+-- 55 of 96 --
+
+Characters in C
+Characters in C are also just numbers. All our built-in types are.
+Type char is one byte long. The encoding used to map numbers
+to displayable characters is ASCII
+Character literals in C are denoted with single quotes. Unlike
+Python single quotes cannot be used for string literals, only for
+individual characters.
+1 #include <stdio.h>
+2 int main(int argc, char ** argv) {
+3 char c1 = 'H';
+4 char c2 = 101;
+5 char c3 = c1+36;
+6 char c4 = 'z' - 11;
+7 printf("%c%c%c%c%c\n", c1, c2, c3, c3, c4);
+8 } 33
+
+-- 56 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+34
+
+-- 57 of 96 --
+
+Formatted Strings
+Unlike Python’s print function, C’s printf function cannot print
+out variables of any type. However the string passed as printf’s
+first argument can have formatting specifiers in it, subsequently
+provided arguments will be placed instead of those specifiers.
+Some specifiers:
+ %d — for decimal (base 10) integer values
+ %f — for floating point values
+ %c — for character values
+ %s — for string values (???)
+35
+
+-- 58 of 96 --
+
+Formatted Strings - Example
+1 #include <stdio.h>
+2
+3 int main(int argc, char **argv) {
+4 int x = 10;
+5 float z = 25.537;
+6 char c = '^';
+7 printf("x: %d\nz: %f\nc: %c\n", x, z, c);
+8 printf("Two significant digits z: %.2f\n", z);
+9 }
+36
+
+-- 59 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+37
+
+-- 60 of 96 --
+
+Conditionals
+Like Python, C uses the if keyword for conditionals. Syntax is
+much Python but parentheses must surround the condition
+expression, and curly braces are used rather than indentation.
+1 if (expr) {
+2 ...
+3 }
+38
+
+-- 61 of 96 --
+
+While Loops
+Like Python, C has while loops. Again the condition expression
+must be in parentheses, and curly braces enclose the code to
+conditionally execute.
+1 while (expr) {
+2 ...
+3 }
+39
+
+-- 62 of 96 --
+
+Condition Expressions
+Unlike Python, C does not have bool type. You can access a type
+named bool in the stdbool library, but it’s just another name for
+int.
+In C zero is considered false, and any non-zero value is
+considered true.
+Boolean expressions evaluate to 1 or 0.
+In C the logical and, or, and negation operators are &&, ||, and !
+respectively.
+40
+
+-- 63 of 96 --
+
+Sample Condition
+Here’s a useful way to apply knowledge we’ve already learned:
+if (c >= 'a' && c <= 'z') {
+c = c - 'a' + 'A';
+}
+Knowledge Check: What does c >= 'a' && c <= 'z' check for
+us?
+What does c = c - 'a' + 'A' accomplish? What did we need
+to remember to write that?
+41
+
+-- 64 of 96 --
+
+For Loops
+For loops in C are very different than those in Python, which we’ll
+call range-based for loops.
+Range-based for loops do not exist in C, instead for loops are like
+while loops, except with a component where we may initialize our
+loop variable(s), and a component where we may place our update
+statements to take place at the end of each iteration.
+for (init_stmts; cond; update_stmts) {
+...
+}
+42
+
+-- 65 of 96 --
+
+For Loop Format
+for (init_stmts; cond; update_stmts) { ... }
+ init stmts — statements separated by commas, run once
+before your loop begins. Use for declaring, or setting, variables
+for your loop.
+ cond — Your loop condition, evaluated before entering loop
+body each iteration.
+ update stmts — statements, separated by commas, run after
+the loop body each iteration. Use for updating your loop
+variables.
+43
+
+-- 66 of 96 --
+
+Sample For Loops
+for (int i = 0; i < 10; ++i) {
+printf("%d\n", i);
+}
+int x;
+int y;
+for (x=0,y=0; x*y<100; x=x+2, y=y+3) {
+printf("(%d, %d)\n", x, y);
+}
+44
+
+-- 67 of 96 --
+
+Code blocks and scope
+Curly braces in C form a scope. Variables defined within curly
+braces are only accessible within the scope they were defined in or
+scopes nested within.
+1 int main(int argc, char ** argv) {
+2 int x = 5;
+3 {
+4 int y = 10;
+5 {
+6 int z = y * x;
+7 } // z no longer exists!
+8 } // y no longer exists!
+9 printf("%d\n", y); // Won't compile!
+10 }
+45
+
+-- 68 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+46
+
+-- 69 of 96 --
+
+Writing and Using Functions
+We’ve already seen how we defined main — other functions are
+defined similarly.
+Here is a function that has two int parameters and returns an int.
+1 int gcd(int a, int b) {
+2 while (b != 0) {
+3 int tmp = a%b;
+4 a = b;
+5 b = tmp;
+6 }
+7 return a;
+8 }
+47
+
+-- 70 of 96 --
+
+Function calls
+Syntax for calling functions is almost exactly the same as in
+Python.
+1 int main() {
+2 printf("gcd(16,8)=%d\n", gcd(16,8));
+3 printf("gcd(153,96)=%d\n", gcd(153,96));
+4 }
+48
+
+-- 71 of 96 --
+
+Practice
+Practice Problem: Write a function print binary that has one
+unsigned int parameter and prints out the binary representation
+of that number.
+49
+
+-- 72 of 96 --
+
+Functions and Scope
+Consider the following program in Python
+1 def times2(x):
+2 x = x*2
+3
+4 y = 10
+5 times2(y)
+6 print(y)
+What prints? Why?
+50
+
+-- 73 of 96 --
+
+Functions and Scope
+Consider an analagous program in C
+1 void times2(x) {
+2 x = x*2;
+3 }
+4
+5 int main(int argc, char **argv) {
+6 int y = 10;
+7 times2(y);
+8 printf("%d\n", y);
+9 }
+The output is the same — but let’s dig deeper as to why.
+51
+
+-- 74 of 96 --
+
+Table of Contents
+Introduction to C
+Number Systems and Numbers in our Computer
+C Programming Basics
+Basic Syntax
+Basic Functions
+Memory Layout
+52
+
+-- 75 of 96 --
+
+Memory - why do we care?
+The entirety of your program, and data it uses, must be loaded
+into RAM for it to be able to execute on your computer.
+In C we’ll need to understand the basics of how our programs
+memory is laid out in order to understand certain concepts and
+behaviours of the language.
+53
+
+-- 76 of 96 --
+
+Memory - What is it?
+Memory is just a bunch of “boxes” which can store values. Each
+box is a byte, and we can store values therein.
+54
+
+-- 77 of 96 --
+
+Memory - What is it?
+Memory is just a bunch of “boxes” which can store values. Each
+box is a byte, and we can store values therein.
+Your physical RAM receives addresses — these are how individual
+bytes are referenced in your RAM when the CPU asks to
+load/store data to/from RAM.
+54
+
+-- 78 of 96 --
+
+Memory - What is it?
+Memory is just a bunch of “boxes” which can store values. Each
+box is a byte, and we can store values therein.
+Your physical RAM receives addresses — these are how individual
+bytes are referenced in your RAM when the CPU asks to
+load/store data to/from RAM.
+Typically RAM is grouped into words which are groups of
+sequential bytes. Typical word sizes are 4 and 8 bytes (32 and 64
+bits).
+54
+
+-- 79 of 96 --
+
+Memory - Addresses
+Each byte has an address, addresses start at 0 and go up by one
+each sequential byte.
+0 1 2 3 4 5
+...
+...
+231 − 1
+231 − 2
+231 − 3
+231 − 4
+231 − 5
+231 − 6
+55
+
+-- 80 of 96 --
+
+Memory - What your program sees
+Your program never sees real
+addresses — the operating
+system lets your program pretend
+it has all of memory to itself. As
+far as your program is concerned
+its memory starts at address 0
+and continues on.
+Your program’s memory is
+divided into four segments
+0 text
+data
+heap
+unallocated space
+stack
+232 − 1
+56
+
+-- 81 of 96 --
+
+Memory Segments
+ text — where the code of
+your program is stored
+ data — where global and
+static data is stored
+ heap — where dynamically
+allocated data is stored
+ stack — where statically
+allocated data is stored
+0 text
+data
+heap
+unallocated space
+stack
+232 − 1
+57
+
+-- 82 of 96 --
+
+data, heap, and stack expanded
+Perhaps a more understandable description of the data stored in
+these segments is:
+ data — stores data whose lifetime that is the entirety of your
+program. Known at compile time.
+ heap — stores data whose lifetime is dictated by the
+programmer. Not known at compile time.
+ stack — stores data whose lifetime is tied to their enclosing
+scope. Known at compile time.
+So far we’ve only discussed data with lifetimes tied to their scope.
+58
+
+-- 83 of 96 --
+
+Function calls and the stack
+When a function is called a portion of the stack is allocated to that
+function call. This portion of the stack is called a stackframe.
+Space for parameters and local variables of that function call is
+allocated in the functions stackframe. When the function returns
+the stackframe is deallocated.
+Important: This means each call of a function gets its own
+memory — all of its data is its own. It also means that data goes
+away when the function ends!
+59
+
+-- 84 of 96 --
+
+gcd - recursive
+1 int gcd(int a, int b) {
+2 if (b == 0) return a;
+3 retval = gcd(b, a%b);
+4 return retval;
+5 }
+6
+7
+8 int main() {
+9 gcd(14, 6);
+10 }
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+60
+
+-- 85 of 96 --
+
+gcd - recursive
+1 int gcd(int a, int b) {
+2 if (b == 0) return a;
+3 retval = gcd(b, a%b);
+4 return retval;
+5 }
+6
+7
+8 int main() {
+9 gcd(14, 6);
+10 }
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+a: 6
+b: 2
+retval:
+gcd(6,2)
+60
+
+-- 86 of 96 --
+
+gcd - recursive
+1 int gcd(int a, int b) {
+2 if (b == 0) return a;
+3 retval = gcd(b, a%b);
+4 return retval;
+5 }
+6
+7
+8 int main() {
+9 gcd(14, 6);
+10 }
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+a: 6
+b: 2
+retval:
+gcd(6,2)
+a: 2
+b: 0
+retval:
+gcd(2,0)
+60
+
+-- 87 of 96 --
+
+gcd - recursive
+1 int gcd(int a, int b) {
+2 if (b == 0) return a;
+3 retval = gcd(b, a%b);
+4 return retval;
+5 }
+6
+7
+8 int main() {
+9 gcd(14, 6);
+10 }
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+... 
+...
+a: 14
+b: 6
+retval:
+gcd(14,6)
+a: 6
+b: 2
+retval: 2
+gcd(6,2)
+60
+
+-- 88 of 96 --
+
+gcd - recursive
+1 int gcd(int a, int b) {
+2 if (b == 0) return a;
+3 retval = gcd(b, a%b);
+4 return retval;
+5 }
+6
+7
+8 int main() {
+9 gcd(14, 6);
+10 }
+... 
+...
+a: 14
+b: 6
+retval: 2
+gcd(14,6)
+60
+
+-- 89 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) {
+2 x = x*2;
+3 }
+4
+5 int main() { <----
+6 int x = 10;
+7 times2(x);
+8 printf("%d\n", x);
+9 }
+...
+x:	main
+61
+
+-- 90 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) {
+2 x = x*2;
+3 }
+4
+5 int main() {
+6 int x = 10; <----
+7 times2(x);
+8 printf("%d\n", x);
+9 }
+...
+x: 10	main
+61
+
+-- 91 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) {
+2 x = x*2;
+3 }
+4
+5 int main() {
+6 int x = 10;
+7 times2(x); <----
+8 printf("%d\n", x);
+9 }
+...
+x: 10	main
+61
+
+-- 92 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) { <----
+2 x = x*2;
+3 }
+4
+5 int main() {
+6 int x = 10;
+7 times2(x);
+8 printf("%d\n", x);
+9 }
+...
+x: 10	main
+x: 10	times2(10)
+61
+
+-- 93 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) {
+2 x = x*2; <----
+3 }
+4
+5 int main() {
+6 int x = 10;
+7 times2(x);
+8 printf("%d\n", x);
+9 }
+...
+x: 10	main
+x: 20	times2(10)
+61
+
+-- 94 of 96 --
+
+Mutation - revisited
+Now let’s ask ourselves again
+why this program prints 10.
+1 void times2(int x) {
+2 x = x*2;
+3 }
+4
+5 int main() {
+6 int x = 10;
+7 times2(x);
+8 printf("%d\n", x); <----
+9 }
+...
+x: 10	main
+61
+
+-- 95 of 96 --
+
+Functions - local variables
+Now we should have a good understanding of why changes to our
+parameter cannot affect the argument that was supplied when the
+function was called.
+The value of the argument is copied into the functions stackframe
+as the value of the parameter. It is a local copy of the value,
+stored at a completely different address than the argument.
+But what if we wanted to be able to change the argument?
+62
+
+-- 96 of 96 --
+
