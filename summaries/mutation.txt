@@ -1,0 +1,252 @@
+# Lecture Identity
+**File/lecture name:** mutation.pdf
+**Main theme:** Techniques for returning multiple values in C/C++ using mutation and managing dynamic array state using double pointers.
+**Prereqs assumed by slides:** C/C++ syntax, basic pointer arithmetic, `malloc`/`free`, array indexing, and understanding of pass-by-value vs pass-by-reference.
+**What this lecture enables you to do:**
+*   Simulate returning multiple values from a function without using C++ structs or tuples.
+*   Safely resize a dynamically allocated array within a function so the caller's pointer remains valid.
+*   Diagnose and fix double-free errors and memory leaks caused by incorrect pointer mutation.
+*   Understand the distinction between mutating the value at a pointer vs. mutating the pointer itself.
+
+# Big Picture Map (High-Level)
+1.  **Introduction to Multiple Returns:** Explains why C cannot return multiple values directly (e.g., `return (a, b)` is invalid).
+2.  **Mutation for Returns:** Introduces passing pointers to variables to allow the function to write results back to the caller's memory.
+3.  **`maxInfo` Example:** Walks through evolving a function to return both a maximum value and its index.
+4.  **Dynamic Array Resizing:** Introduces the `push` function for a dynamic array that needs to grow when capacity is reached.
+5.  **Single Pointer Mutation:** Shows why passing `size_t *len` works but passing `int *arr` alone does not update the caller's array pointer.
+6.  **Double Pointer Necessity:** Demonstrates that to change the array pointer itself (after reallocation), a double pointer (`int **`) is required.
+7.  **Double Free Bug:** Analyzes a crash caused by freeing memory twice (once inside `push`, once in `main`) due to pointer mutation failure.
+8.  **Memory Leak:** Explains how reallocating memory without updating the caller's pointer leaks the old memory.
+9.  **Encapsulation Hint:** Notes that passing many state variables (`arr`, `len`, `cap`) is cumbersome and suggests encapsulation (though not fully implemented).
+10. **Practice Problem:** Proposes writing a `pop` function using mutation principles.
+
+# Key Concepts & Definitions
+**Mutation**
+*   **Definition:** Modifying the contents of a memory location that the caller owns, accessed via a pointer passed to the function.
+*   **Why it matters:** It is the primary mechanism in C/C++ to return multiple values or update state (like array length) without returning complex structures.
+*   **Common confusion:** Confusing mutation of the *value* (`*ptr = val`) with mutation of the *pointer* (`ptr = new_ptr`).
+*   **Tiny example:** `void set(int *x, int v) { *x = v; }` mutates the integer at `x`.
+
+**Double Pointer**
+*   **Definition:** A pointer that points to another pointer (e.g., `int **arr`). Used to modify the address stored in the caller's pointer variable.
+*   **Why it matters:** Essential for functions that need to reallocate memory and update the caller's pointer to the new address.
+*   **Common confusion:** Thinking `int **` is a 2D array. It is a pointer to a pointer.
+*   **Tiny example:** `push(int **arr, ...)` allows `*arr = newArr;` to update the caller's `arr`.
+
+**Dangling Pointer**
+*   **Definition:** A pointer that points to memory that has been freed (e.g., via `free()`).
+*   **Why it matters:** Accessing a dangling pointer causes undefined behavior (crashes or data corruption).
+*   **Common confusion:** Believing the pointer is still valid just because the variable name exists.
+*   **Tiny example:** `free(arr); arr = newArr;` makes the old `arr` dangling.
+
+**Memory Leak**
+*   **Definition:** Allocating memory but losing the only pointer to it, making it impossible to free.
+*   **Why it matters:** Leads to exhaustion of heap memory over time.
+*   **Common confusion:** Thinking `free()` is optional if the program ends.
+*   **Tiny example:** `arr = newArr;` without updating the caller's pointer leaks the old `arr`.
+
+# Core Mechanics / How-To
+**How to return multiple values in C**
+1.  Identify the values you need to return (e.g., `float max`, `size_t index`).
+2.  Add extra parameters to the function signature that are pointers to these variables (e.g., `float *max`, `size_t *ind`).
+3.  Inside the function, compute the values.
+4.  Dereference the pointers to store the values (e.g., `*max = maxSoFar;`).
+5.  Return only one value (usually the primary result).
+
+**How to resize a dynamic array safely**
+1.  Check if `len == cap`.
+2.  If true, allocate new memory (`malloc`).
+3.  Copy old data to new memory.
+4.  **Crucial Step:** Free the old memory (`free(*arr)`).
+5.  **Crucial Step:** Update the caller's pointer (`*arr = newArr`).
+6.  Update capacity (`*cap = *cap * 2`).
+7.  Ensure the caller passes the address of the pointer (`&arr`), not the pointer itself.
+
+**How to choose between single vs double pointer**
+1.  **Single Pointer (`int *arr`):** Use if you only need to read the array or update the *contents* (e.g., `arr[i] = val`).
+2.  **Double Pointer (`int **arr`):** Use if you need to change *where* the array is stored (e.g., reallocation).
+3.  **Decision:** If the function might return a new pointer to a different memory block, use double pointer.
+
+# Code Patterns & Idioms
+**Pattern: Mutation via Pointer**
+*   **When to use it:** When you need to return a value that is not the return type of the function.
+*   **Correct minimal example:**
+    ```c
+    void setMax(float *max, float val) {
+        *max = val;
+    }
+    ```
+*   **Common bug:** Forgetting the `*` when writing (`max = val` instead of `*max = val`).
+*   **How to avoid it:** Remember `*` means "write to the memory at this address".
+
+**Pattern: Double Pointer Reallocation**
+*   **When to use it:** When a function needs to change the pointer variable in the caller (e.g., resizing).
+*   **Correct minimal example:**
+    ```c
+    void push(int **arr, size_t *len, size_t *cap) {
+        if (*len == *cap) {
+            // ... allocate newArr ...
+            free(*arr);
+            *cap = *cap * 2;
+            *arr = newArr; // Update caller's pointer
+        }
+        (*arr)[*len] = val;
+        ++*len;
+    }
+    ```
+*   **Common bug:** Updating local `arr` instead of `*arr` (`arr = newArr` vs `*arr = newArr`).
+*   **How to avoid it:** Always dereference the double pointer (`*arr`) when modifying the caller's pointer.
+
+**Pattern: Caller Responsibility**
+*   **When to use it:** Always remember who owns the memory.
+*   **Correct minimal example:**
+    ```c
+    int main() {
+        int *arr = malloc(...);
+        push(&arr, ...); // Pass address of arr
+        // ... use arr ...
+        free(arr); // Caller frees
+    }
+    ```
+*   **Common bug:** Calling `free(arr)` inside `push` and then `free(arr)` in `main`.
+*   **How to avoid it:** If `push` frees memory, it must update the pointer so `main` knows not to free the old one.
+
+# Pitfalls, Edge Cases, and Debugging
+1.  **Symptom:** `free(): double free detected in tcache`
+    *   **Likely cause:** `push` freed the old array and updated its local pointer, but `main` still holds the old pointer and frees it later.
+    *   **Fix:** Pass `&arr` (double pointer) so `push` can update `main`'s pointer to the new allocation.
+2.  **Symptom:** Program crashes with "Segmentation fault" after `push`.
+    *   **Likely cause:** `arr` in `main` is dangling (points to freed memory) because `push` reallocated but didn't update `main`'s pointer.
+    *   **Fix:** Use double pointer (`int **arr`) and dereference (`*arr`) inside `push`.
+3.  **Symptom:** `printArray` prints nothing or wrong values.
+    *   **Likely cause:** `len` was updated locally in `push` but not passed by address (`&len`).
+    *   **Fix:** Pass `&len` to `push` and dereference (`*len`) inside.
+4.  **Symptom:** Memory usage grows indefinitely.
+    *   **Likely cause:** Old memory was freed in `push`, but the new pointer was lost (leaked) because `main`'s pointer wasn't updated.
+    *   **Fix:** Ensure `*arr = newArr` updates the caller's pointer.
+5.  **Symptom:** `scanf` or `printf` behaves unexpectedly.
+    *   **Likely cause:** `len` is 0 because it wasn't mutated in `push`.
+    *   **Fix:** Pass `&len` to `push`.
+6.  **Symptom:** Compiler warning "passing argument 1 of 'push' from incompatible pointer type".
+    *   **Likely cause:** Trying to pass `arr` (`int *`) to a function expecting `int **`.
+    *   **Fix:** Pass `&arr` in `main`.
+7.  **Symptom:** `assert(len > 0)` fails immediately.
+    *   **Likely cause:** `len` was not initialized or not updated correctly in `main`.
+    *   **Fix:** Ensure `len` is initialized to 0 in `main` and passed by address.
+8.  **Symptom:** `malloc` returns `NULL` but code proceeds.
+    *   **Likely cause:** Memory exhaustion (unlikely in small examples) or logic error.
+    *   **Fix:** Always check return value of `malloc`.
+9.  **Symptom:** `free()` called on uninitialized pointer.
+    *   **Likely cause:** `arr` was never allocated before `push` tried to free it.
+    *   **Fix:** Ensure `malloc` is called before `push` or handle `len == 0` case.
+10. **Symptom:** `cap` variable is not updated in `main`.
+    *   **Likely cause:** `cap` was passed by value, not by address.
+    *   **Fix:** Pass `&cap` to `push` and dereference (`*cap`) inside.
+11. **Symptom:** `push` function signature has too many parameters.
+    *   **Likely cause:** State is scattered (`arr`, `len`, `cap`).
+    *   **Fix:** Encapsulate state in a struct (not covered in slides, but noted as a future direction).
+12. **Symptom:** `main` crashes before EOF.
+    *   **Likely cause:** `push` crashed due to double free or invalid pointer access.
+    *   **Fix:** Use double pointer logic correctly.
+13. **Symptom:** `printf` shows garbage values.
+    *   **Likely cause:** `maxInd` or `max` not initialized or not mutated correctly.
+    *   **Fix:** Ensure pointers to `maxInd` and `max` are passed and dereferenced.
+14. **Symptom:** `free()` called on `arr` in `main` after `push` reallocated.
+    *   **Likely cause:** `push` updated `*arr` but `main` still thinks `arr` points to old memory.
+    *   **Fix:** `push` must update `*arr` so `main`'s `arr` points to new memory.
+15. **Symptom:** `push` function compiles but logic is wrong.
+    *   **Likely cause:** Confusion between `arr` (local) and `*arr` (caller's).
+    *   **Fix:** Remember `*arr` is the caller's pointer.
+
+# Exam-Style Questions (with answers)
+1.  **Q:** In C, can a function return two values directly like `return (a, b)`?
+    **A:** No. C functions return a single value. Use mutation (pointers) to return multiple values.
+2.  **Q:** What is the signature of `maxInfo` if it returns the max value and writes the index to a variable provided by the caller?
+    **A:** `float maxInfo(float *arr, size_t len, size_t *ind);`
+3.  **Q:** Why does `push(int *arr, ...)` fail to update the caller's array pointer after reallocation?
+    **A:** Because `arr` is passed by value. Changes to `arr` inside `push` do not affect the caller's `arr`.
+4.  **Q:** What is the correct call to `push` if it takes a double pointer?
+    **A:** `push(&arr, val, &len, &cap);`
+5.  **Q:** What happens if `push` frees the old array but does not update the caller's pointer?
+    **A:** The caller's pointer becomes dangling. Accessing it causes undefined behavior.
+6.  **Q:** What is the difference between `*arr = newArr` and `arr = newArr` inside a function taking `int **arr`?
+    **A:** `*arr = newArr` updates the caller's pointer. `arr = newArr` only updates the local pointer.
+7.  **Q:** Why is `free(arr)` dangerous if `push` already freed the old array?
+    **A:** It causes a double free error because the same memory block is freed twice.
+8.  **Q:** What is the purpose of `assert(len > 0)` in `maxInfo`?
+    **A:** To ensure the array is not empty before accessing `arr[0]`.
+9.  **Q:** If `push` reallocates memory, what must happen to the `cap` variable?
+    **A:** It must be updated (`*cap = *cap * 2`) so the caller knows the new capacity.
+10. **Q:** What is the return type of `maxInfo` if it uses mutation for both values?
+    **A:** `void` (since all values are returned via mutation).
+11. **Q:** What is the consequence of not passing `&cap` to `push`?
+    **A:** The caller's `cap` variable remains unchanged, leading to incorrect logic in subsequent calls.
+12. **Q:** How do you fix the "double free" error in the `push` example?
+    **A:** Pass `&arr` (double pointer) so `push` can update the caller's pointer to the new allocation.
+
+# Quick Reference / Cheat Sheet
+**Rules for Mutation:**
+*   **To return a value:** Pass a pointer (`Type *ptr`) and dereference it (`*ptr = val`).
+*   **To change a pointer:** Pass a pointer to a pointer (`Type **ptr`) and dereference it (`*ptr = new_ptr`).
+*   **To update a scalar:** Pass a pointer (`Type *ptr`) and dereference it (`*ptr = val`).
+
+**Memory Management:**
+*   **`malloc`**: Allocates memory. Returns `void*`.
+*   **`free`**: Frees memory. Must be called exactly once per `malloc`.
+*   **`sizeof`**: Returns size in bytes.
+*   **`sizeof(int)`**: Size of an integer (usually 4 bytes).
+
+**Double Pointer Syntax:**
+*   **Declaration:** `int **arr;`
+*   **Initialization:** `int *arr = malloc(...);` then `int **ptr = &arr;`
+*   **Update Caller:** `*ptr = newArr;`
+*   **Access Element:** `(*ptr)[i]` or `(*ptr)[i]`
+
+**Common Errors:**
+*   **Double Free:** Freeing memory twice.
+*   **Dangling Pointer:** Using a pointer after the memory it points to is freed.
+*   **Memory Leak:** Losing the pointer to allocated memory.
+
+# Mini Glossary
+1.  **Mutation:** Modifying data at a memory address passed to a function.
+2.  **Double Pointer:** A pointer that points to another pointer (`Type **`).
+3.  **Dangling Pointer:** A pointer pointing to freed memory.
+4.  **Memory Leak:** Allocating memory but losing the pointer to it.
+5.  **Pass-by-Value:** Copying the value of a variable to a function.
+6.  **Pass-by-Reference:** Passing the address of a variable to a function (via pointer).
+7.  **Heap:** The region of memory for dynamic allocation (`malloc`).
+8.  **Stack:** The region of memory for local variables.
+9.  **Undefined Behavior:** Behavior not specified by the language standard (e.g., double free).
+10. **Encapsulation:** Grouping data and functions together (hinted at in slides).
+11. **Reallocation:** Allocating new memory and copying old data.
+12. **Capacity:** The maximum number of elements an array can hold.
+13. **Length:** The current number of elements in an array.
+14. **Index:** The position of an element in an array.
+15. **Array:** A collection of elements of the same type.
+16. **Pointer:** A variable that stores a memory address.
+17. **Dereference:** Accessing the value at a memory address (`*ptr`).
+18. **Address-of:** Getting the memory address of a variable (`&var`).
+19. **Void:** A type indicating no return value.
+20. **Size_t:** A type representing the size of an object (usually `unsigned long`).
+
+# What This Lecture Does NOT Cover (Boundary)
+*   **C++ Classes:** The slides hint at encapsulation but do not show C++ classes or structs.
+*   **Smart Pointers:** `std::unique_ptr`, `std::shared_ptr`, or `std::vector` are not covered.
+*   **C++ STL:** Standard Template Library containers are not discussed.
+*   **Exception Handling:** `try/catch` blocks are not covered.
+*   **RAII:** Resource Acquisition Is Initialization pattern is not explicitly taught.
+*   **Multithreading:** Thread safety of `push`/`pop` is not discussed.
+*   **Memory Alignment:** `alignof` or padding is not covered.
+*   **Pointers to Pointers to Pointers:** Triple pointers (`int ***`) are not covered.
+
+# Slide Anchors (Traceability)
+*   **Returning Multiple Values:** Slide 3 ("Returning Multiple Values") - "We can't return two values in C."
+*   **Mutation for Returns:** Slide 5 ("maxInfo using mutation and return") - `*ind = maxInd; return maxSoFar;`
+*   **Double Pointer Necessity:** Slide 21 ("push fixed") - `void push(int **arr, ...)`
+*   **Double Free Error:** Slide 19 ("Take 3 | problem") - "free(): double free detected in tcache"
+*   **Dangling Pointer:** Slide 20 ("Take 3 | problem") - "main's variable... dangling pointer"
+*   **Memory Leak:** Slide 20 ("Take 3 | problem") - "new array push allocated was leaked"
+*   **Caller Responsibility:** Slide 23 ("main for fixed push") - `push(&arr, x, &len, &cap);`
+*   **Encapsulation Hint:** Slide 25 ("Lots of data representing one thing") - "That's becoming a lot of parameters to pass"
+*   **Practice Problem:** Slide 24 ("Practice Problem") - "Write a function pop"
+*   **Table of Contents:** Slide 1 ("Table of Contents") - Lists Pass-by-Pointer, Using Double Pointers.
