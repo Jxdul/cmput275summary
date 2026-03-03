@@ -1,0 +1,225 @@
+# Lecture Identity
+**File/lecture name:** pointers.pdf  
+**Main theme:** C Pointers, Arrays, and Strings: Memory addresses, input handling, and string manipulation.  
+**Prereqs assumed by slides:** Basic C syntax (variables, loops, functions), understanding of stack memory, and familiarity with `printf`.  
+**What this lecture enables you to do:**
+*   Manipulate memory directly using pointers and dereferencing.
+*   Handle user input robustly, including error checking and EOF detection.
+*   Understand array decay and pass arrays to functions safely.
+*   Manage string literals and use the standard string library functions.
+
+# Big Picture Map (High-Level)
+1.  **Pointers Fundamentals:** Definition, declaration, assignment using `&`, and dereferencing using `*`.
+2.  **Pointer Arithmetic & Memory:** Understanding memory layout, word size, hexadecimal addresses, and aliasing.
+3.  **Input Handling (`scanf`):** Reading integers, handling non-integer input errors, and detecting EOF.
+4.  **Arrays:** Declaration, `sizeof` operator, iteration, and initialization.
+5.  **Arrays and Functions:** Array decay, passing arrays as pointers, and mutation implications.
+6.  **Strings:** Storage of literals vs. stack arrays, `const` correctness, and string library functions (`strlen`, `strcat`).
+
+# Key Concepts & Definitions
+| Name | Definition | Why it matters | Common confusion / misconception | Tiny example |
+| :--- | :--- | :--- | :--- | :--- |
+| **Pointer** | A data type that stores a memory address rather than a value. | Allows direct manipulation of memory and passing data by reference. | Confusing the pointer (address) with the value it points to. | `int *ptr;` |
+| **Dereference** | Using `*` to access the value stored at the memory address held by a pointer. | Essential for reading or modifying data via a pointer. | Thinking `*ptr` is a multiplication operator. | `*ptr = 10;` |
+| **Array Decay** | When an array is passed to a function, it decays into a pointer to its first element. | Explains why `sizeof` on a function parameter returns pointer size, not array size. | Believing `int arr[]` and `int *arr` are identical in all contexts. | `void f(int arr[])` |
+| **`scanf` Return** | Returns the number of items successfully read. | Critical for error handling; allows detecting non-integer input. | Assuming it always returns 1 or ignores failures. | `if (scanf("%d", &x) == 1)` |
+| **`const`** | A type modifier indicating data should not be modified. | Prevents accidental writes to read-only memory (like string literals). | Confusing `const int *` (ptr to const) with `int * const` (const ptr). | `const char *s = "text";` |
+| **Null-Terminated String** | A C string is an array of characters ending with `\0` (ASCII 0). | Required for functions like `strlen` to know where the string ends. | Thinking the length of the literal is the string length. | `"abc"` is 3 chars, `"abc\0"` is 4 bytes. |
+| **EOF** | End-of-File indicator, returned by `getchar` or checked via `feof`. | Signals the end of input stream (e.g., Ctrl+D). | Checking `feof` before reading vs. after reading. | `while (!feof(stdin))` |
+
+# Core Mechanics / How-To
+**1. How to declare and assign a pointer safely**
+1.  Declare the pointer with the correct type: `int *ptr;`
+2.  Do not assign arbitrary numbers (e.g., `ptr = 1000;`) unless you know the address is valid.
+3.  Assign the address of a valid variable using the address-of operator: `ptr = &x;`
+4.  *Example:*
+    ```c
+    int x = 10;
+    int *ptr = &x; // Safe
+    ```
+
+**2. How to handle `scanf` input errors robustly**
+1.  Check the return value of `scanf` immediately after the call.
+2.  If the return value is not 1 (for an int), the input stream contains garbage.
+3.  Consume the offending character(s) to prevent an infinite loop.
+4.  *Example:*
+    ```c
+    int ret = scanf("%d", &x);
+    if (ret != 1) {
+        char c;
+        scanf("%c", &c); // Consume bad input
+    }
+    ```
+
+**3. How to iterate over an array safely**
+1.  Calculate the length using `sizeof(arr) / sizeof(arr[0])` (only works for local arrays).
+2.  Use a loop index `i` from `0` to `len - 1`.
+3.  *Example:*
+    ```c
+    unsigned int len = sizeof(arr) / sizeof(arr[0]);
+    for (unsigned int i = 0; i < len; ++i) { ... }
+    ```
+
+**4. How to pass arrays to functions**
+1.  Remember that the function parameter `int arr[]` is treated as `int *arr`.
+2.  You must pass the size explicitly (e.g., `void f(int arr[], unsigned int size)`).
+3.  Do not use `sizeof(arr)` inside the function to get the array length.
+4.  *Example:*
+    ```c
+    void printArray(int arr[], unsigned int size) {
+        for (unsigned int i = 0; i < size; ++i) {
+            printf("%d\n", arr[i]);
+        }
+    }
+    ```
+
+**5. How to declare string literals correctly**
+1.  Use `char myS[] = "text";` for stack-allocated, modifiable strings.
+2.  Use `const char *s = "text";` for pointers to string literals (read-only).
+3.  Never modify a pointer to a string literal (e.g., `s[0] = 'X'` crashes).
+4.  *Example:*
+    ```c
+    char myS[] = "On Stack"; // Modifiable
+    const char *s = "Text";  // Read-only
+    ```
+
+# Code Patterns & Idioms
+| Pattern Name | When to use it | Correct minimal example | Common bug + how to avoid it |
+| :--- | :--- | :--- | :--- |
+| **Pointer to Const** | When you want to read data but not modify it. | `const int *px = &x;` | Bug: `*px = 5;` (Compiler error). Fix: Use `const`. |
+| **Const Pointer** | When the pointer itself should not change address. | `int * const py = &y;` | Bug: `py = &x;` (Compiler error). Fix: Use `const` on pointer. |
+| **Input Loop** | When reading until EOF or valid input. | `while (scanf(...) == 1) { ... }` | Bug: Infinite loop on bad input. Fix: Consume bad char with `scanf("%c", &c)`. |
+| **Array Decay** | When passing arrays to functions. | `void f(int arr[])` | Bug: `sizeof(arr)` returns pointer size. Fix: Pass size explicitly. |
+| **String Length** | When calculating string length. | `strlen(p)` | Bug: `sizeof(p)` returns pointer size. Fix: Use `strlen` or `sizeof(arr)/sizeof(char)` for stack arrays. |
+
+# Pitfalls, Edge Cases, and Debugging
+*   **Symptom:** Program crashes immediately after `s[0] = 'X';` where `s` points to a literal.
+    *   **Likely cause:** Modifying read-only memory (string literal stored in text segment).
+    *   **Fix:** Use `char myS[] = "text";` instead of `char *s = "text";`.
+*   **Symptom:** `sizeof(arr)` returns 4 (or 8) inside a function instead of 40.
+    *   **Likely cause:** Array decay; `arr` is a pointer, not an array.
+    *   **Fix:** Pass the size as a separate argument.
+*   **Symptom:** Infinite loop when reading integers with `scanf`.
+    *   **Likely cause:** `scanf` fails to read, leaves bad input in stream, loop repeats.
+    *   **Fix:** Consume the bad character(s) after a failed read.
+*   **Symptom:** `&arr` and `arr` print the same address.
+    *   **Likely cause:** Array decay in expressions; `arr` evaluates to address of first element.
+    *   **Fix:** Understand `&arr` is address of the array object, `arr` is address of first element.
+*   **Symptom:** `strlen` returns incorrect length for a stack array.
+    *   **Likely cause:** Confusing `sizeof` (bytes) with `strlen` (chars).
+    *   **Fix:** Use `sizeof(arr)/sizeof(char)` for stack arrays, `strlen` for pointers.
+*   **Symptom:** `scanf` returns 0 but program continues.
+    *   **Likely cause:** Input stream contains non-matching data.
+    *   **Fix:** Check return value and handle error.
+*   **Symptom:** `const int *px` allows changing `px` but not `*px`.
+    *   **Likely cause:** Misunderstanding `const` placement.
+    *   **Fix:** `const` before `*` protects the value; `const` after `*` protects the pointer.
+*   **Symptom:** `printf("%p\n", ptr)` prints a random address.
+    *   **Likely cause:** Pointer not initialized or assigned a valid address.
+    *   **Fix:** Initialize with `&variable` or `NULL`.
+*   **Symptom:** `arr` and `p` (where `p = arr`) behave differently in `sizeof`.
+    *   **Likely cause:** `arr` is an array, `p` is a pointer.
+    *   **Fix:** Use `sizeof(arr)` only for local arrays.
+*   **Symptom:** `scanf` leaves newline character in buffer.
+    *   **Likely cause:** Mixing `scanf("%d")` and `scanf("%c")`.
+    *   **Fix:** Use `scanf("%c", &c)` to consume the newline.
+*   **Symptom:** `strcat` overflows destination buffer.
+    *   **Likely cause:** Destination array is too small.
+    *   **Fix:** Ensure `dest` has enough space for `src` + null terminator.
+*   **Symptom:** `arr` and `&arr` are different in `printf`.
+    *   **Likely cause:** `arr` decays to pointer, `&arr` is address of array object.
+    *   **Fix:** Use `&arr` only if you need the address of the array object itself.
+*   **Symptom:** `const` variable left uninitialized.
+    *   **Likely cause:** `const` variables must be initialized.
+    *   **Fix:** Always provide an initial value for `const` variables.
+*   **Symptom:** `scanf` fails to read integer but loop continues.
+    *   **Likely cause:** Bad input not consumed.
+    *   **Fix:** Consume bad input character.
+*   **Symptom:** `sizeof` on array parameter returns pointer size.
+    *   **Likely cause:** Array decay.
+    *   **Fix:** Pass size explicitly.
+
+# Exam-Style Questions (with answers)
+1.  **Q:** What is the output of `printf("%d\n", *ptr);` if `int x = 10; int *ptr = &x;`?
+    **A:** `10` (Dereferencing `ptr` accesses the value of `x`).
+2.  **Q:** Why does `scanf("%d", &x)` return 0 if the user types "abc"?
+    **A:** It returns 0 because no integer was successfully read.
+3.  **Q:** What is the difference between `char *s = "text";` and `char s[] = "text";`?
+    **A:** `s` points to a read-only literal (crash if modified); `s[]` is a modifiable stack array.
+4.  **Q:** What happens if you call `sizeof(arr)` inside a function where `arr` is a parameter?
+    **A:** It returns the size of a pointer (e.g., 4 or 8 bytes), not the array size.
+5.  **Q:** What is the return type of `scanf`?
+    **A:** `int` (number of items successfully read).
+6.  **Q:** What does `const char *s` mean?
+    **A:** Pointer to a constant character (cannot modify the data pointed to).
+7.  **Q:** What is the value of `&arr` vs `arr` for an array `int arr[5]`?
+    **A:** `arr` is the address of the first element; `&arr` is the address of the array object (different type).
+8.  **Q:** How do you fix an infinite loop when reading integers with `scanf`?
+    **A:** Consume the bad input character(s) after a failed read.
+9.  **Q:** What is "Array Decay"?
+    **A:** The process where an array name is treated as a pointer to its first element in expressions.
+10. **Q:** What is the ASCII value of the null terminator?
+    **A:** 0 (represented as `\0`).
+11. **Q:** Can you use `sizeof` to find the length of a string passed to a function?
+    **A:** No, because of array decay; you must pass the size explicitly.
+12. **Q:** What does `feof(stdin)` return?
+    **A:** True (non-zero) only after an attempted read fails due to EOF.
+
+# Quick Reference / Cheat Sheet
+*   **Pointer Declaration:** `type *name;`
+*   **Address-of:** `&variable`
+*   **Dereference:** `*pointer`
+*   **Array Size (Local):** `sizeof(arr) / sizeof(arr[0])`
+*   **Array Size (Function Param):** `sizeof(arr)` returns pointer size (use passed size).
+*   **String Literal:** `const char *s = "text";` (Read-only)
+*   **Stack String:** `char s[] = "text";` (Modifiable)
+*   **`scanf` Return:** Number of items read.
+*   **`EOF`:** End of file indicator.
+*   **`strlen`:** Returns length of string (null-terminated).
+*   **`strcat`:** Concatenates strings (dest must be large enough).
+*   **`const` Placement:** `const int *p` (ptr to const) vs `int * const p` (const ptr).
+*   **`&arr` vs `arr`:** `arr` decays to `&arr[0]`.
+
+# Mini Glossary
+1.  **Pointer:** Variable storing a memory address.
+2.  **Dereference:** Accessing value at address via `*`.
+3.  **Alias:** Using a pointer to access/modify the original variable.
+4.  **Array Decay:** Array becoming a pointer when passed to a function.
+5.  **Stack:** Memory region for local variables (grows towards lower addresses).
+6.  **Heap:** Memory region for dynamic allocation (not covered in slides).
+7.  **Text Segment:** Memory region for string literals (read-only).
+8.  **EOF:** End-of-File indicator.
+9.  **Null Terminator:** `\0` character ending a C string.
+10. **Lexicographical:** String comparison order (ASCII value).
+11. **Const:** Type modifier preventing modification.
+12. **Address-of:** Operator `&` returning memory address.
+13. **Pointer Arithmetic:** Adding integers to pointers (scaled by type size).
+14. **Word:** Group of bytes (typically 4 bytes in this context).
+15. **Hexadecimal:** Base-16 number system for addresses.
+16. **Stream:** Sequence of data (e.g., standard input).
+17. **Mutation:** Changing the value of a variable.
+18. **Segmentation Fault:** Crash due to invalid memory access.
+19. **Standard Input:** `stdin` (keyboard).
+20. **Return Value:** Result of a function call.
+
+# What This Lecture Does NOT Cover (Boundary)
+*   **Dynamic Memory Allocation:** `malloc`, `calloc`, `free` are not covered in these slides.
+*   **Structs and Unions:** Composite data types are not covered.
+*   **C++ Specifics:** Classes, inheritance, or OOP concepts (despite course description).
+*   **Graph Algorithms:** Shortest paths, Dijkstra, etc. (despite course description).
+*   **Client-Server Computing:** Network programming concepts.
+*   **Recursion:** Not explicitly covered in this lecture (though mentioned in course description).
+*   **Bitwise Operators:** Not covered in this lecture.
+*   **File I/O:** `fopen`, `fread`, `fwrite` (only `stdin`/`stdout` covered).
+
+# Slide Anchors (Traceability)
+*   **Pointers Definition:** Slide 2 ("A pointer is a datatype that stores a memory address").
+*   **Dereferencing:** Slide 5 ("The dereference operator (unary*) allows us to 'follow' a pointer").
+*   **`scanf` Error Handling:** Slide 16 ("scanf returns the number of successfully read items").
+*   **Infinite Loop Fix:** Slide 19 ("Solution: try to read an integer, if we fail remove exactly one character").
+*   **Array Decay:** Slide 35 ("C copies only the address of the first element of the array... We call this array decay").
+*   **`sizeof` on Arrays:** Slide 30 ("The sizeof operator evaluates to the size (in bytes) of its operand").
+*   **String Literals Storage:** Slide 53 ("String literals are stored often in the text or data segment... marked read-only").
+*   **`const` Usage:** Slide 55 ("Pointers to string literals should always be pointers to const char").
+*   **`strlen` Implementation:** Slide 61 ("Here is one way one could implement strlen").
+*   **String Library Functions:** Slide 63 (`strcmp`, `strchr`, `strcat` descriptions).
