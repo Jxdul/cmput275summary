@@ -1,0 +1,246 @@
+# Lecture Identity
+**File/lecture name:** c_pl.pdf (The C Programming Language)
+**Main theme:** Introduction to C syntax, number systems, memory layout, and function mechanics.
+**Prereqs assumed by slides:** Basic computer literacy, familiarity with Python (for comparison), understanding of binary logic (1s and 0s).
+**What this lecture enables you to do:**
+*   Compile and run C programs using `gcc`.
+*   Understand how integers and characters are stored in memory (binary, ASCII, Two's Complement).
+*   Write functions with correct signatures, manage scope, and understand pass-by-value.
+*   Debug common issues related to memory layout, signed/unsigned confusion, and `printf` formatting.
+
+# Big Picture Map (High-Level)
+1.  **Introduction to C:** History, classification (high-level, compiled, statically typed), and entry point (`main`).
+2.  **First Program:** Anatomy of `main`, `#include`, `printf`, and return values.
+3.  **Number Systems:** Base-10, Base-8, Base-2 (Binary), and Radix concepts.
+4.  **Integer Storage:** Unsigned binary, overflow, and the evolution of Signed Binary (Sign bit  Ones' Complement  Two's Complement).
+5.  **Characters:** `char` type, ASCII encoding, and string literals vs. character literals.
+6.  **Formatted Output:** `printf` format specifiers (`%d`, `%f`, `%c`, `%s`).
+7.  **Control Flow:** `if`, `while`, and `for` loops (syntax differences from Python).
+8.  **Scope:** Variable lifetime within curly braces `{}`.
+9.  **Functions:** Declaration vs. Definition, parameters vs. arguments, and stack frames.
+10. **Memory Layout:** Segments (Text, Data, Heap, Stack) and how they relate to variable lifetime.
+11. **Mutation & Pass-by-Value:** Why modifying a parameter inside a function does not affect the caller.
+12. **Recursion Example:** `gcd` function demonstrating stack growth.
+
+# Key Concepts & Definitions
+
+| Name | Definition | Why it matters | Common confusion / misconception | Tiny example |
+| :--- | :--- | :--- | :--- | :--- |
+| **Compiled Language** | A language where a compiler (e.g., `gcc`) generates machine code (binary) from source code. | Allows direct execution by CPU; faster than interpreted languages. | Confusing `gcc` with an interpreter; `gcc` invokes preprocessor, compiler, assembler, linker. | `gcc hello.c`  `./a.out` |
+| **Statically Typed** | Types of variables must be specified at declaration and cannot change. | Catches type errors at compile time; memory layout is known. | Thinking C types are like Python classes; C types are primitive (int, char). | `int x = 5;` (cannot change to string). |
+| **Entry Point** | The specific function where execution begins (always `main` in C). | OS loads program and jumps here; defines program exit status. | Thinking `main` is optional; unlike Python, C requires `main`. | `int main(int argc, char **argv)` |
+| **Two's Complement** | Method for storing signed integers: flip bits and add 1 to negative numbers. | Standard for signed integers; handles addition/subtraction uniformly. | Confusing with Ones' Complement (which has two zeros). | `1111 1111` is -1 in 8-bit. |
+| **Stack Frame** | A portion of the stack allocated for a function call (parameters + locals). | Explains variable lifetime and isolation between function calls. | Thinking parameters modify the original argument; they are copies. | `times2(x)` modifies local `x`, not caller's `x`. |
+| **Memory Segments** | Regions of RAM: Text (code), Data (globals), Heap (dynamic), Stack (locals). | Determines where variables live and how long they persist. | Assuming all variables live in the same place; `main` args are on stack. | `static` vars go in Data; `malloc` goes in Heap. |
+| **`printf` Specifiers** | Placeholders in format string (`%d`, `%f`, `%c`, `%s`) for arguments. | Allows printing different types in a single call. | Mismatching specifier and argument type (e.g., `%d` with `float`). | `printf("%d", 3.14)` prints garbage. |
+| **Scope** | The region of code where a variable is accessible (defined by `{}`). | Prevents name collisions; variables die when scope ends. | Thinking variables persist after function returns; they don't. | `int y` inside `{}` is inaccessible outside. |
+
+# Core Mechanics / How-To
+
+1.  **How to Compile and Run a C Program**
+    *   **Step 1:** Save code to a file (e.g., `hello.c`).
+    *   **Step 2:** Run `gcc filename.c`.
+        *   *Default:* Output is `a.out`.
+        *   *Custom Name:* Use `-o` flag (`gcc filename.c -o myprog`).
+    *   **Step 3:** Run the binary using `./binary_name`.
+    *   **Warning:** Do not overwrite existing files with `-o` output.
+
+2.  **How to Reason About Signed Integers**
+    *   **Step 1:** Identify if the type is `int` (signed) or `unsigned int`.
+    *   **Step 2:** For negative numbers, assume Two's Complement (flip bits + 1).
+    *   **Step 3:** Remember the left-most bit is the sign bit (0 = positive, 1 = negative).
+    *   **Decision:** If adding two numbers causes a carry out of the MSB, it is an **Overflow** (lost bit).
+
+3.  **How to Use `printf` Safely**
+    *   **Step 1:** Write the format string first (e.g., `"x: %d\n"`).
+    *   **Step 2:** Match the specifier to the argument type (`%d` for `int`, `%f` for `float`).
+    *   **Step 3:** Ensure the number of arguments matches the number of specifiers.
+    *   **Tip:** Use `%.2f` to limit decimal places for floats.
+
+4.  **How to Manage Loop Variables**
+    *   **Step 1:** Use `for` loop syntax: `for (init; cond; update) { ... }`.
+    *   **Step 2:** Declare loop variables inside the `init` part (e.g., `int i = 0`).
+    *   **Step 3:** Ensure `cond` evaluates to non-zero (true) to continue.
+    *   **Step 4:** Ensure `update` modifies the variable to prevent infinite loops.
+
+5.  **How to Understand Function Calls**
+    *   **Step 1:** Check the function signature (return type, parameter types).
+    *   **Step 2:** Pass arguments by value (copies are made).
+    *   **Step 3:** Understand that changes to parameters inside the function do not affect the caller's variables.
+    *   **Step 4:** Return values are passed back to the caller (or OS for `main`).
+
+# Code Patterns & Idioms
+
+| Pattern Name | When to use it | Correct minimal example | Common bug + how to avoid it |
+| :--- | :--- | :--- | :--- |
+| **Standard `main`** | Entry point for every C program. | `int main(int argc, char **argv) { ... return 0; }` | Forgetting `return 0;` (exit status undefined). |
+| **`printf` Formatting** | Printing mixed types. | `printf("%d %c %f\n", x, c, z);` | Using `%s` for a `char` (prints address) or `%d` for `float`. |
+| **`for` Loop** | Iterating with known count or state change. | `for (int i=0; i<10; ++i) { ... }` | Declaring `i` outside loop if not needed; forgetting `++i`. |
+| **Function Call** | Reusing logic. | `int result = gcd(a, b);` | Passing wrong number of arguments; mismatched types. |
+| **Character Literal** | Storing a single character. | `char c = 'A';` | Using double quotes `"A"` (creates a string, not a char). |
+
+# Pitfalls, Edge Cases, and Debugging
+
+*   **Symptom:** Program crashes immediately on run.
+    *   **Likely cause:** `printf` format specifier mismatch (e.g., `%d` with `float`).
+    *   **Fix:** Check `printf` arguments against format string.
+*   **Symptom:** Output shows garbage values for uninitialized variables.
+    *   **Likely cause:** Variable declared but not assigned before use.
+    *   **Fix:** Initialize variables (`int x = 0;`).
+*   **Symptom:** `main` function returns non-zero exit code.
+    *   **Likely cause:** `return` statement in `main` returns value other than 0.
+    *   **Fix:** Ensure `return 0` for success (standard convention).
+*   **Symptom:** `printf` prints nothing or wrong number.
+    *   **Likely cause:** Missing newline `\n` or wrong specifier.
+    *   **Fix:** Add `\n` or correct `%d`/`%f`.
+*   **Symptom:** "Undefined reference to `main`".
+    *   **Likely cause:** Missing `main` function or typo in signature.
+    *   **Fix:** Ensure `int main(...)` exists.
+*   **Symptom:** Negative number arithmetic fails.
+    *   **Likely cause:** Signed overflow or using `unsigned` with negative logic.
+    *   **Fix:** Use `signed int` for negative values.
+*   **Symptom:** Variable `y` not accessible outside function.
+    *   **Likely cause:** Variable defined inside `{}` (local scope).
+    *   **Fix:** Move declaration outside or pass as parameter.
+*   **Symptom:** `times2` function doesn't change caller's variable.
+    *   **Likely cause:** Pass-by-value (parameter is a copy).
+    *   **Fix:** Use pointers (not covered in these slides) or return new value.
+*   **Symptom:** `printf` prints address of char instead of char.
+    *   **Likely cause:** Using `%s` for `char` or `%d` for `char`.
+    *   **Fix:** Use `%c` for `char`.
+*   **Symptom:** `return` in `main` returns garbage.
+    *   **Likely cause:** Missing `return` statement.
+    *   **Fix:** Add `return 0;`.
+*   **Symptom:** `for` loop infinite loop.
+    *   **Likely cause:** `update` statement missing or condition never false.
+    *   **Fix:** Ensure `update` modifies loop variable.
+*   **Symptom:** `gcd` recursion causes stack overflow.
+    *   **Likely cause:** Infinite recursion (base case never met).
+    *   **Fix:** Ensure `b` decreases in recursive call.
+*   **Symptom:** `char` arithmetic results in unexpected values.
+    *   **Likely cause:** ASCII encoding confusion.
+    *   **Fix:** Remember `'A'` is a number (65), not a string.
+*   **Symptom:** `return` value ignored by caller.
+    *   **Likely cause:** Caller doesn't assign return value to a variable.
+    *   **Fix:** `int x = gcd(a, b);`.
+
+# Exam-Style Questions (with answers)
+
+1.  **Q:** What is the exit status of a C program if `main` returns `0`?
+    **A:** The program exits successfully (standard convention).
+2.  **Q:** What does `int main(int argc, char **argv)` imply about command line arguments?
+    **A:** `argc` is the count of arguments; `argv` is an array of pointers to strings containing the arguments.
+3.  **Q:** In C, what is the difference between `'A'` and `"A"`?
+    **A:** `'A'` is a single character (type `char`), `"A"` is a string literal (type `char[]`).
+4.  **Q:** If `int x = 5;` and `int y = 10;`, what is the result of `x = x + y;`?
+    **A:** `x` becomes `15`.
+5.  **Q:** Why does `times2(x)` not change `x` in `main`?
+    **A:** Because C uses pass-by-value; the parameter `x` in the function is a copy.
+6.  **Q:** What is the binary representation of `-1` in an 8-bit Two's Complement system?
+    **A:** `1111 1111` (flip `0000 0001` to `1111 1110`, add 1).
+7.  **Q:** What happens if you use `%d` to print a `float`?
+    **A:** Undefined behavior (likely prints garbage or crashes).
+8.  **Q:** What is the entry point of a C program?
+    **A:** The `main` function.
+9.  **Q:** What is the purpose of the `#include <stdio.h>` directive?
+    **A:** It includes the standard I/O library, making functions like `printf` available.
+10. **Q:** What is the lifetime of a variable declared inside a function?
+    **A:** It exists only while the function is executing (stack frame).
+11. **Q:** What is the result of `100 + 1` in binary if the result overflows an 8-bit container?
+    **A:** The carry bit is lost (overflow), resulting in `100` (4) in binary (modulo 256).
+12. **Q:** What does `return 0` in `main` signify to the Operating System?
+    **A:** It signifies successful completion of the program.
+
+# Quick Reference / Cheat Sheet
+
+*   **`gcc` Compilation:**
+    *   `gcc file.c`  outputs `a.out`
+    *   `gcc file.c -o name`  outputs `name`
+*   **`printf` Specifiers:**
+    *   `%d`  `int`
+    *   `%f`  `float`
+    *   `%c`  `char`
+    *   `%s`  `string` (array of chars)
+*   **`main` Signature:**
+    *   `int main(int argc, char **argv)`
+    *   `argc`: count of arguments
+    *   `argv`: array of argument strings
+*   **Memory Segments:**
+    *   **Text:** Code
+    *   **Data:** Global/Static variables
+    *   **Heap:** Dynamic allocation (not detailed in code examples)
+    *   **Stack:** Local variables, function parameters
+*   **Boolean Logic:**
+    *   `0`  `false`
+    *   Non-zero  `true`
+    *   `&&`  AND
+    *   `||`  OR
+    *   `!`  NOT
+*   **`for` Loop:**
+    *   `for (init; cond; update) { ... }`
+*   **`return` in `main`:**
+    *   `return 0`  Success
+    *   `return 1`  Error (convention)
+
+# Mini Glossary
+
+1.  **Compiled:** Source code converted to machine code by a compiler.
+2.  **Interpreted:** Code executed directly by an interpreter without pre-compilation.
+3.  **Statically Typed:** Types are known at compile time.
+4.  **Entry Point:** The function where execution begins (`main`).
+5.  **Binary:** Base-2 number system (0s and 1s).
+6.  **Radix:** The base of a number system (e.g., 10 for decimal, 2 for binary).
+7.  **Overflow:** When a calculation exceeds the storage capacity of a type.
+8.  **Two's Complement:** Standard method for representing signed integers in binary.
+9.  **ASCII:** Encoding scheme mapping numbers to characters.
+10. **Scope:** The region of code where a variable is accessible.
+11. **Stack Frame:** Memory allocated for a function call on the stack.
+12. **Pass-by-Value:** Passing a copy of the argument to a function.
+13. **`argc`:** Argument count (integer).
+14. **`argv`:** Argument vector (array of strings).
+15. **`printf`:** Standard output function with formatting.
+16. **`#include`:** Preprocessor directive to include libraries.
+17. **`return`:** Exits a function and optionally returns a value.
+18. **`char`:** Type representing a single byte/character.
+19. **`int`:** Type representing an integer.
+20. **`float`:** Type representing a floating-point number.
+21. **`unsigned`:** Type modifier indicating non-negative integers.
+22. **`static`:** Type modifier indicating data stored in the Data segment.
+23. **`heap`:** Memory segment for dynamic allocation.
+24. **`text`:** Memory segment for executable code.
+25. **`data`:** Memory segment for global/static variables.
+
+# What This Lecture Does NOT Cover (Boundary)
+
+*   **Pointers:** While `char **argv` is shown, pointer arithmetic and dereferencing are not explicitly taught in these slides.
+*   **Dynamic Memory Allocation:** The `heap` segment is mentioned, but `malloc`, `calloc`, and `free` are not covered.
+*   **Structs/Unions:** Composite types are not covered.
+*   **C++ Specifics:** Classes, inheritance, or C++ syntax are not covered (this is C).
+*   **File I/O:** Reading/writing files (`fopen`, `fread`) is not covered.
+*   **Advanced Algorithms:** Sorting, searching, or graph algorithms are not covered (beyond `gcd` example).
+*   **Preprocessor Directives:** Only `#include` is shown; `#define`, `#ifdef` are not covered.
+*   **Error Handling:** `errno`, `strerror`, or signal handling are not covered.
+*   **Multithreading:** Concurrency concepts are not covered.
+
+# Slide Anchors (Traceability)
+
+*   **C History & Classification:** (Slide 2) "Originally developed at Bell Labs... high-level, compiled, and statically typed."
+*   **Entry Point:** (Slide 6) "Our entry point in C will always be the function main."
+*   **First Program:** (Slide 7) `#include <stdio.h>`, `int main(int argc, char **argv)`, `printf`.
+*   **Return Value:** (Slide 11) "The operating system! ... is the exit status of our program!"
+*   **Types:** (Slide 12) "int, char, float... not classes like Python."
+*   **Compilation:** (Slide 13) "gcc hello_world.c ... ./a.out"
+*   **Number Systems:** (Slide 17) "Base 10... 2357 really mean?"
+*   **Binary:** (Slide 20) "Binary is the name given to the base-2 number system."
+*   **Unsigned Binary:** (Slide 22) "Unsigned integers... stored as binary numbers."
+*   **Signed Binary (Two's Complement):** (Slide 30) "set the sign bit, flip the rest of the bits, and add one to it."
+*   **Characters:** (Slide 32) "Type char is one byte long... ASCII... single quotes."
+*   **Formatted Strings:** (Slide 34) "printf... formatting specifiers... %d, %f, %c, %s."
+*   **Conditionals:** (Slide 37) "if (expr) { ... }"
+*   **Loops:** (Slide 41) "for (init_stmts; cond; update_stmts) { ... }"
+*   **Scope:** (Slide 44) "Curly braces in C form a scope."
+*   **Functions:** (Slide 46) "int gcd(int a, int b) { ... }"
+*   **Memory Layout:** (Slide 56) "text, data, heap, stack."
+*   **Stack Frames:** (Slide 58) "When a function is called a portion of the stack is allocated... stackframe."
+*   **Mutation:** (Slide 61) "The value of the argument is copied into the functions stackframe... local copy."
+*   **Recursion:** (Slide 59) "gcd - recursive... stack growth."

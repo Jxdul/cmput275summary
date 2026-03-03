@@ -1,0 +1,215 @@
+# Lecture Identity
+**File/lecture name:** `cmd_line.pdf`
+**Main theme:** Command Line Argument Parsing and Multi-dimensional Array Memory Management in C.
+**Prereqs assumed by slides:** Basic C syntax, understanding of `main`, `printf`, `malloc`, and pointer basics (specifically `char *` and `int *`).
+**What this lecture enables you to do:**
+*   Access and parse command line arguments passed to a C program.
+*   Correctly allocate and deallocate memory for 2D arrays (arrays of pointers).
+*   Avoid memory leaks when freeing dynamically allocated 2D structures.
+*   Optimize memory layout by simulating 2D arrays using 1D arrays to improve cache performance.
+*   Apply the "spiral rule" to deduce complex pointer types.
+
+# Big Picture Map (High-Level)
+1.  **Command Line Arguments:** Introduction to how the OS passes arguments to `main` via `argc` and `argv`.
+2.  **Type Deduction:** Using the "spiral rule" to understand `char *argv[]` and `char **argv`.
+3.  **Pointer Decay:** Understanding that array parameters in `main` are treated as pointers.
+4.  **2D Array Implementation:** Defining 2D arrays as arrays of pointers (`int **`) vs. contiguous memory.
+5.  **Allocation Strategy:** Step-by-step process for allocating a 2D matrix (outer array, then inner rows).
+6.  **Deallocation Strategy:** The critical order of freeing memory (inner rows first, then outer array).
+7.  **Memory Leaks:** Identifying why freeing only the outer pointer causes a leak.
+8.  **Performance Costs:** Analyzing the impact of double indirection on CPU cache and memory usage.
+9.  **1D Simulation:** Techniques to simulate a 2D array using a single contiguous block of memory.
+10. **Indexing Logic:** Calculating offsets for 1D arrays to access 2D coordinates.
+
+# Key Concepts & Definitions
+
+| Name | Definition | Why it matters | Common confusion / misconception | Tiny example |
+| :--- | :--- | :--- | :--- | :--- |
+| **Command Line Arguments** | Data passed to a program via the shell (bash) before execution. | Allows programs to be configurable without recompilation. | Thinking arguments are global variables; they are passed to `main`. | `./prog arg1 arg2` |
+| **argc** | An integer representing the count of arguments passed (including program name). | Determines the loop bounds for iterating over arguments. | Forgetting that `argc` includes the program name itself. | `argc` = 3 for `./prog a b` |
+| **argv** | A pointer to an array of pointers to null-terminated strings (`char *argv[]`). | Holds the actual string values of the arguments. | Thinking `argv` is a 2D array of chars; it is an array of pointers. | `argv[0]` is the program name. |
+| **Spiral Rule** | A mnemonic to read C types clockwise from the variable name. | Helps deduce complex pointer types like `char **`. | Applying it counter-clockwise or ignoring the brackets. | `argv[]*char` -> array of pointers to chars. |
+| **Array Decay** | The phenomenon where an array parameter is treated as a pointer to its first element. | Explains why `main` takes `char *argv[]` but it acts like `char **argv`. | Believing `argv` is strictly an array and not a pointer. | `char *argv[]` is equivalent to `char **argv`. |
+| **Double Indirection** | Accessing data through two levels of pointers (e.g., `matrix[i][j]`). | Necessary for standard 2D array implementation using `malloc`. | Assuming it is faster than 1D arrays; it is actually slower. | `matrix[i]` gets a row pointer, `matrix[i][j]` gets the int. |
+| **Memory Leak** | Allocating memory but failing to free it before the program exits. | Wastes heap space and can cause crashes in long-running programs. | Freeing the outer pointer (`matrix`) without freeing inner rows. | `free(matrix)` loses access to inner `malloc` blocks. |
+| **1D Simulation** | Using a single contiguous block of memory to represent a 2D grid. | Improves cache locality and reduces memory overhead (no pointer array). | Forgetting to multiply the row index by the column count. | `arr[i*m + j]` accesses row `i`, col `j`. |
+
+# Core Mechanics / How-To
+
+**1. How to access command line arguments safely**
+1.  Check `argc` to ensure enough arguments exist before accessing `argv`.
+2.  Iterate from `i = 0` to `i < argc`.
+3.  Treat `argv[i]` as a `char *` (string).
+4.  **Crucial:** Remember `argv[0]` is the program name, not the first user argument.
+
+**2. How to allocate a 2D array (`int **`) correctly**
+1.  Allocate the outer array of pointers: `int **matrix = malloc(n * sizeof(int*));`
+2.  Loop `i` from `0` to `n-1`.
+3.  Inside the loop, allocate each row: `int *row = malloc(m * sizeof(int));`
+4.  Populate the row (e.g., `row[j] = ...`).
+5.  Store the row pointer in the outer array: `matrix[i] = row;`
+6.  Return `matrix`.
+
+**3. How to free a 2D array without leaking memory**
+1.  **Step 1:** Iterate through the outer array (`i` from `0` to `n-1`).
+2.  **Step 2:** Free each inner row: `free(matrix[i]);`
+3.  **Step 3:** Free the outer array: `free(matrix);`
+4.  **Warning:** Do not free `matrix` before freeing `matrix[i]`, or you lose the pointers to the inner blocks.
+
+**4. How to simulate a 2D array with a 1D array**
+1.  Allocate a single block: `int *matrix = malloc(n * m * sizeof(int));`
+2.  Access element `(i, j)` using the formula: `matrix[i * m + j]`.
+3.  **Note:** `m` (columns) must be known to calculate the offset.
+
+# Code Patterns & Idioms
+
+| Pattern name | When to use it | Correct minimal example | Common bug + how to avoid it |
+| :--- | :--- | :--- | :--- |
+| **Arg Parsing Loop** | When processing CLI flags or values. | `for (size_t i = 0; i < argc; ++i) { printf("%s\n", argv[i]); }` | **Bug:** Accessing `argv[argc]` (undefined behavior). **Fix:** Loop strictly `< argc`. |
+| **2D Allocation** | When creating a matrix of dynamic size. | `int **m = malloc(n * sizeof(int*));`<br>`for(i) m[i] = malloc(m_cols * sizeof(int));` | **Bug:** Forgetting to store `row` pointer in `matrix[i]`. **Fix:** Explicitly assign `matrix[i] = row;`. |
+| **2D Deallocation** | When cleaning up a dynamically allocated matrix. | `for (size_t i = 0; i < n; ++i) free(matrix[i]);`<br>`free(matrix);` | **Bug:** Calling `free(matrix)` first. **Fix:** Always free inner rows first. |
+| **1D Indexing** | When optimizing for cache or simplicity. | `data[i * width + j]` | **Bug:** Using `i * height + j` (wrong dimension). **Fix:** Multiply by the number of columns (`width`). |
+
+# Pitfalls, Edge Cases, and Debugging
+
+1.  **Symptom:** Program crashes with "Segmentation Fault" on `argv[argc]`.
+    *   **Likely cause:** Loop condition `i < argc` is violated or `argv` is accessed out of bounds.
+    *   **Fix:** Ensure loop is `i < argc`.
+2.  **Symptom:** Memory usage grows indefinitely during repeated runs.
+    *   **Likely cause:** Memory leak in 2D array deallocation (freeing outer but not inner).
+    *   **Fix:** Implement the "free inner then outer" pattern.
+3.  **Symptom:** `argv[0]` is empty or unexpected.
+    *   **Likely cause:** Misunderstanding that `argv[0]` is the executable name.
+    *   **Fix:** Expect `argv[0]` to be the program name (e.g., `./prog`).
+4.  **Symptom:** `printf` prints garbage characters for `argv[i]`.
+    *   **Likely cause:** `argv[i]` is not null-terminated or points to invalid memory.
+    *   **Fix:** Ensure strings are valid; `argv` is guaranteed to be null-terminated by convention.
+5.  **Symptom:** CPU performance is poor with large 2D arrays.
+    *   **Likely cause:** Double indirection causes cache misses (rows scattered on heap).
+    *   **Fix:** Switch to 1D simulation (`int *matrix`) for large datasets.
+6.  **Symptom:** Compiler warning "array parameter is actually a pointer".
+    *   **Likely cause:** Using `char *argv[]` in `main`.
+    *   **Fix:** Accept this as standard C behavior (array decay); use `char **argv` if preferred.
+7.  **Symptom:** `malloc` returns `NULL` but code proceeds.
+    *   **Likely cause:** System memory exhausted.
+    *   **Fix:** Always check `if (ptr == NULL)` after `malloc`.
+8.  **Symptom:** `free(matrix)` causes double free error.
+    *   **Likely cause:** Attempting to free `matrix` after freeing `matrix[i]` inside the loop.
+    *   **Fix:** Ensure `matrix` is only freed once, after all inner rows are freed.
+9.  **Symptom:** `argv` type deduction is confusing.
+    *   **Likely cause:** Not applying the spiral rule.
+    *   **Fix:** Read `argv[]*char` clockwise: array of pointers to chars.
+10. **Symptom:** Indexing error in 1D simulation.
+    *   **Likely cause:** Using `i * n + j` instead of `i * m + j`.
+    *   **Fix:** Remember `m` is the column count (width).
+11. **Symptom:** `sizeof(int*)` vs `sizeof(int)` mismatch.
+    *   **Likely cause:** Allocating outer array with `sizeof(int)` instead of `sizeof(int*)`.
+    *   **Fix:** Outer array stores pointers, so use `sizeof(int*)`.
+12. **Symptom:** Program name is not passed to `main`.
+    *   **Likely cause:** Misunderstanding `argc` count.
+    *   **Fix:** Remember `argc` includes the program name as the first argument.
+13. **Symptom:** `argv` is treated as a 2D array of chars.
+    *   **Likely cause:** Confusing `char *argv[]` with `char argv[][N]`.
+    *   **Fix:** `argv` is an array of pointers to strings, not a block of chars.
+14. **Symptom:** `free` order is reversed.
+    *   **Likely cause:** Copy-pasting `free(matrix)` before the loop.
+    *   **Fix:** Use the fixed code block from Slide 14.
+15. **Symptom:** Cache performance degradation.
+    *   **Likely cause:** Rows allocated separately are far apart in memory.
+    *   **Fix:** Use 1D array simulation (Slide 16).
+
+# Exam-Style Questions (with answers)
+
+1.  **Q:** What is the type of `argv` in `int main(int argc, char *argv[])`?
+    **A:** It is an array of pointers to characters (`char *argv[]`), which decays to a pointer to a pointer (`char **argv`).
+2.  **Q:** Why is `argv[0]` always the program name?
+    **A:** By convention, the operating system passes the executable name as the first argument before the user-provided arguments.
+3.  **Q:** What happens if you call `free(matrix)` immediately after allocating a 2D array?
+    **A:** You lose access to the pointers to the inner arrays, causing a memory leak because the inner `malloc` blocks cannot be freed.
+4.  **Q:** How do you calculate the index of element `(i, j)` in a 1D array simulating an `n x m` matrix?
+    **A:** `index = i * m + j`.
+5.  **Q:** What is the "spiral rule" used for?
+    **A:** It is a mnemonic to read C types clockwise from the variable name to understand complex pointer declarations.
+6.  **Q:** If `argc` is 3, what are the valid indices for `argv`?
+    **A:** Indices 0, 1, and 2. `argv[3]` is undefined behavior.
+7.  **Q:** Why might a 1D array be preferred over a 2D array of pointers for large matrices?
+    **A:** 1D arrays are contiguous in memory, improving CPU cache locality and reducing memory overhead from storing pointers.
+8.  **Q:** What is the correct order to free a 2D array allocated with `malloc`?
+    **A:** First, iterate and free each inner row (`matrix[i]`), then free the outer array (`matrix`).
+9.  **Q:** What does `char **argv` mean?
+    **A:** A pointer to a pointer to a character.
+10. **Q:** Can `argv` be declared as `char argv[][N]`?
+    **A:** No, `argv` is an array of pointers to strings, not a fixed-size 2D char array.
+11. **Q:** What is the size of the outer array in `int **matrix = malloc(n * sizeof(int*))`?
+    **A:** `n` (the number of rows).
+12. **Q:** What is the consequence of `malloc` failing?
+    **A:** It returns `NULL`. Accessing the pointer without checking leads to a crash.
+
+# Quick Reference / Cheat Sheet
+
+*   **`argc`**: Count of arguments (includes program name).
+*   **`argv`**: Array of pointers to strings (`char *argv[]`).
+*   **`argv[0]`**: Program name.
+*   **`argv[1]`**: First user argument.
+*   **`sizeof(int*)`**: Size of a pointer (use for outer array allocation).
+*   **`sizeof(int)`**: Size of an integer (use for inner row allocation).
+*   **2D Allocation**: `malloc(n * sizeof(int*))` then loop `malloc(m * sizeof(int))`.
+*   **2D Free**: Loop `free(matrix[i])` then `free(matrix)`.
+*   **1D Index**: `arr[i * cols + j]`.
+*   **Spiral Rule**: Read clockwise from variable name.
+*   **Array Decay**: `char *argv[]` is effectively `char **argv`.
+*   **Cache**: 1D arrays are better for cache than 2D pointer arrays.
+
+# Mini Glossary
+
+1.  **argc**: Integer count of command line arguments.
+2.  **argv**: Array of pointers to strings passed to `main`.
+3.  **main**: Entry point of a C program.
+4.  **argv[]**: Syntax indicating `argv` is an array of pointers.
+5.  **char \*\***: Type representing a pointer to a pointer to a character.
+6.  **malloc**: Function to allocate memory on the heap.
+7.  **free**: Function to deallocate memory on the heap.
+8.  **heap**: Region of memory for dynamic allocation.
+9.  **stack**: Region of memory for local variables and function calls.
+10. **null-terminated**: String ending with a `\0` character.
+11. **double indirection**: Accessing data via two pointer levels.
+12. **array decay**: Array parameter becoming a pointer in function signature.
+13. **spiral rule**: Mnemonic for reading C types.
+14. **identity matrix**: Matrix with 1s on diagonal, 0s elsewhere.
+15. **cache**: CPU memory buffer for faster access.
+16. **pointer**: Variable storing a memory address.
+17. **pointer decay**: Array becoming pointer in function context.
+18. **row**: A single dimension of a 2D array.
+19. **column**: A single dimension of a 2D array.
+20. **offset**: Distance from the start of an array.
+21. **segmentation fault**: Crash due to invalid memory access.
+22. **undefined behavior**: Result not guaranteed by the standard.
+23. **header**: File containing function declarations.
+24. **implementation**: File containing function definitions.
+25. **studio-style**: Blended lecture/lab teaching format.
+
+# What This Lecture Does NOT Cover (Boundary)
+
+*   **C++ Specifics:** Classes, templates, or STL containers (e.g., `std::vector`, `std::string`) are not covered; this is C.
+*   **3D Arrays:** The lecture focuses on 2D arrays and 1D simulation; 3D arrays are not discussed.
+*   **Dynamic Resizing:** The lecture assumes fixed dimensions (`n` and `m`) passed to `malloc`; it does not cover resizing arrays.
+*   **Command Line Parsing Libraries:** It does not cover libraries like `getopt` for handling flags (e.g., `-l`, `-w`).
+*   **Memory Alignment:** It does not discuss padding or alignment requirements for `malloc`.
+*   **Stack Allocation:** It focuses on heap allocation (`malloc`); stack arrays are mentioned only as a contrast.
+
+# Slide Anchors (Traceability)
+
+*   **Command Line Arguments Intro**  (Slide 2 / "Command line arguments")
+*   **`argc` & `argv` Definition**  (Slide 3 / "argc & argv")
+*   **Spiral Rule Explanation**  (Slide 5 / "Spiral Rule")
+*   **`argv` Type (`char **`)**  (Slide 6 / "argvreally")
+*   **Pointer vs Array Convention**  (Slide 7 / "When does a pointer point at an array...")
+*   **Practice Question (Multiply Args)**  (Slide 8 / "Practice Question")
+*   **2D Array Definition**  (Slide 10 / "2D arrays")
+*   **Creating 2D Array Function**  (Slide 12 / "Creating a 2D array")
+*   **Memory Leak Example**  (Slide 14 / "Using a 2D array | code")
+*   **Fixed Free Order**  (Slide 14 / "Using a 2D array | Fixed")
+*   **Performance Downsides**  (Slide 15 / "Downsides of double indirection")
+*   **1D Simulation Concept**  (Slide 16 / "Simulating a 2D array with a 1D array")
+*   **1D Allocation Code**  (Slide 17 / "identitymatrixwith 1D array")
+*   **1D Usage Code**  (Slide 18 / "Using our simulated 2D array")
