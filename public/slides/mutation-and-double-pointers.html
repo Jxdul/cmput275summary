@@ -1,26 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>mutation.pdf - CMPUT 275 Summaries</title>
+  <title>Mutation and Double Pointers | CMPUT 275 Study Hub</title>
+  <meta name="description" content="Returning multiple values via mutation and resizing arrays with double pointers.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
 
-  <main class="page-content">
-    <div class="breadcrumb">
-      <a href="/slides/">Slides</a>
-      <span>/</span>
-      <span>mutation.pdf</span>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
-    <article class="summary-content">
-      <h1>Lecture Identity</h1>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Mutation and Double Pointers</span></p>
+
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">Data & Memory</p>
+        <h1>Mutation and Double Pointers</h1>
+        <p>Returning multiple values via mutation and resizing arrays with double pointers.</p>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>mutation.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C pointer arithmetic, malloc/free, and pass-by-value semantics.</p>
+          </article>
+          <article class="meta-card">
+            <h2>What You Can Do After This</h2>
+            <ul>
+            <li>Return multiple results by mutating caller-provided variables.</li>
+            <li>Resize dynamic arrays without losing caller ownership.</li>
+            <li>Use double pointers when pointer addresses must change.</li>
+            <li>Diagnose double-free and stale-pointer failures.</li>
+            </ul>
+          </article>
+        </div>
+      </header>
+
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Lecture Identity</h1>
 <p><strong>File/lecture name:</strong> mutation.pdf
 <strong>Main theme:</strong> Techniques for returning multiple values in C/C++ using mutation and managing dynamic array state using double pointers.
 <strong>Prereqs assumed by slides:</strong> C/C++ syntax, basic pointer arithmetic, <code>malloc</code>/<code>free</code>, array indexing, and understanding of pass-by-value vs pass-by-reference.
@@ -321,8 +365,24 @@
 <li><strong>Practice Problem:</strong> Slide 24 (&quot;Practice Problem&quot;) - &quot;Write a function pop&quot;</li>
 <li><strong>Table of Contents:</strong> Slide 1 (&quot;Table of Contents&quot;) - Lists Pass-by-Pointer, Using Double Pointers.</li>
 </ul>
+        </article>
 
-    </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/dynamic-memory-management.html"><span>Previous</span>Dynamic Memory Management</a>
+          <a href="/slides/?track=data-memory"><span>Back to Track</span>Data & Memory</a>
+          <a href="/slides/separate-compilation-and-headers.html"><span>Next</span>Separate Compilation and Headers</a>
+        </nav>
+
+        <p class="callout">Manually curated from <code>summaries/mutation.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

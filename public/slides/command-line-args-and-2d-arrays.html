@@ -1,26 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>cmd_line.pdf - CMPUT 275 Summaries</title>
+  <title>Command Line Args & 2D Arrays | CMPUT 275 Study Hub</title>
+  <meta name="description" content="Command-line argument parsing and dynamic 2D array memory management in C.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
 
-  <main class="page-content">
-    <div class="breadcrumb">
-      <a href="/slides/">Slides</a>
-      <span>/</span>
-      <span>cmd_line.pdf</span>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
-    <article class="summary-content">
-      <h1>Lecture Identity</h1>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Command Line Args & 2D Arrays</span></p>
+
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">Shell & CLI</p>
+        <h1>Command Line Args & 2D Arrays</h1>
+        <p>Command-line argument parsing and dynamic 2D array memory management in C.</p>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>cmd_line.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>Basic C syntax, pointers, and malloc/free familiarity.</p>
+          </article>
+          <article class="meta-card">
+            <h2>What You Can Do After This</h2>
+            <ul>
+            <li>Read and parse argc/argv safely.</li>
+            <li>Interpret complex pointer types using the spiral rule.</li>
+            <li>Allocate and free dynamic 2D arrays without leaks.</li>
+            <li>Compare contiguous vs pointer-of-pointer matrix layouts.</li>
+            </ul>
+          </article>
+        </div>
+      </header>
+
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Lecture Identity</h1>
 <p><strong>File/lecture name:</strong> <code>cmd_line.pdf</code>
 <strong>Main theme:</strong> Command Line Argument Parsing and Multi-dimensional Array Memory Management in C.
 <strong>Prereqs assumed by slides:</strong> Basic C syntax, understanding of <code>main</code>, <code>printf</code>, <code>malloc</code>, and pointer basics (specifically <code>char *</code> and <code>int *</code>).
@@ -352,8 +396,24 @@
 <li><strong>1D Allocation Code</strong>  (Slide 17 / &quot;identitymatrixwith 1D array&quot;)</li>
 <li><strong>1D Usage Code</strong>  (Slide 18 / &quot;Using our simulated 2D array&quot;)</li>
 </ul>
+        </article>
 
-    </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/shell-bash-basics.html"><span>Previous</span>Shell and Bash Basics</a>
+          <a href="/slides/?track=shell-cli"><span>Back to Track</span>Shell & CLI</a>
+          <a href="/slides/c-programming-foundations.html"><span>Next</span>C Programming Foundations</a>
+        </nav>
+
+        <p class="callout">Manually curated from <code>summaries/cmd_line.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

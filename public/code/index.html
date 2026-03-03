@@ -1,26 +1,93 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Code - CMPUT 275 Summaries</title>
+  <title>Code | CMPUT 275 Study Hub</title>
+  <meta name="description" content="Roadmap for CMPUT 275 code summaries and practice references.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/">Slides</a>
-    <a href="/code/" class="active">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <main class="page-content">
-    <header class="section-header">
-      <h1>Code</h1>
-    </header>
-    <div class="coming-soon">
-      <p>Coming soon</p>
-      <p class="coming-soon-sub">Code summaries will be added here once available.</p>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/">Slides</a>
+        <a href="/code/" aria-current="page">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <section class="hero">
+      <p class="kicker">Code Area</p>
+      <h1>Code summaries are coming next.</h1>
+      <p>
+        This section is now upgraded as a roadmap hub. The slide summaries are complete and linked into a full study path,
+        and this area will host distilled code patterns and runnable snippets.
+      </p>
+      <div class="cta-row">
+        <a class="btn primary" href="/slides/">Study Slide Summaries</a>
+        <a class="btn" href="/slides/pointers-arrays-strings.html">Jump to Pointer Patterns</a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="roadmap-heading">
+      <h2 id="roadmap-heading">Roadmap</h2>
+      <p>Planned additions for this section.</p>
+      <div class="roadmap-grid">
+        <article class="roadmap-card">
+          <h3>Core C Idioms</h3>
+          <p>Curated snippets for pointers, arrays, string handling, and input parsing.</p>
+        </article>
+        <article class="roadmap-card">
+          <h3>Memory Safety Playbook</h3>
+          <p>Allocation/free patterns, ownership rules, and common bug diagnostics.</p>
+        </article>
+        <article class="roadmap-card">
+          <h3>Build Workflow Recipes</h3>
+          <p>Compile/link examples with multi-file projects and header organization.</p>
+        </article>
+        <article class="roadmap-card">
+          <h3>Practice Drills</h3>
+          <p>Short code-trace and bug-fix exercises matched to lecture topics.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="resources-heading">
+      <h2 id="resources-heading">Current Resources</h2>
+      <p class="muted">Use these slide pages right now for code-heavy revision:</p>
+      <div class="path-grid">
+        <a class="path-card" href="/slides/c-programming-foundations.html">
+          <h3>C Programming Foundations</h3>
+          <p>Language syntax, number representations, and function mechanics.</p>
+        </a>
+        <a class="path-card" href="/slides/pointers-arrays-strings.html">
+          <h3>Pointers, Arrays, and Strings</h3>
+          <p>Essential memory and input patterns you will use in assignments.</p>
+        </a>
+        <a class="path-card" href="/slides/dynamic-memory-management.html">
+          <h3>Dynamic Memory Management</h3>
+          <p>Heap allocation, resizing, and lifetime reasoning.</p>
+        </a>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

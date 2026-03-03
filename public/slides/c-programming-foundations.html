@@ -1,26 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>c_pl.pdf (The C Programming Language) - CMPUT 275 Summaries</title>
+  <title>C Programming Foundations | CMPUT 275 Study Hub</title>
+  <meta name="description" content="C syntax, number systems, memory representation, and function mechanics.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
 
-  <main class="page-content">
-    <div class="breadcrumb">
-      <a href="/slides/">Slides</a>
-      <span>/</span>
-      <span>c_pl.pdf (The C Programming Language)</span>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
-    <article class="summary-content">
-      <h1>Lecture Identity</h1>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>C Programming Foundations</span></p>
+
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">C Core</p>
+        <h1>C Programming Foundations</h1>
+        <p>C syntax, number systems, memory representation, and function mechanics.</p>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>c_pl.pdf (The C Programming Language)</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>Basic computing literacy and Python-level syntax familiarity.</p>
+          </article>
+          <article class="meta-card">
+            <h2>What You Can Do After This</h2>
+            <ul>
+            <li>Compile and run C programs with gcc.</li>
+            <li>Reason about binary, ASCII, and integer representation.</li>
+            <li>Use functions, control flow, and scope correctly.</li>
+            <li>Debug common formatting and signed/unsigned pitfalls.</li>
+            </ul>
+          </article>
+        </div>
+      </header>
+
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Lecture Identity</h1>
 <p><strong>File/lecture name:</strong> c_pl.pdf (The C Programming Language)
 <strong>Main theme:</strong> Introduction to C syntax, number systems, memory layout, and function mechanics.
 <strong>Prereqs assumed by slides:</strong> Basic computer literacy, familiarity with Python (for comparison), understanding of binary logic (1s and 0s).
@@ -410,8 +454,24 @@
 <li><strong>Mutation:</strong> (Slide 61) &quot;The value of the argument is copied into the functions stackframe... local copy.&quot;</li>
 <li><strong>Recursion:</strong> (Slide 59) &quot;gcd - recursive... stack growth.&quot;</li>
 </ul>
+        </article>
 
-    </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/command-line-args-and-2d-arrays.html"><span>Previous</span>Command Line Args & 2D Arrays</a>
+          <a href="/slides/?track=c-core"><span>Back to Track</span>C Core</a>
+          <a href="/slides/pointers-arrays-strings.html"><span>Next</span>Pointers, Arrays, and Strings</a>
+        </nav>
+
+        <p class="callout">Manually curated from <code>summaries/c_pl.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

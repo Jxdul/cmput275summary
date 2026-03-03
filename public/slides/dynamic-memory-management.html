@@ -1,26 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>dynamic_mem.pdf - CMPUT 275 Summaries</title>
+  <title>Dynamic Memory Management | CMPUT 275 Study Hub</title>
+  <meta name="description" content="Heap allocation, deallocation, pointer lifetime, and dynamic growth strategy.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
 
-  <main class="page-content">
-    <div class="breadcrumb">
-      <a href="/slides/">Slides</a>
-      <span>/</span>
-      <span>dynamic_mem.pdf</span>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
-    <article class="summary-content">
-      <h1>Lecture Identity</h1>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Dynamic Memory Management</span></p>
+
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">Data & Memory</p>
+        <h1>Dynamic Memory Management</h1>
+        <p>Heap allocation, deallocation, pointer lifetime, and dynamic growth strategy.</p>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>dynamic_mem.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C loops/functions/arrays and stack frame basics.</p>
+          </article>
+          <article class="meta-card">
+            <h2>What You Can Do After This</h2>
+            <ul>
+            <li>Allocate and free heap memory safely.</li>
+            <li>Avoid leaks, dangling pointers, and double free bugs.</li>
+            <li>Implement amortized O(1) dynamic array growth.</li>
+            <li>Return pointers only when lifetime is valid.</li>
+            </ul>
+          </article>
+        </div>
+      </header>
+
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Lecture Identity</h1>
 <p><strong>File/lecture name:</strong> dynamic_mem.pdf
 <strong>Main theme:</strong> Dynamic Memory Management in C: Allocation, Deallocation, and Lifetime Safety
 <strong>Prereqs assumed by slides:</strong> Basic C syntax (loops, functions, arrays), understanding of stack frames and scope.
@@ -37,7 +81,7 @@
 <li><strong>Memory Regions:</strong> Distinction between Stack (compile-time size, automatic lifetime) and Heap (programmer-managed lifetime).</li>
 <li><strong>Allocation:</strong> Using <code>malloc</code> to request contiguous bytes on the heap; understanding <code>size_t</code> and <code>NULL</code>.</li>
 <li><strong>Deallocation:</strong> Using <code>free</code> to release memory; the critical rule of setting pointers to <code>NULL</code> after freeing.</li>
-<li><strong>Growing Arrays:</strong> Strategies for resizing arrays dynamically; comparing &quot;grow by 1&quot; (O(n�)) vs. &quot;double capacity&quot; (amortized O(1)).</li>
+<li><strong>Growing Arrays:</strong> Strategies for resizing arrays dynamically; comparing &quot;grow by 1&quot; (O(nï¿½)) vs. &quot;double capacity&quot; (amortized O(1)).</li>
 <li><strong>Returning Pointers:</strong> The danger of returning pointers to local stack variables (dangling pointers) vs. returning pointers to heap-allocated data.</li>
 <li><strong>Lifetime Management:</strong> Ensuring the data pointed to by a pointer remains valid for the duration of its use.</li>
 <li><strong>Practice:</strong> Applying these concepts to functions like <code>strchr</code> and generating digit arrays.</li>
@@ -309,7 +353,7 @@ printf(&quot;%d&quot;, p[0]);
 <strong>A:</strong> You must call <code>free</code> to prevent memory leaks.</p>
 </li>
 <li><p><strong>Q:</strong> What is the time complexity of appending to an array that grows by 1 element each time?
-<strong>A:</strong> O(n�) total for n insertions (worst case O(n) per append).</p>
+<strong>A:</strong> O(nï¿½) total for n insertions (worst case O(n) per append).</p>
 </li>
 <li><p><strong>Q:</strong> Why do we set a pointer to <code>NULL</code> after calling <code>free</code>?
 <strong>A:</strong> To prevent accidental dereferencing of a dangling pointer.</p>
@@ -406,8 +450,24 @@ printf(&quot;%d&quot;, p[0]);
 <li><strong>Lifetime Details:</strong> (Slide 38) &quot;Whenever using pointers you must be be aware of the lifetime of the data you assign a pointer to!&quot;</li>
 <li><strong>Practice Questions:</strong> (Slide 26, 39) Lists <code>primes</code>, <code>str_to_int</code>, <code>digits</code> as exercises.y</li>
 </ul>
+        </article>
 
-    </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/structs-and-adts.html"><span>Previous</span>Structs and ADTs</a>
+          <a href="/slides/?track=data-memory"><span>Back to Track</span>Data & Memory</a>
+          <a href="/slides/mutation-and-double-pointers.html"><span>Next</span>Mutation and Double Pointers</a>
+        </nav>
+
+        <p class="callout">Manually curated from <code>summaries/dynamic_mem.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

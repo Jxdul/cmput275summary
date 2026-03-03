@@ -1,26 +1,70 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The shell and bash (Rob Hackman, Winter 2025, University of Alberta) - CMPUT 275 Summaries</title>
+  <title>Shell and Bash Basics | CMPUT 275 Study Hub</title>
+  <meta name="description" content="Operating system interfaces, shell workflows, and I/O redirection.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
 
-  <main class="page-content">
-    <div class="breadcrumb">
-      <a href="/slides/">Slides</a>
-      <span>/</span>
-      <span>The shell and bash (Rob Hackman, Winter 2025, University of Alberta)</span>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
     </div>
-    <article class="summary-content">
-      <h1>Lecture Identity</h1>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Shell and Bash Basics</span></p>
+
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">Shell & CLI</p>
+        <h1>Shell and Bash Basics</h1>
+        <p>Operating system interfaces, shell workflows, and I/O redirection.</p>
+
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>shell.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>Basic familiarity with files, terminals, and system resources.</p>
+          </article>
+          <article class="meta-card">
+            <h2>What You Can Do After This</h2>
+            <ul>
+            <li>Use shell commands to automate simple workflows.</li>
+            <li>Chain programs with pipes for stream processing.</li>
+            <li>Control stdin/stdout/stderr using redirection operators.</li>
+            <li>Understand PATH-based command lookup.</li>
+            </ul>
+          </article>
+        </div>
+      </header>
+
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Lecture Identity</h1>
 <p><strong>File/lecture name:</strong> The shell and bash (Rob Hackman, Winter 2025, University of Alberta)
 <strong>Main theme:</strong> Introduction to Operating System interfaces, Shell capabilities, and I/O redirection mechanisms.
 <strong>Prereqs assumed by slides:</strong> Basic familiarity with file systems, command line usage, and hardware resources.
@@ -337,8 +381,24 @@
 <li><strong>Input vs Arguments:</strong> (Citation 3, Section 16) &quot;Consider the following two commands $ wc /usr/share/dict/words $ wc &lt; /usr/share/dict/words ... output is slightly different&quot;.</li>
 <li><strong>PATH:</strong> (Citation 2, Section 35) &quot;The programs we&#39;ve used so far have been utilities provided with Ubuntu and are located somewhere on our machine&quot;.</li>
 </ul>
+        </article>
 
-    </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/course-intro.html"><span>Previous</span>Course Intro</a>
+          <a href="/slides/?track=shell-cli"><span>Back to Track</span>Shell & CLI</a>
+          <a href="/slides/command-line-args-and-2d-arrays.html"><span>Next</span>Command Line Args & 2D Arrays</a>
+        </nav>
+
+        <p class="callout">Manually curated from <code>summaries/shell.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+      </div>
+    </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

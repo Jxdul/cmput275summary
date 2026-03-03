@@ -1,38 +1,110 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CMPUT 275 Summaries</title>
+  <title>CMPUT 275 Study Hub</title>
+  <meta name="description" content="CMPUT 275 study hub with organized slide summaries and readable exam-focused notes.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/" class="active">Home</a>
-    <a href="/slides/">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <main class="page-content">
-    <header class="intro-block">
-      <h1>CMPUT 275 SUMMARIES</h1>
-      <p class="intro-description">
-        Model: lmstudio-community/Qwen3.5-9B-GGUF. 
-        AI-generated study summaries for CMPUT 275. 
-        These summaries are meant as study aids only—always reference the official course slides for authoritative content.
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/" aria-current="page">Home</a>
+        <a href="/slides/">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main site-shell" id="main-content">
+    <section class="hero">
+      <p class="kicker">CMPUT 275 • Fast Revision • Deep Understanding</p>
+      <h1>Learn the course in a clear, connected path.</h1>
+      <p>
+        This site turns the lecture summaries into a guided study system: clean reading pages, topic tracks,
+        and quick references for assignments, labs, and exam prep.
       </p>
-    </header>
+      <div class="cta-row">
+        <a class="btn primary" href="/slides/">Start Learning</a>
+        <a class="btn" href="/slides/course-intro.html">Begin at Intro</a>
+      </div>
+      <div class="stats-grid" aria-label="Site statistics">
+        <article class="stat-card">
+          <strong>9</strong>
+          <span>Lecture summaries</span>
+        </article>
+        <article class="stat-card">
+          <strong>5</strong>
+          <span>Topic tracks</span>
+        </article>
+        <article class="stat-card">
+          <strong>11</strong>
+          <span>Sections per lecture</span>
+        </article>
+        <article class="stat-card">
+          <strong>1</strong>
+          <span>Suggested study path</span>
+        </article>
+      </div>
+    </section>
 
-    <section class="menu-cards">
-      <a href="/slides/" class="menu-card">
-        <h2>Slides</h2>
-        <p>Browse slide summaries by lecture topic.</p>
-      </a>
-      <a href="/code/" class="menu-card">
-        <h2>Code</h2>
-        <p>Code summaries and examples.</p>
-      </a>
+    <section class="section" aria-labelledby="path-heading">
+      <h2 id="path-heading">Recommended Study Path</h2>
+      <p>Follow this sequence to build concepts without gaps.</p>
+      <div class="path-grid">
+        <a class="path-card" href="/slides/course-intro.html">
+          <h3>1) Orientation</h3>
+          <p>Course policies, grading, communication rules, and how to manage deadlines.</p>
+        </a>
+        <a class="path-card" href="/slides/shell-bash-basics.html">
+          <h3>2) Shell &amp; CLI</h3>
+          <p>Shell workflows, pipes, redirection, and command-line argument handling.</p>
+        </a>
+        <a class="path-card" href="/slides/c-programming-foundations.html">
+          <h3>3) C Fundamentals</h3>
+          <p>C syntax, memory model, arrays/strings, and pointer foundations.</p>
+        </a>
+        <a class="path-card" href="/slides/structs-and-adts.html">
+          <h3>4) Data &amp; Memory</h3>
+          <p>Structs, dynamic memory, mutation patterns, and safe pointer ownership.</p>
+        </a>
+        <a class="path-card" href="/slides/separate-compilation-and-headers.html">
+          <h3>5) Build &amp; Modularity</h3>
+          <p>Declarations, headers, object files, linking, and separate compilation.</p>
+        </a>
+      </div>
+      <div class="study-order">
+        <strong>Full lecture order:</strong>
+        <ol>
+          <li><a href="/slides/course-intro.html">Course Intro</a></li>
+          <li><a href="/slides/shell-bash-basics.html">Shell and Bash Basics</a></li>
+          <li><a href="/slides/command-line-args-and-2d-arrays.html">Command Line Args and 2D Arrays</a></li>
+          <li><a href="/slides/c-programming-foundations.html">C Programming Foundations</a></li>
+          <li><a href="/slides/pointers-arrays-strings.html">Pointers, Arrays, and Strings</a></li>
+          <li><a href="/slides/structs-and-adts.html">Structs and ADTs</a></li>
+          <li><a href="/slides/dynamic-memory-management.html">Dynamic Memory Management</a></li>
+          <li><a href="/slides/mutation-and-double-pointers.html">Mutation and Double Pointers</a></li>
+          <li><a href="/slides/separate-compilation-and-headers.html">Separate Compilation and Headers</a></li>
+        </ol>
+      </div>
     </section>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>

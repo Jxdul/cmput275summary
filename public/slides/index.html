@@ -1,61 +1,154 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slides - CMPUT 275 Summaries</title>
+  <title>Slides | CMPUT 275 Study Hub</title>
+  <meta name="description" content="CMPUT 275 slide summaries organized by study track.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <nav class="global-nav">
-    <a href="/">Home</a>
-    <a href="/slides/" class="active">Slides</a>
-    <a href="/code/">Code</a>
-  </nav>
+  <a class="skip-link" href="#main-content">Skip to content</a>
 
-  <main class="page-content">
-    <header class="section-header">
-      <h1>Slide Summaries</h1>
-    </header>
-    <section class="slides-grid">
-      
-      <a href="/slides/c_pl.html" class="slide-card">
-        <h3>c_pl.pdf (The C Programming Language)</h3>
-        <p class="slide-theme">Introduction to C syntax, number systems, memory layout, and function mechanics.</p>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Study Hub</span>
       </a>
-      <a href="/slides/cmd_line.html" class="slide-card">
-        <h3>cmd_line.pdf</h3>
-        <p class="slide-theme">Command Line Argument Parsing and Multi-dimensional Array Memory Management in C.</p>
-      </a>
-      <a href="/slides/dynamic_mem.html" class="slide-card">
-        <h3>dynamic_mem.pdf</h3>
-        <p class="slide-theme">Dynamic Memory Management in C: Allocation, Deallocation, and Lifetime Safety</p>
-      </a>
-      <a href="/slides/intro.html" class="slide-card">
-        <h3>intro.pdf (Course Syllabus &amp; Intro)</h3>
-        <p class="slide-theme">Course logistics, evaluation breakdown, slip day policies, and communication channels.</p>
-      </a>
-      <a href="/slides/mutation.html" class="slide-card">
-        <h3>mutation.pdf</h3>
-        <p class="slide-theme">Techniques for returning multiple values in C/C++ using mutation and managing dynamic array state using double pointers.</p>
-      </a>
-      <a href="/slides/pointers.html" class="slide-card">
-        <h3>pointers.pdf</h3>
-        <p class="slide-theme">C Pointers, Arrays, and Strings: Memory addresses, input handling, and string manipulation.</p>
-      </a>
-      <a href="/slides/sep_comp.html" class="slide-card">
-        <h3>sep_comp.pdf (Separate Compilation)</h3>
-        <p class="slide-theme">Understanding the C/C++ compilation pipeline, managing declarations vs. definitions, and implementing modular programming using header files and separate compilation.</p>
-      </a>
-      <a href="/slides/structs.html" class="slide-card">
-        <h3>structs.pdf</h3>
-        <p class="slide-theme">C Structures, Memory Layout, and Abstract Data Types (ADTs)</p>
-      </a>
-      <a href="/slides/shell.html" class="slide-card">
-        <h3>The shell and bash (Rob Hackman, Winter 2025, University of Alberta)</h3>
-        <p class="slide-theme">Introduction to Operating System interfaces, Shell capabilities, and I/O redirection mechanisms.</p>
-      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main site-shell" id="main-content" data-slides-hub>
+    <section class="hero">
+      <p class="kicker">Slides Hub</p>
+      <h1>Lecture summaries in a connected learning order.</h1>
+      <p>Search by keyword and filter by track to focus your revision quickly.</p>
+
+      <div class="slides-controls">
+        <label class="sr-only" for="slides-search">Search lecture summaries</label>
+        <input id="slides-search" class="search-input" type="search" placeholder="Search topics, terms, or file names..." data-search-input>
+        <div class="filter-row" role="group" aria-label="Filter by track">
+          <button type="button" class="filter-chip active" data-track-filter="all" aria-pressed="true">All Tracks</button>
+          <button type="button" class="filter-chip" data-track-filter="orientation" aria-pressed="false">Orientation</button>
+          <button type="button" class="filter-chip" data-track-filter="shell-cli" aria-pressed="false">Shell &amp; CLI</button>
+          <button type="button" class="filter-chip" data-track-filter="c-core" aria-pressed="false">C Core</button>
+          <button type="button" class="filter-chip" data-track-filter="data-memory" aria-pressed="false">Data &amp; Memory</button>
+          <button type="button" class="filter-chip" data-track-filter="build" aria-pressed="false">Build &amp; Modularity</button>
+        </div>
+        <p class="results-line" data-results-count>9 lectures shown</p>
+      </div>
     </section>
+
+    <section class="track-grid section" aria-label="Lecture tracks">
+      <article class="track-card" data-track-section>
+        <div class="track-header">
+          <h2 class="track-title">Orientation</h2>
+          <p class="track-rationale">Start here for policies and study constraints.</p>
+        </div>
+        <div class="slide-grid">
+          <a class="slide-card" href="/slides/course-intro.html" data-slide-card data-track="orientation" data-title="course intro syllabus evaluation slip days" data-tags="intro grading policies communication">
+            <h3>Course Intro</h3>
+            <p>Syllabus rules, grading weights, slip days, and communication workflow.</p>
+            <div class="slide-meta"><span class="tag">Orientation</span><span class="tag">Policies</span></div>
+          </a>
+        </div>
+      </article>
+
+      <article class="track-card" data-track-section>
+        <div class="track-header">
+          <h2 class="track-title">Shell &amp; CLI</h2>
+          <p class="track-rationale">Command-line environment before deeper C tooling.</p>
+        </div>
+        <div class="slide-grid">
+          <a class="slide-card" href="/slides/shell-bash-basics.html" data-slide-card data-track="shell-cli" data-title="shell bash pipes redirection stdin stdout stderr" data-tags="shell bash io redirection">
+            <h3>Shell and Bash Basics</h3>
+            <p>UNIX shell concepts, pipes, stream redirection, and command discovery.</p>
+            <div class="slide-meta"><span class="tag">Shell</span><span class="tag">Bash</span></div>
+          </a>
+          <a class="slide-card" href="/slides/command-line-args-and-2d-arrays.html" data-slide-card data-track="shell-cli" data-title="command line arguments argc argv 2d arrays" data-tags="argc argv spiral rule matrix allocation">
+            <h3>Command Line Args &amp; 2D Arrays</h3>
+            <p>Parse `argc/argv`, understand pointer types, and manage dynamic 2D arrays.</p>
+            <div class="slide-meta"><span class="tag">CLI</span><span class="tag">2D Arrays</span></div>
+          </a>
+        </div>
+      </article>
+
+      <article class="track-card" data-track-section>
+        <div class="track-header">
+          <h2 class="track-title">C Core</h2>
+          <p class="track-rationale">Core language mechanics needed for memory-safe coding.</p>
+        </div>
+        <div class="slide-grid">
+          <a class="slide-card" href="/slides/c-programming-foundations.html" data-slide-card data-track="c-core" data-title="c programming basics binary ascii functions scope" data-tags="c syntax loops functions binary ascii">
+            <h3>C Programming Foundations</h3>
+            <p>C syntax, number systems, memory basics, and function behavior.</p>
+            <div class="slide-meta"><span class="tag">C Basics</span><span class="tag">Number Systems</span></div>
+          </a>
+          <a class="slide-card" href="/slides/pointers-arrays-strings.html" data-slide-card data-track="c-core" data-title="pointers arrays strings scanf const eof" data-tags="pointer decay arrays strings scanf">
+            <h3>Pointers, Arrays, and Strings</h3>
+            <p>Addressing, pointer safety, array decay, robust input, and C strings.</p>
+            <div class="slide-meta"><span class="tag">Pointers</span><span class="tag">Input</span></div>
+          </a>
+        </div>
+      </article>
+
+      <article class="track-card" data-track-section>
+        <div class="track-header">
+          <h2 class="track-title">Data &amp; Memory</h2>
+          <p class="track-rationale">Data modeling and dynamic memory ownership patterns.</p>
+        </div>
+        <div class="slide-grid">
+          <a class="slide-card" href="/slides/structs-and-adts.html" data-slide-card data-track="data-memory" data-title="structs adt linked list arrow operator" data-tags="struct adt list encapsulation">
+            <h3>Structs and ADTs</h3>
+            <p>Struct layout, passing semantics, and abstract data type design.</p>
+            <div class="slide-meta"><span class="tag">Structs</span><span class="tag">ADT</span></div>
+          </a>
+          <a class="slide-card" href="/slides/dynamic-memory-management.html" data-slide-card data-track="data-memory" data-title="dynamic memory malloc free heap doubling strategy" data-tags="heap malloc free resizing">
+            <h3>Dynamic Memory Management</h3>
+            <p>Heap allocation, safe freeing, pointer lifetime, and growth strategies.</p>
+            <div class="slide-meta"><span class="tag">Heap</span><span class="tag">Ownership</span></div>
+          </a>
+          <a class="slide-card" href="/slides/mutation-and-double-pointers.html" data-slide-card data-track="data-memory" data-title="mutation double pointers resize arrays" data-tags="double pointer return multiple values">
+            <h3>Mutation and Double Pointers</h3>
+            <p>Mutate caller state safely, especially during dynamic array resizing.</p>
+            <div class="slide-meta"><span class="tag">Mutation</span><span class="tag">Double Ptr</span></div>
+          </a>
+        </div>
+      </article>
+
+      <article class="track-card" data-track-section>
+        <div class="track-header">
+          <h2 class="track-title">Build &amp; Modularity</h2>
+          <p class="track-rationale">Compile, link, and structure codebases with clean interfaces.</p>
+        </div>
+        <div class="slide-grid">
+          <a class="slide-card" href="/slides/separate-compilation-and-headers.html" data-slide-card data-track="build" data-title="separate compilation headers linker declarations definitions" data-tags="gcc linker header object files">
+            <h3>Separate Compilation and Headers</h3>
+            <p>Declarations vs definitions, object files, include guards, and linking.</p>
+            <div class="slide-meta"><span class="tag">Build</span><span class="tag">Headers</span></div>
+          </a>
+        </div>
+      </article>
+    </section>
+
+    <div class="empty-state" data-empty-state hidden>
+      No lectures match the current filters. Try a broader keyword or switch to "All Tracks."
+    </div>
   </main>
+
+  <script src="/site.js" defer></script>
 </body>
 </html>
