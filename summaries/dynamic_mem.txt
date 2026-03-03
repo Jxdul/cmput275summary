@@ -1,0 +1,260 @@
+# Lecture Identity
+**File/lecture name:** dynamic_mem.pdf
+**Main theme:** Dynamic Memory Management in C: Allocation, Deallocation, and Lifetime Safety
+**Prereqs assumed by slides:** Basic C syntax (loops, functions, arrays), understanding of stack frames and scope.
+**What this lecture enables you to do:**
+*   Allocate memory on the heap using `malloc` and deallocate it using `free`.
+*   Implement dynamic array growth strategies (specifically the doubling strategy) to achieve amortized constant time insertion.
+*   Reason about data lifetimes to prevent dangling pointers and memory leaks.
+*   Safely return pointers from functions by ensuring the pointed-to data outlives the function call.
+
+# Big Picture Map (High-Level)
+1.  **The Problem:** Fixed-size stack arrays fail when input size is unknown or exceeds compile-time limits.
+2.  **Memory Regions:** Distinction between Stack (compile-time size, automatic lifetime) and Heap (programmer-managed lifetime).
+3.  **Allocation:** Using `malloc` to request contiguous bytes on the heap; understanding `size_t` and `NULL`.
+4.  **Deallocation:** Using `free` to release memory; the critical rule of setting pointers to `NULL` after freeing.
+5.  **Growing Arrays:** Strategies for resizing arrays dynamically; comparing "grow by 1" (O(ný)) vs. "double capacity" (amortized O(1)).
+6.  **Returning Pointers:** The danger of returning pointers to local stack variables (dangling pointers) vs. returning pointers to heap-allocated data.
+7.  **Lifetime Management:** Ensuring the data pointed to by a pointer remains valid for the duration of its use.
+8.  **Practice:** Applying these concepts to functions like `strchr` and generating digit arrays.
+
+# Key Concepts & Definitions
+
+| Name | Definition | Why it matters | Common confusion / misconception | Tiny example |
+| :--- | :--- | :--- | :--- | :--- |
+| **Stack** | Memory region for data with lifetime tied to enclosing scope; size known at compile time. | Fast allocation/deallocation; automatic cleanup. | Thinking stack memory is infinite or that it persists after function return. | `int arr[10];` (Stack) |
+| **Heap** | Memory region for data whose lifetime is dictated by the programmer; size unknown at compile time. | Allows dynamic sizing; essential for unknown input sizes. | Thinking heap is faster than stack (it is not; it is slower to manage). | `int *p = malloc(100);` (Heap) |
+| **malloc** | Standard library function to allocate contiguous bytes on the heap. Returns pointer or `NULL` on failure. | Enables dynamic memory allocation. | Forgetting to multiply `sizeof(type)` by count. | `int *p = malloc(sizeof(int)*10);` |
+| **free** | Standard library function to deallocate heap memory. Returns `void`. | Prevents memory leaks; returns memory to system. | Forgetting to free, or freeing memory that wasn't allocated with `malloc`. | `free(p);` |
+| **Dangling Pointer** | A pointer that stores an address of memory that has already been freed or gone out of scope. | Dereferencing causes undefined behavior (crash/corruption). | Thinking the pointer is still "valid" just because the number isn't zero. | `free(p); p = NULL;` |
+| **Memory Leak** | Failure to free heap memory when finished with it. | Program consumes more memory over time; eventually crashes. | Thinking "it works now" means it's safe to leak. | `malloc` without `free`. |
+| **size_t** | Unsigned integral type guaranteed large enough to store size of any data type. | Used for array lengths and sizes to avoid signed/unsigned mismatch warnings. | Using `int` for array sizes (can lead to logic errors). | `for (size_t i = 0; ...)` |
+| **Amortized** | Average cost per operation over a sequence of operations. | Explains why doubling strategy is efficient despite occasional expensive copies. | Confusing worst-case cost (O(n)) with average cost (O(1)). | Doubling array capacity. |
+| **Lifetime** | The duration during which a variable or memory block is valid and accessible. | Critical for determining if a pointer is safe to use. | Assuming a pointer is safe just because it was initialized. | Returning stack pointer. |
+
+# Core Mechanics / How-To
+
+### How to allocate heap memory safely
+1.  **Include headers:** Ensure `<stdlib.h>` is included for `malloc` and `free`.
+2.  **Calculate size:** Multiply `sizeof(type)` by the number of elements needed.
+3.  **Call malloc:** Assign the result to a pointer variable.
+4.  **Check for NULL:** Always check if `malloc` returned `NULL` (allocation failed).
+5.  **Initialize:** Heap memory is not guaranteed to be zero-initialized.
+
+```c
+int *arr = malloc(sizeof(int) * 10);
+if (arr == NULL) {
+    // Handle error
+}
+```
+
+### How to free memory safely
+1.  **Call free:** Pass the pointer to the block allocated by `malloc`.
+2.  **Nullify pointer:** Immediately set the pointer to `NULL` after freeing.
+3.  **Do not access:** Never read or write to the memory after `free`.
+
+```c
+free(arr);
+arr = NULL; // Prevents dangling pointer
+```
+
+### How to grow a dynamic array (Doubling Strategy)
+1.  **Check capacity:** If `len == size`, the array is full.
+2.  **Allocate new:** `malloc(sizeof(int) * (size * 2))`.
+3.  **Copy data:** Copy existing `len` elements from old array to new array.
+4.  **Update pointers:** `free(arr)`, `arr = newArr`, `size = size * 2`.
+5.  **Repeat:** Continue until `len < size`.
+
+### How to return pointers from functions
+1.  **Never return stack pointers:** Do not return a pointer to a local variable.
+2.  **Use heap for returns:** Allocate memory on the heap inside the function.
+3.  **Document responsibility:** The caller must `free` the returned pointer.
+4.  **Or use arguments:** Pass a pointer to a buffer provided by the caller.
+
+```c
+// BAD: Returns pointer to local stack variable
+int *bad(int n) {
+    int arr[4];
+    return arr; // Undefined behavior
+}
+
+// GOOD: Returns heap pointer
+int *good(int n) {
+    int *arr = malloc(sizeof(int) * 4);
+    // fill arr
+    return arr; // Caller must free(arr)
+}
+```
+
+# Code Patterns & Idioms
+
+| Pattern name | When to use it | Correct minimal example | Common bug + how to avoid it |
+| :--- | :--- | :--- | :--- |
+| **Safe Allocation** | Whenever using `malloc`. | `int *p = malloc(sizeof(int) * n);` | Forgetting `sizeof`. **Fix:** Always use `sizeof(type) * count`. |
+| **Safe Free** | Whenever using `malloc`. | `free(p); p = NULL;` | Accessing `p` after `free`. **Fix:** Set `p = NULL` immediately. |
+| **Growing Array** | When input size is unknown. | `if (len == size) { ... double size; ... }` | Growing by 1. **Fix:** Always double capacity (`size * 2`). |
+| **Heap Return** | Function creates data to return. | `int *ret = malloc(...); return ret;` | Caller forgetting to `free`. **Fix:** Caller must `free` returned pointer. |
+| **Argument Pointer** | Function modifies caller's data. | `void func(int *arr, int len);` | Returning pointer to local. **Fix:** Use heap or pass caller's buffer. |
+
+# Pitfalls, Edge Cases, and Debugging
+
+*   **Memory Leak:** Allocating with `malloc` but never calling `free`.
+    *   *Symptom:* Program runs fine but consumes increasing memory; crashes eventually.
+    *   *Fix:* Ensure every `malloc` has a corresponding `free`.
+*   **Dangling Pointer:** Accessing memory after `free`.
+    *   *Symptom:* Crash (segfault) or garbage values printed.
+    *   *Fix:* Set pointer to `NULL` after `free`.
+*   **Returning Stack Pointer:** Returning address of local variable.
+    *   *Symptom:* Crash or garbage values (undefined behavior).
+    *   *Fix:* Allocate on heap or pass buffer as argument.
+*   **Fixed Size Heap Array:** Allocating fixed size on heap but not growing.
+    *   *Symptom:* Program fails if input exceeds allocated size.
+    *   *Fix:* Implement growing array logic (doubling).
+*   **Incorrect `sizeof`:** Using `sizeof(arr)` instead of `sizeof(int)`.
+    *   *Symptom:* Allocating only 4 bytes for an array of ints.
+    *   *Fix:* Use `sizeof(type) * count`.
+*   **`realloc` Avoidance:** Slides explicitly advise against `realloc` for beginners.
+    *   *Symptom:* Mistakes in `realloc` usage lead to data loss.
+    *   *Fix:* Use the "allocate new, copy, free old" pattern.
+*   **`size_t` Usage:** Using `int` for array indices/sizes.
+    *   *Symptom:* Compiler warnings or logic errors with large sizes.
+    *   *Fix:* Use `size_t` for sizes and indices.
+*   **`NULL` Check:** Not checking if `malloc` returned `NULL`.
+    *   *Symptom:* Dereferencing `NULL` pointer immediately.
+    *   *Fix:* `if (ptr == NULL) { error handling; }`.
+*   **Lifetime Mismatch:** Using a pointer after the scope it was created ends.
+    *   *Symptom:* Crash or garbage.
+    *   *Fix:* Ensure data lifetime > pointer usage lifetime.
+*   **Compiler Differences:** `gcc` might return `NULL` for returning stack pointer; `clang` might overwrite stack.
+    *   *Symptom:* Inconsistent behavior across compilers.
+    *   *Fix:* Never rely on undefined behavior; use heap for returns.
+*   **Memory Diagram Confusion:** Confusing stack addresses with heap addresses.
+    *   *Symptom:* Misinterpreting memory layout.
+    *   *Fix:* Remember stack grows down, heap grows up (conceptually).
+*   **`free` Return Value:** `free` returns `void`.
+    *   *Symptom:* Trying to assign result of `free`.
+    *   *Fix:* `free(p);` (no return value).
+*   **`sizeof` on Pointer:** `sizeof(p)` gives pointer size, not array size.
+    *   *Symptom:* Allocating wrong amount of memory.
+    *   *Fix:* Use `sizeof(int)` for element size.
+*   **Global/Static Data:** Returning pointers to global/static is valid.
+    *   *Symptom:* Thinking all pointers are dangerous.
+    *   *Fix:* Valid lifetimes include global/static data.
+*   **`strchr` Example:** Returning pointer to found char in string.
+    *   *Symptom:* Not understanding why it works (pointer to input string).
+    *   *Fix:* Input string lifetime must outlive function call.
+*   **`digits` Practice:** Returning array of digits.
+    *   *Symptom:* Returning stack array.
+    *   *Fix:* Must allocate heap array inside function.
+
+# Exam-Style Questions (with answers)
+
+1.  **Q:** What is the output of the following code?
+    ```c
+    int *p = malloc(sizeof(int) * 10);
+    p[0] = 5;
+    free(p);
+    printf("%d", p[0]);
+    ```
+    **A:** Undefined behavior (likely crash or garbage). `p` is a dangling pointer after `free`.
+
+2.  **Q:** Why is `int arr[1000];` inside `main` different from `int *arr = malloc(sizeof(int)*1000);`?
+    **A:** The first is on the stack with lifetime tied to `main`'s scope. The second is on the heap with lifetime tied to when `free` is called.
+
+3.  **Q:** If you allocate memory with `malloc`, what must you do before the program exits?
+    **A:** You must call `free` to prevent memory leaks.
+
+4.  **Q:** What is the time complexity of appending to an array that grows by 1 element each time?
+    **A:** O(ný) total for n insertions (worst case O(n) per append).
+
+5.  **Q:** Why do we set a pointer to `NULL` after calling `free`?
+    **A:** To prevent accidental dereferencing of a dangling pointer.
+
+6.  **Q:** Can you return a pointer to a local variable from a function?
+    **A:** No, it is undefined behavior because the stack frame is deallocated when the function returns.
+
+7.  **Q:** What is the difference between `size_t` and `int`?
+    **A:** `size_t` is an unsigned type guaranteed to be large enough for any object size; `int` is signed and may be smaller.
+
+8.  **Q:** In the doubling strategy, why do we double the capacity instead of adding 1?
+    **A:** Doubling ensures amortized constant time insertion (O(1) average), whereas adding 1 leads to O(n) per insertion.
+
+9.  **Q:** What happens if you call `free` on a pointer that was never allocated with `malloc`?
+    **A:** Undefined behavior (likely crash).
+
+10. **Q:** If a function returns a pointer to heap memory, who is responsible for freeing it?
+    **A:** The caller is responsible for freeing the memory.
+
+11. **Q:** What is the purpose of `size_t` in `malloc`?
+    **A:** To specify the number of bytes to allocate.
+
+12. **Q:** Why is `realloc` avoided in this lecture?
+    **A:** Users often make mistakes with `realloc`, and there is no analogous function in C++ (so we avoid the habit).
+
+# Quick Reference / Cheat Sheet
+
+*   **Allocation:** `int *ptr = malloc(sizeof(int) * count);`
+*   **Deallocation:** `free(ptr); ptr = NULL;`
+*   **Check Allocation:** `if (ptr == NULL) { /* error */ }`
+*   **Growing Array:**
+    1.  `newArr = malloc(sizeof(int) * (size * 2));`
+    2.  `copy(oldArr, newArr, len);`
+    3.  `free(oldArr);`
+    4.  `ptr = newArr;`
+*   **Return Pointer:** Must be heap-allocated or global/static.
+*   **Size Type:** Always use `size_t` for sizes/indices.
+*   **Rule:** Never access memory after `free`.
+*   **Rule:** Never return pointer to local stack variable.
+*   **Rule:** Caller must `free` heap memory returned by function.
+
+# Mini Glossary
+
+1.  **Stack:** Memory region for automatic variables; lifetime tied to scope.
+2.  **Heap:** Memory region for dynamic variables; lifetime managed by programmer.
+3.  **Pointer:** Variable storing a memory address.
+4.  **Dangling Pointer:** Pointer to freed or out-of-scope memory.
+5.  **Memory Leak:** Failure to free allocated memory.
+6.  **malloc:** Function to allocate heap memory.
+7.  **free:** Function to deallocate heap memory.
+8.  **size_t:** Unsigned integer type for sizes.
+9.  **Undefined Behavior:** Behavior not specified by the language standard (e.g., accessing freed memory).
+10. **Amortized:** Average cost over a sequence of operations.
+11. **Scope:** Region of code where a variable is visible.
+12. **Lifetime:** Duration a variable/memory is valid.
+13. **Stack Frame:** Memory block for a function call on the stack.
+14. **Heap Block:** Contiguous memory allocated on the heap.
+15. **NULL:** Null pointer constant (0).
+16. **sizeof:** Operator to get size of type/variable in bytes.
+17. **Dereference:** Accessing memory pointed to by a pointer.
+18. **Allocation Failure:** When `malloc` returns `NULL`.
+19. **Global Data:** Data stored in global scope (lifetime = program).
+20. **Static Data:** Data stored in static storage (lifetime = program).
+
+# What This Lecture Does NOT Cover (Boundary)
+
+*   **C++ Smart Pointers:** `std::unique_ptr`, `std::shared_ptr`, `std::vector` are not covered (slides focus on raw C pointers).
+*   **`realloc`:** The slides explicitly advise against using `realloc` for beginners.
+*   **Memory Alignment:** Details about memory alignment requirements are not covered.
+*   **Stack Overflow:** While stack size limits are implied, specific stack overflow handling is not detailed.
+*   **Heap Fragmentation:** The internal workings of the heap allocator (fragmentation) are not covered.
+*   **`strchr` Implementation:** While `strchr` is used as an example, its full standard behavior (handling `NULL` input) is not detailed beyond the snippet.
+*   **`digits` Function:** The practice question for `digits` is listed but not solved in the slides.
+*   **`primes` Function:** The practice question for `primes` is listed but not solved.
+*   **`str_to_int` Function:** The practice question for `str_to_int` is listed but not solved.
+
+# Slide Anchors (Traceability)
+
+*   **Problem of Unknown Input Size:** (Slide 2) "We don't know how many integers the user is going to type."
+*   **Stack vs Heap vs Data:** (Slide 5) "stack | stores data whose lifetime is tied to their enclosing scope."
+*   **`malloc` Definition:** (Slide 7) "mallocallocates the bytes asked for (if able) and returns a pointer to the first byte allocated."
+*   **`size_t` Type:** (Slide 8) "sizetis an unsigned integral type that is guaranteed to be large enough to store the size of any possible data type."
+*   **`free` Definition:** (Slide 11) "Whenever you are finished with heap-allocated memory you must free it | failure to do so is called a memory leak."
+*   **Dangling Pointers:** (Slide 13) "Pointers that store an address of memory that has already been freed are said to be dangling."
+*   **Growing Array Strategy:** (Slide 16) "We can grow our array by allocating a new and larger copy each time we reach our capacity."
+*   **Doubling Strategy:** (Slide 23) "Solution: every time our array requires more space, double the capacity."
+*   **Amortized Constant:** (Slide 24) "By doubling everytime we have an amortized constant append time."
+*   **Returning Stack Pointers (Bad):** (Slide 31) "genMultiplesis returning a dangling pointer!"
+*   **When to Return Pointer:** (Slide 34) "A pointer can be returned when the lifetime of the data it points at is longer than the function which was called."
+*   **Caller Responsibility:** (Slide 37) "The caller must be aware this function returns a heap-allocated array and they, the caller, are responsible for freeing it."
+*   **Lifetime Details:** (Slide 38) "Whenever using pointers you must be be aware of the lifetime of the data you assign a pointer to!"
+*   **Practice Questions:** (Slide 26, 39) Lists `primes`, `str_to_int`, `digits` as exercises.y
