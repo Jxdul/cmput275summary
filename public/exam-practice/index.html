@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Practice | CMPUT 275 Summaries</title>
+  <meta name="description" content="Practice exam-style questions by slide deck. One question at a time with reveal and known/unknown tracking.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Summaries</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/">Slides</a>
+        <a href="/exam-practice/" aria-current="page">Exam Practice</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main site-shell" id="main-content" data-exam-practice-page>
+    <section class="hero" data-exam-deck-selector>
+      <p class="kicker">Exam Practice</p>
+      <h1>Practice by slide deck.</h1>
+      <p>Choose a deck to load its questions. You’ll see one question at a time with reveal answer and known/unknown tracking.</p>
+
+      <div class="section" style="margin-top: 1.5rem;">
+        <h2 id="deck-heading">Choose a deck</h2>
+        <div class="path-grid" role="group" aria-labelledby="deck-heading" data-deck-grid>
+          <button type="button" class="path-card deck-card" data-deck-id="shell" data-deck-file="shell.txt" data-deck-name="Shell and Bash Basics">
+            <h3>Shell and Bash Basics</h3>
+            <p>Shell, pipes, redirection, variables, and debugging.</p>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-exam-session hidden>
+      <div class="exam-session-header">
+        <p class="exam-session-title" data-exam-deck-name></p>
+        <button type="button" class="btn exam-back-btn" data-exam-back>Choose another deck</button>
+      </div>
+      <div class="exam-progress" aria-live="polite" data-exam-progress></div>
+      <div class="exam-one-question" data-exam-one-question>
+        <p class="exam-question-index" data-exam-question-index aria-live="polite"></p>
+        <div class="exam-card" data-exam-card aria-current="true" role="article">
+          <div class="exam-question" data-exam-question-text></div>
+          <div class="exam-answer" data-exam-answer hidden></div>
+          <div class="exam-controls">
+            <button type="button" class="exam-btn reveal" data-exam-reveal aria-expanded="false">Reveal answer</button>
+            <button type="button" class="exam-btn mark known" data-exam-known>Known</button>
+            <button type="button" class="exam-btn mark unknown" data-exam-unknown>Unknown</button>
+            <button type="button" class="exam-btn" data-exam-shuffle>Shuffle</button>
+          </div>
+        </div>
+      </div>
+      <div class="exam-nav" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <button type="button" class="exam-btn" data-exam-prev>Previous</button>
+        <button type="button" class="exam-btn" data-exam-next>Next</button>
+      </div>
+    </section>
+
+    <div class="section" data-exam-loading hidden>
+      <p>Loading questions…</p>
+    </div>
+    <div class="section" data-exam-error hidden>
+      <p class="exam-error-message" data-exam-error-message></p>
+    </div>
+  </main>
+
+  <script src="/site.js" defer></script>
+  <script src="/exam-practice.js" defer></script>
+</body>
+</html>

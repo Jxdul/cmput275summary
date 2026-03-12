@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "predeploy": "mkdir -p public/examquestions && cp examquestions/*.txt public/examquestions/ 2>/dev/null || true",
     "deploy": "wrangler deploy"
   }
 }

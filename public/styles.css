@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Code", "Fira Code", "Consolas", monospace;
   --radius-xs: 8px;
@@ -404,6 +404,37 @@ h4 {
   border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
   box-shadow: var(--shadow-md);
 }
+
+.deck-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.deck-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+  box-shadow: var(--shadow-md);
+}
+.deck-card h3 { margin-bottom: 0.45rem; font-size: 1.02rem; }
+.deck-card p { margin: 0; color: var(--text-muted); font-size: 0.93rem; }
+
+.exam-session-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.exam-session-title { margin: 0; font-weight: 600; }
+.exam-back-btn { font-size: 0.9rem; }
 
 .study-order {
   margin-top: 0.8rem;
