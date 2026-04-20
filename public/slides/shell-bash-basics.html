@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shell and Bash Basics | CMPUT 275 Summaries</title>
-  <meta name="description" content="Operating system interfaces, shell workflows, and I/O redirection.">
+  <meta name="description" content="Operating systems, shell commands, paths, streams, redirection, pipes, permissions, SSH, and Bash scripts.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -32,382 +31,482 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
     <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Shell and Bash Basics</span></p>
-
     <section class="study-layout">
       <header class="study-page-header">
-        <p class="kicker">Shell & CLI</p>
+        <p class="kicker">Shell and CLI</p>
         <h1>Shell and Bash Basics</h1>
-        <p>Operating system interfaces, shell workflows, and I/O redirection.</p>
-
+        <p>Operating systems, shell commands, paths, streams, redirection, pipes, permissions, SSH, and Bash scripts.</p>
         <div class="meta-grid">
           <article class="meta-card">
             <h2>Lecture File</h2>
-            <p>shell.pdf</p>
+            <p>slides/01_shell.pdf</p>
           </article>
           <article class="meta-card">
             <h2>Prerequisites</h2>
-            <p>Basic familiarity with files, terminals, and system resources.</p>
+            <p>Comfort using a terminal is helpful, but the lecture builds from first principles.</p>
           </article>
           <article class="meta-card">
-            <h2>What You Can Do After This</h2>
-            <ul>
-            <li>Use shell commands to automate simple workflows.</li>
-            <li>Chain programs with pipes for stream processing.</li>
-            <li>Control stdin/stdout/stderr using redirection operators.</li>
-            <li>Manage execute permissions and run scripts safely.</li>
-            <li>Understand PATH-based command lookup.</li>
-            </ul>
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=01_shell">01_shell.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/shell</code></p>
           </article>
         </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/course-intro.html">Previous: 00_intro</a>
+          <a class="btn primary" href="/exam-practice/?deck=01_shell">Practice 01_shell</a>
+          <a class="btn" href="/slides/c-programming-foundations.html">Next: 02_c_pl</a>
+        </div>
       </header>
-
       <div class="study-content-wrap">
         <article class="study-article js-study-content">
-<h1>Lecture Identity</h1>
-<p><strong>File/lecture name:</strong> The shell and bash (Rob Hackman, Winter 2025, University of Alberta)
-<strong>Main theme:</strong> Introduction to Operating System interfaces, Shell capabilities, and I/O redirection mechanisms.
-<strong>Prereqs assumed by slides:</strong> Basic familiarity with file systems, command line usage, and hardware resources.
-<strong>What this lecture enables you to do:</strong></p>
+<h1>01 Shell</h1>
+<h2>Big Picture</h2>
 <ul>
-<li>Understand the fundamental purposes of an operating system (resource management, security, file access).</li>
-<li>Define and utilize a Shell as a textual interface for system tasks.</li>
-<li>Chain programs together using pipes to process data streams.</li>
-<li>Redirect standard error and input streams to manage program output and file sources.</li>
-<li>Read and modify file execute/read/write permissions with <code>ls -l</code> and <code>chmod</code>.</li>
-<li>Connect to remote systems using <code>ssh username@serverAddress</code>.</li>
-<li>Write and execute basic Bash scripts using shebang, conditionals, and loops.</li>
-<li>Locate and execute system utilities using the PATH environment.</li>
+<li>This lecture treats the shell as a precise interface to the operating system, not as a magic text box that simply “runs commands.”</li>
+<li>The key topics are command parsing, file paths, streams, permissions, executable lookup, and bash scripting.</li>
+<li>The practical skill is prediction: before you press Enter, you should be able to explain what the shell will do, what the program will receive, and where output will go.</li>
 </ul>
-<h1>Big Picture Map (High-Level)</h1>
-<ol>
-<li><strong>Operating System Fundamentals:</strong> Review of OS purposes (hardware management, security, file access).</li>
-<li><strong>Shell Definition:</strong> Introduction to the Shell as a textual interface for tasks (run programs, manage files, terminate programs).</li>
-<li><strong>Program Execution and PATH:</strong> How command lookup works and when full file paths are needed.</li>
-<li><strong>File Permissions:</strong> Read/write/execute bits, <code>ls -l</code>, and permission changes with <code>chmod</code>.</li>
-<li><strong>Interpreters and Executable Scripts:</strong> Shebang basics and why execute permission is required.</li>
-<li><strong>Working Over a Network:</strong> SSH fundamentals and the <code>ssh username@serverAddress</code> command pattern.</li>
-<li><strong>Bash Scripts:</strong> Script structure, simple conditionals, and <code>for</code> loops for automation.</li>
-<li><strong>Variable Handling:</strong> Best practices for temporary files (<code>mktemp</code>) and variable expansion (<code>$()</code> vs <code>$</code>).</li>
-<li><strong>Pipes:</strong> Mechanism for passing output of one program as input to another (Unix philosophy of small single-purpose programs).</li>
-<li><strong>Standard Streams:</strong> Overview of <code>stdin</code>, <code>stdout</code>, and <code>stderr</code> default connections.</li>
-<li><strong>Redirection:</strong> Overriding default connections using <code>&gt;</code> and <code>2&gt;</code> to write to files.</li>
-<li><strong>Input Methods:</strong> Comparing command line arguments vs. input redirection (<code>&lt;</code>).</li>
-</ol>
-<h1>Key Concepts &amp; Definitions</h1>
-<p><strong>Shell</strong></p>
+<h2>Core Model</h2>
 <ul>
-<li><strong>Definition:</strong> A textual interface allowing users to ask the operating system to perform tasks.</li>
-<li><strong>Why it matters:</strong> It acts as the bridge between the user and the OS kernel, enabling program execution and file management.</li>
-<li><strong>Common confusion:</strong> Confusing the Shell (interface) with the Operating System (kernel/hardware manager).</li>
-<li><strong>Tiny example:</strong> <code>ls</code> (Run a program via shell).</li>
+<li>The operating system manages access to hardware, provides a safe environment for running programs, and exposes the file system.</li>
+<li>The shell is a text interface for asking the OS to do work.</li>
+<li>A shell command is not one thing; it is a program name plus arguments plus shell syntax such as quoting, redirection, pipes, and substitutions.</li>
+<li>Two commands that look similar can behave very differently because the shell is allowed to transform the command line before the program sees it.</li>
 </ul>
-<p><strong>Pipe (<code>|</code>)</strong></p>
+<h2>What Happens When You Press Enter</h2>
 <ul>
-<li><strong>Definition:</strong> A mechanism to provide the output of one program as the input to another.</li>
-<li><strong>Why it matters:</strong> Enables chaining small, single-purpose programs to solve complex tasks (Unix philosophy).</li>
-<li><strong>Common confusion:</strong> Thinking pipes connect files directly; they connect program streams.</li>
-<li><strong>Tiny example:</strong> <code>head -20 alice.txt | wc</code>.</li>
+<li>The shell reads the line you typed.</li>
+<li>It breaks the line into words, operators, and quoted sections.</li>
+<li>It performs expansions in the order Bash defines.</li>
+<li>It resolves redirections and pipes.</li>
+<li>It finds the executable.</li>
+<li>It launches the program with the chosen arguments and streams.</li>
 </ul>
-<p><strong>Standard Error (<code>stderr</code>)</strong></p>
+<h3>Why this order matters</h3>
 <ul>
-<li><strong>Definition:</strong> A default stream for error messages, distinct from standard output (<code>stdout</code>).</li>
-<li><strong>Why it matters:</strong> Allows error messages to be captured separately from normal program output.</li>
-<li><strong>Common confusion:</strong> Assuming all output goes to the screen; errors can be redirected independently.</li>
-<li><strong>Tiny example:</strong> <code>wc 2&gt; errorFile.txt</code>.</li>
+<li>The shell is not passing your raw text directly to the program.</li>
+<li>It is preprocessing the line into a run-ready command description.</li>
+<li>If you forget that, you will misdiagnose a lot of bugs.</li>
+<li>Many “why did that happen?” shell questions are really “what did Bash do before my program started?” questions.</li>
 </ul>
-<p><strong>PATH</strong></p>
+<h2>Reading Commands Precisely</h2>
 <ul>
-<li><strong>Definition:</strong> A variable indicating where the system looks for executable programs.</li>
-<li><strong>Why it matters:</strong> Determines where commands like <code>wc</code> or <code>ls</code> are located on the machine.</li>
-<li><strong>Common confusion:</strong> Thinking commands are magic; they are utilities provided with the OS (e.g., Ubuntu).</li>
-<li><strong>Tiny example:</strong> <code>wc alice.txt</code>.</li>
+<li>In <code>cat /usr/share/dict/words</code>, the program name is <code>cat</code>.</li>
+<li><code>/usr/share/dict/words</code> is a command-line argument.</li>
+<li>The operating system passes that string to the program.</li>
+<li>Quoting the path, as in <code>cat &quot;/usr/share/dict/words&quot;</code>, still gives exactly one argument.</li>
+<li>The shell does not “understand” the argument semantically; it just decides where argument boundaries are.</li>
 </ul>
-<p><strong>Input Redirection (<code>&lt;</code>)</strong></p>
+<h3>Why quotes matter</h3>
 <ul>
-<li><strong>Definition:</strong> Feeding a file as input to a command instead of typing arguments.</li>
-<li><strong>Why it matters:</strong> Allows processing of large files without passing them as arguments.</li>
-<li><strong>Common confusion:</strong> Output difference between argument and redirection (slides note output is &quot;slightly different&quot;).</li>
-<li><strong>Tiny example:</strong> <code>wc &lt; /usr/share/dict/words</code>.</li>
+<li>Quotes control shell parsing, not program semantics.</li>
+<li>If a path contains spaces, quotes stop the shell from splitting it into multiple arguments.</li>
+<li>If you want literal text, quotes can also stop globbing and other expansions.</li>
+<li>If you want a variable to expand but still remain one argument, use double quotes.</li>
 </ul>
-<h1>Core Mechanics / How-To</h1>
-<p><strong>How to use a Pipe</strong></p>
-<ol>
-<li>Identify the command that produces the data (left side).</li>
-<li>Identify the command that consumes the data (right side).</li>
-<li>Combine them with the pipe character <code>|</code>.</li>
-<li><strong>Syntax:</strong> <code>cmd1 | cmd2 | cmd3</code>.</li>
-<li><strong>Decision Point:</strong> Ensure the left command writes to stdout and the right reads from stdin.</li>
-</ol>
-<p><strong>How to Redirect Standard Error</strong></p>
-<ol>
-<li>Identify the command producing errors (e.g., <code>wc</code>).</li>
-<li>Use <code>2&gt;</code> followed by the target filename.</li>
-<li><strong>Syntax:</strong> <code>command 2&gt; filename</code>.</li>
-<li><strong>Warning:</strong> The operating system creates the file; it will overwrite (delete) any existing file with that name.</li>
-</ol>
-<p><strong>How to Read from a File as Input</strong></p>
-<ol>
-<li>Identify the command expecting input.</li>
-<li>Use <code>&lt;</code> followed by the filename.</li>
-<li><strong>Syntax:</strong> <code>command &lt; filename</code>.</li>
-<li><strong>Note:</strong> This differs from passing the filename as an argument (e.g., <code>wc file.txt</code> vs <code>wc &lt; file.txt</code>).</li>
-</ol>
-<p><strong>How to Handle Temporary Files Safely</strong></p>
-<ol>
-<li>Use <code>mktemp</code> to create a temporary file.</li>
-<li>Store the result in a variable (e.g., <code>myTemp</code>).</li>
-<li>Use <code>$()</code> when running the command to capture output into the variable.</li>
-<li>Use <code>$</code> when reading the variable later.</li>
-<li><strong>Crucial Step:</strong> Ensure you delete the temp file with <code>rm</code> to avoid clutter.</li>
-</ol>
-<h1>Code Patterns &amp; Idioms</h1>
-<p><strong>Pattern: Command Chaining</strong></p>
+<h3>What the shell actually does</h3>
 <ul>
-<li><strong>When to use it:</strong> When the output of one tool is needed as input for another.</li>
-<li><strong>Correct minimal example:</strong> <code>head -20 alice.txt | wc</code>.</li>
-<li><strong>Common bug:</strong> Forgetting the pipe character, resulting in two separate commands running sequentially.</li>
+<li>Bash first performs expansions and syntax processing.</li>
+<li>It resolves quotes, variable references, command substitutions, globbing, and redirection.</li>
+<li>Then it finds the program to execute.</li>
+<li>Then it starts the program with a set of arguments and connected streams.</li>
+<li>This order explains many confusing bugs: the shell may rewrite the line before your program ever runs.</li>
 </ul>
-<p><strong>Pattern: Error Redirection</strong></p>
+<h3>Command-line arguments versus input</h3>
 <ul>
-<li><strong>When to use it:</strong> When you want to log errors to a file instead of the terminal.</li>
-<li><strong>Correct minimal example:</strong> <code>wc 2&gt; errorFile.txt</code>.</li>
-<li><strong>Common bug:</strong> Using <code>&gt;</code> instead of <code>2&gt;</code>, which redirects standard output (data) instead of errors.</li>
+<li><code>wc file.txt</code> gives <code>wc</code> a filename argument.</li>
+<li><code>wc &lt; file.txt</code> gives <code>wc</code> no filename argument and instead changes standard input.</li>
+<li>The program sees different data, so the behavior is not identical.</li>
+<li>This distinction matters everywhere in C and Python later in the course, because programs often have one path for arguments and another path for stdin.</li>
 </ul>
-<p><strong>Pattern: Input Redirection</strong></p>
+<h3>Stream trace for <code>wc</code></h3>
 <ul>
-<li><strong>When to use it:</strong> When a command expects input from a file rather than arguments.</li>
-<li><strong>Correct minimal example:</strong> <code>wc &lt; /usr/share/dict/words</code>.</li>
-<li><strong>Common bug:</strong> Confusing this with <code>wc /usr/share/dict/words</code> (argument passing), which may yield different output behavior.</li>
+<li>In <code>wc file.txt</code>, the shell does not open <code>file.txt</code> for the program. It simply tells <code>wc</code> the name of the file.</li>
+<li>In <code>wc &lt; file.txt</code>, the shell opens the file itself and connects it to stdin.</li>
+<li><code>wc</code> then reads from stdin as if the keyboard had been replaced by the file.</li>
+<li>If the input comes from a pipe or redirect, the program may not know or care where it originally came from.</li>
 </ul>
-<h1>Pitfalls, Edge Cases, and Debugging</h1>
-<ol>
-<li><strong>File Overwrite:</strong> <code>2&gt; filename</code> creates the file if it doesn&#39;t exist, but overwrites it if it does.<ul>
-<li><em>Symptom:</em> Data loss in <code>filename</code>.</li>
-<li><em>Cause:</em> Existing file with same name.</li>
-<li><em>Fix:</em> Check if file exists before redirecting or use <code>&gt;&gt;</code> (append) if appropriate (not covered in slides, but implied risk).</li>
-</ul>
-</li>
-<li><strong>Variable Expansion:</strong> Using <code>$</code> vs <code>$()</code> changes how output is captured.<ul>
-<li><em>Symptom:</em> Command fails or variable is empty.</li>
-<li><em>Cause:</em> Incorrect expansion syntax for command substitution.</li>
-<li><em>Fix:</em> Use <code>$()</code> for command output, <code>$</code> for variable content.</li>
-</ul>
-</li>
-<li><strong>Temp File Cleanup:</strong> Failing to delete <code>mktemp</code> files.<ul>
-<li><em>Symptom:</em> Disk space usage increases over time.</li>
-<li><em>Cause:</em> <code>rm</code> command omitted.</li>
-<li><em>Fix:</em> Always run <code>rm</code> on the temp variable.</li>
-</ul>
-</li>
-<li><strong>Input Method Difference:</strong> <code>wc file</code> vs <code>wc &lt; file</code>.<ul>
-<li><em>Symptom:</em> Output is &quot;slightly different&quot; (as per slides).</li>
-<li><em>Cause:</em> Argument parsing vs stream redirection differences.</li>
-<li><em>Fix:</em> Understand which method the specific utility expects.</li>
-</ul>
-</li>
-<li><strong>Standard Stream Confusion:</strong> Mixing up <code>stdout</code> and <code>stderr</code>.<ul>
-<li><em>Symptom:</em> Errors appear on screen instead of file.</li>
-<li><em>Cause:</em> Using <code>&gt;</code> instead of <code>2&gt;</code>.</li>
-<li><em>Fix:</em> Use <code>2&gt;</code> for errors specifically.</li>
-</ul>
-</li>
-<li><strong>PATH Issues:</strong> Commands not found.<ul>
-<li><em>Symptom:</em> <code>command not found</code>.</li>
-<li><em>Cause:</em> Program not in PATH or not installed.</li>
-<li><em>Fix:</em> Check PATH or install utility (e.g., Ubuntu utilities).</li>
-</ul>
-</li>
-<li><strong>Pipe Chain Breakage:</strong> One command in a chain fails.<ul>
-<li><em>Symptom:</em> Downstream commands receive no input.</li>
-<li><em>Cause:</em> Upstream command error or empty output.</li>
-<li><em>Fix:</em> Check exit status of upstream commands.</li>
-</ul>
-</li>
-<li><strong>File Permissions:</strong> OS manages access to resources.<ul>
-<li><em>Symptom:</em> Cannot read/write files.</li>
-<li><em>Cause:</em> OS security environment.</li>
-<li><em>Fix:</em> Check file permissions (covered in &quot;Executing Programs and File Permissions&quot; section).</li>
-</ul>
-</li>
-<li><strong>Variable Scope:</strong> Shell variables vs environment variables.<ul>
-<li><em>Symptom:</em> Variable not accessible in subshells.</li>
-<li><em>Cause:</em> Local vs global scope.</li>
-<li><em>Fix:</em> Export variables if needed (not explicitly covered, but implied by &quot;environment&quot;).</li>
-</ul>
-</li>
-<li><strong>Redirection Overwrite Risk:</strong> Overwriting critical system files.<ul>
-<li><em>Symptom:</em> System error.</li>
-<li><em>Cause:</em> Redirecting to a system file path.</li>
-<li><em>Fix:</em> Use unique filenames for redirection.</li>
-</ul>
-</li>
-<li><strong>Input Stream Closure:</strong> Closing stdin prematurely.<ul>
-<li><em>Symptom:</em> Program waits for input.</li>
-<li><em>Cause:</em> Input redirection not set up.</li>
-<li><em>Fix:</em> Use <code>&lt;</code> to provide input source.</li>
-</ul>
-</li>
-<li><strong>Command Substitution Syntax:</strong> Mixing <code>$</code> and <code>$()</code>.<ul>
-<li><em>Symptom:</em> Syntax error or empty variable.</li>
-<li><em>Cause:</em> Using <code>$</code> for command output.</li>
-<li><em>Fix:</em> Use <code>$()</code> for command output.</li>
-</ul>
-</li>
-<li><strong>Temp File Persistence:</strong> Leaving temp files behind.<ul>
-<li><em>Symptom:</em> Disk full.</li>
-<li><em>Cause:</em> <code>mktemp</code> result not deleted.</li>
-<li><em>Fix:</em> <code>rm</code> the variable content.</li>
-</ul>
-</li>
-<li><strong>Standard Error Capture:</strong> Capturing errors to wrong stream.<ul>
-<li><em>Symptom:</em> Errors mixed with output.</li>
-<li><em>Cause:</em> Redirecting <code>1&gt;</code> instead of <code>2&gt;</code>.</li>
-<li><em>Fix:</em> Use <code>2&gt;</code> for errors.</li>
-</ul>
-</li>
-<li><strong>File Creation Behavior:</strong> OS creates file on redirect.<ul>
-<li><em>Symptom:</em> Unexpected file creation.</li>
-<li><em>Cause:</em> <code>2&gt;</code> creates file if missing.</li>
-<li><em>Fix:</em> Be aware of side effects of redirection.</li>
-</ul>
-</li>
-</ol>
-<h1>Exam-Style Questions (with answers)</h1>
-<ol>
-<li><strong>Concept Check:</strong> What is the primary purpose of a Shell?<ul>
-<li><em>Answer:</em> To provide a textual interface for users to ask the OS to perform tasks (run programs, manage files).</li>
-</ul>
-</li>
-<li><strong>Predict-the-output:</strong> What happens if you run <code>wc 2&gt; errorFile.txt</code>?<ul>
-<li><em>Answer:</em> Standard error from <code>wc</code> is sent to <code>errorFile.txt</code> instead of the screen. The file is created/overwritten.</li>
-</ul>
-</li>
-<li><strong>Trace Reasoning:</strong> Why did we store the result of <code>mktemp</code> in a variable?<ul>
-<li><em>Answer:</em> To reference the temporary file path later (e.g., for deletion or processing).</li>
-</ul>
-</li>
-<li><strong>Bug Finding:</strong> Why is <code>wc &lt; file</code> different from <code>wc file</code>?<ul>
-<li><em>Answer:</em> The slides note the output is &quot;slightly different&quot; between input redirection and command line arguments.</li>
-</ul>
-</li>
-<li><strong>Design Question:</strong> How do you chain three commands to process data?<ul>
-<li><em>Answer:</em> Use <code>cmd1 | cmd2 | cmd3</code>.</li>
-</ul>
-</li>
-<li><strong>Concept Check:</strong> What does the pipe character <code>|</code> do?<ul>
-<li><em>Answer:</em> It redirects the standard output of the left command to the standard input of the right command.</li>
-</ul>
-</li>
-<li><strong>Predict-the-output:</strong> What happens to an existing file named <code>errorFile.txt</code> when using <code>2&gt; errorFile.txt</code>?<ul>
-<li><em>Answer:</em> It is overwritten (deleted) by the operating system.</li>
-</ul>
-</li>
-<li><strong>What goes wrong here?</strong> What is the issue with <code>wc $myTemp</code> vs <code>wc $()myTemp</code>?<ul>
-<li><em>Answer:</em> <code>$()</code> is for command substitution (running a command), <code>$</code> is for variable expansion. Using <code>$()</code> without a command is invalid.</li>
-</ul>
-</li>
-<li><strong>Design Question:</strong> Why does Unix advocate for small single-purpose programs?<ul>
-<li><em>Answer:</em> To combine them with other programs to solve many tasks using pipes.</li>
-</ul>
-</li>
-<li><strong>Concept Check:</strong> Where do Ubuntu utilities typically exist?<ul>
-<li><em>Answer:</em> Somewhere on the machine, located via the PATH.</li>
-</ul>
-</li>
-<li><strong>Trace Reasoning:</strong> If <code>head -20 alice.txt | wc</code> is run, what is the input to <code>wc</code>?<ul>
-<li><em>Answer:</em> The first 20 lines of <code>alice.txt</code> (stdout of <code>head</code>).</li>
-</ul>
-</li>
-<li><strong>Bug Finding:</strong> Why might a temp file persist on disk?<ul>
-<li><em>Answer:</em> The <code>rm</code> command was not executed to delete the file created by <code>mktemp</code>.</li>
-</ul>
-</li>
-</ol>
-<h1>Quick Reference / Cheat Sheet</h1>
+<h2>File Paths and Directory Thinking</h2>
 <ul>
-<li><strong>Pipe:</strong> <code>cmd1 | cmd2</code> (Output of 1 -&gt; Input of 2).</li>
-<li><strong>Stdout Redirection:</strong> <code>cmd &gt; file</code> (Write output to file).</li>
-<li><strong>Stderr Redirection:</strong> <code>cmd 2&gt; file</code> (Write errors to file).</li>
-<li><strong>Input Redirection:</strong> <code>cmd &lt; file</code> (Read input from file).</li>
-<li><strong>Command Substitution:</strong> <code>$()</code> (Capture command output into variable).</li>
-<li><strong>Variable Expansion:</strong> <code>$var</code> (Use stored value).</li>
-<li><strong>Temp File:</strong> <code>mktemp</code> (Create), <code>rm</code> (Delete).</li>
-<li><strong>Unix Philosophy:</strong> Write small programs, combine with pipes.</li>
-<li><strong>File Overwrite:</strong> <code>2&gt; file</code> creates/overwrites file.</li>
-<li><strong>PATH:</strong> Location of system utilities.</li>
+<li>An absolute path begins with <code>/</code> and starts at the root directory.</li>
+<li>A relative path is interpreted from the current working directory.</li>
+<li><code>.</code> means the current directory.</li>
+<li><code>..</code> means the parent directory.</li>
+<li><code>pwd</code> prints the current working directory.</li>
+<li><code>cd</code> changes the current working directory.</li>
 </ul>
-<h1>Mini Glossary</h1>
-<ol>
-<li><strong>Shell:</strong> Textual interface to the operating system.</li>
-<li><strong>Pipe (<code>|</code>):</strong> Connects stdout of one program to stdin of another.</li>
-<li><strong>Stdin:</strong> Standard input stream.</li>
-<li><strong>Stdout:</strong> Standard output stream.</li>
-<li><strong>Stderr:</strong> Standard error stream.</li>
-<li><strong>Redirection:</strong> Overriding default stream connections.</li>
-<li><strong>PATH:</strong> Environment variable for program locations.</li>
-<li><strong>mktemp:</strong> Command to create temporary files.</li>
-<li><strong>Variable:</strong> Storage for data values in the shell.</li>
-<li><strong>Utility:</strong> Small single-purpose program (Unix philosophy).</li>
-<li><strong>Overwrite:</strong> Deleting existing file content when creating a new one.</li>
-<li><strong>Command Substitution:</strong> Capturing output into a variable.</li>
-<li><strong>Input Redirection:</strong> Feeding a file as input to a command.</li>
-<li><strong>Operating System:</strong> Manages hardware, security, and files.</li>
-<li><strong>File Permissions:</strong> Controls access to resources.</li>
-<li><strong>Ubuntu:</strong> The operating system used in this course context.</li>
-<li><strong>CMPUT 274:</strong> Course context mentioned in slides (ignored for content).</li>
-<li><strong>Terminal:</strong> Interface for shell commands.</li>
-<li><strong>Stream:</strong> Data flow channel (stdin/stdout/stderr).</li>
-<li><strong>Argument:</strong> Data passed to a command.</li>
-</ol>
-<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<h3>Tree model</h3>
 <ul>
-<li><strong>C++ Programming:</strong> Not covered in these slides (Course description mentions C++, but slides focus on Shell).</li>
-<li><strong>Object-Oriented Programming:</strong> Not covered in these slides.</li>
-<li><strong>Graph Algorithms:</strong> Not covered in these slides.</li>
-<li><strong>Dynamic Programming:</strong> Not covered in these slides.</li>
-<li><strong>Client-Server Computing:</strong> Not covered in these slides.</li>
-<li><strong>Recursion:</strong> Not covered in these slides.</li>
-<li><strong>Advanced Bash Scripting:</strong> Only basic commands and redirection are covered.</li>
-<li><strong>Bash Robustness Features:</strong> Strict mode, traps, and advanced script debugging are not covered.</li>
-<li><strong>Secure File Transfer Tools:</strong> Tools like <code>scp</code> and <code>rsync</code> are not covered.</li>
+<li>The file system is naturally understood as a tree.</li>
+<li>Directories are internal nodes.</li>
+<li>Non-directory files are leaves.</li>
+<li>A path is a route through that tree.</li>
+<li>Thinking in trees helps with nested paths like <code>/usr/share/dict/words</code> and relative paths like <code>../../foo.txt</code>.</li>
 </ul>
-<h1>Slide Anchors (Traceability)</h1>
+<h3>Worked path trace</h3>
 <ul>
-<li><strong>OS Purposes:</strong> (Citation 1, Section 2) &quot;Manage and provide interfaces for access to your resources (physical hardware) ... Provide environment to run programs safely and securely&quot;.</li>
-<li><strong>Shell Definition:</strong> (Citation 1, Section 3) &quot;A shell is a textual interface to allow users to ask their operating system to perform tasks&quot;.</li>
-<li><strong>Shell Tasks:</strong> (Citation 1, Section 3) &quot;Run a program, Create, read, or delete a file, Terminate a program&quot;.</li>
-<li><strong>mktemp Variable Usage:</strong> (Citation 2, Section 32) &quot;Why did we have to store the result of mktemp in a variable? ... Note that we made sure to delete the temp file we created with rm!&quot;.</li>
-<li><strong>Variable Expansion:</strong> (Citation 2, Section 32) &quot;Why did we use $() when running the mktemp command but $ when reading myTemp?&quot;.</li>
-<li><strong>Pipes Concept:</strong> (Citation 2, Section 33) &quot;Needing to provide the output of one program as the input to another is a common problem&quot;.</li>
-<li><strong>Unix Philosophy:</strong> (Citation 2, Section 33) &quot;advocate for writing small single-purpose programs which can then be combined with other programs&quot;.</li>
-<li><strong>Pipe Syntax:</strong> (Citation 2, Section 33) &quot;The general form of this is $ cmd1 | cmd2&quot;.</li>
-<li><strong>Pipe Behavior:</strong> (Citation 2, Section 33) &quot;The standard output of a command on the left-hand side of a pipe will be redirected as the standard input to the command on the right-hand side&quot;.</li>
-<li><strong>Standard Error Redirection:</strong> (Citation 3, Section 16) &quot;Redirect stderr with a two followed by the greater than sign (2&gt;) followed by the filename&quot;.</li>
-<li><strong>Stderr File Creation:</strong> (Citation 3, Section 16) &quot;The operating system also creates the file errorFile.txt, which will overwrite (delete) any existing file&quot;.</li>
-<li><strong>Input vs Arguments:</strong> (Citation 3, Section 16) &quot;Consider the following two commands $ wc /usr/share/dict/words $ wc &lt; /usr/share/dict/words ... output is slightly different&quot;.</li>
-<li><strong>PATH:</strong> (Citation 2, Section 35) &quot;The programs we&#39;ve used so far have been utilities provided with Ubuntu and are located somewhere on our machine&quot;.</li>
+<li>Suppose the current working directory is <code>/usr/home/rob/cmput275/slides</code>.</li>
+<li><code>foo.txt</code> means “the file named <code>foo.txt</code> in the current directory.”</li>
+<li><code>./foo.txt</code> means the same thing.</li>
+<li><code>../foo.txt</code> means the <code>foo.txt</code> file in the parent directory.</li>
+<li><code>../../././foo.txt</code> still means the same as <code>../../foo.txt</code>; the redundant <code>.</code> entries do not change the location.</li>
 </ul>
+<h2>Streams: stdin, stdout, stderr</h2>
+<ul>
+<li>Every program starts with three standard streams.</li>
+<li>stdin is the input stream.</li>
+<li>stdout is the normal output stream.</li>
+<li>stderr is the error output stream.</li>
+<li>On Unix, <code>Ctrl+D</code> signals end of input from the keyboard.</li>
+</ul>
+<h3>Why streams matter</h3>
+<ul>
+<li>Streams let programs work with text input and output without caring whether the data came from the keyboard, a file, a pipe, or a redirect.</li>
+<li>Good command-line tools keep regular output on stdout and diagnostics on stderr.</li>
+<li>That separation lets you save useful output while still seeing errors.</li>
+</ul>
+<h3>Redirection</h3>
+<ul>
+<li><code>&gt;</code> redirects stdout to a file.</li>
+<li><code>&lt;</code> redirects stdin from a file.</li>
+<li><code>2&gt;</code> redirects stderr to a file.</li>
+<li><code>&gt;</code> overwrites the target file if it already exists.</li>
+</ul>
+<h3>Worked stream traces</h3>
+<ul>
+<li><code>printOut.py &gt; out.txt</code></li>
+<li>stdout is redirected into <code>out.txt</code>.</li>
+<li>stderr, if any, still goes to the terminal.</li>
+<li><code>printErr.py 2&gt; err.txt</code></li>
+<li>stderr is redirected into <code>err.txt</code>.</li>
+<li>stdout still goes to the terminal.</li>
+<li><code>printBoth.py &gt; out.txt 2&gt; err.txt</code></li>
+<li>stdout and stderr are split into separate files.</li>
+<li>This is a clean way to prove the streams are independent.</li>
+</ul>
+<h3>What the lecture code is showing</h3>
+<ul>
+<li><code>printOut.py</code> writes only to stdout, so <code>&gt;</code> captures everything it produces.</li>
+<li><code>printErr.py</code> writes only to stderr, so <code>2&gt;</code> captures everything it produces.</li>
+<li><code>printBoth.py</code> makes the distinction visible in one run.</li>
+<li><code>readInput.py</code> demonstrates that stdin is just a stream; when no file is given, it can read what is typed or what another command sends through a pipe.</li>
+</ul>
+<h3>Input redirection versus filename arguments</h3>
+<ul>
+<li><code>wc file.txt</code></li>
+<li>the program receives <code>file.txt</code> as an argument.</li>
+<li><code>wc</code> decides how to open and read it.</li>
+<li><code>wc &lt; file.txt</code></li>
+<li>the shell opens <code>file.txt</code> and connects its contents to stdin.</li>
+<li><code>wc</code> just reads stdin.</li>
+<li>This is a recurring exam idea: an argument is not the same thing as a stream.</li>
+</ul>
+<h2>Exit Status</h2>
+<ul>
+<li>Programs return exit statuses to the OS.</li>
+<li>Zero usually means success.</li>
+<li>Nonzero usually means failure.</li>
+<li>The exact meaning is program-defined.</li>
+<li>The shell stores the last exit status in <code>$?</code>.</li>
+</ul>
+<h3>Why exit status matters in shell work</h3>
+<ul>
+<li>Scripts can stop early when a command fails.</li>
+<li>A pipeline or command chain can react differently depending on success.</li>
+<li><code>$?</code> is how you inspect the result of the most recent command after it finishes.</li>
+<li>The course examples treat exit status as the program’s way of reporting success, failure, or custom meaning.</li>
+</ul>
+<h3>Why exit status matters</h3>
+<ul>
+<li>Exit status is how programs signal success or failure to the shell and to other scripts.</li>
+<li>A script can branch on exit status to decide what to do next.</li>
+<li>Later in the course, this becomes part of defensive shell scripting and automated testing.</li>
+</ul>
+<h2>Bash Variables, Quoting, and Expansion</h2>
+<ul>
+<li>Assignment uses <code>x=10</code> with no spaces around <code>=</code>.</li>
+<li>Bash variables are strings.</li>
+<li>Reading a variable uses <code>$x</code> or <code>${x}</code>.</li>
+<li>Arithmetic uses <code>$((...))</code>.</li>
+<li><code>$?</code> stores the exit status of the last command.</li>
+</ul>
+<h3>The string model</h3>
+<ul>
+<li>Bash variables are not typed numeric containers the way C variables are.</li>
+<li>The shell stores text and expands it when needed.</li>
+<li>Arithmetic expansion is a special case that asks Bash to interpret the text as a number.</li>
+<li>That is why quoting and expansion rules matter so much in shell code.</li>
+</ul>
+<h3>Mental model</h3>
+<ul>
+<li>Bash variables are not typed like C variables.</li>
+<li>The shell stores text and expands it when needed.</li>
+<li>Arithmetic expansion is a separate step; it is not the default meaning of <code>+</code>.</li>
+</ul>
+<h3>Quoting rules</h3>
+<ul>
+<li>Single quotes suppress shell expansion.</li>
+<li>Double quotes suppress globbing but still allow most expansions.</li>
+<li>If you want literal text, single quotes are the safest default.</li>
+<li>If you want variables to expand but do not want word splitting or globbing, use double quotes.</li>
+</ul>
+<h3>Worked examples</h3>
+<ul>
+<li><code>echo &quot;$x275&quot;</code> can be surprising if the shell tries to interpret <code>x275</code> as a variable name.</li>
+<li><code>echo &quot;${x}275&quot;</code> makes the boundary explicit.</li>
+<li><code>*</code> on its own expands to matching filenames.</li>
+<li><code>echo &quot;*&quot;</code> prints a literal asterisk because the quotes suppress globbing.</li>
+</ul>
+<h3>A useful debugging habit</h3>
+<ul>
+<li>If a variable-based command behaves strangely, print the variable first.</li>
+<li>Then print the command with quoting preserved.</li>
+<li>Then decide whether the bug is expansion, globbing, or plain bad data.</li>
+<li>Many shell bugs disappear when you check the actual value before the shell processes it.</li>
+</ul>
+<h2>Combining Commands</h2>
+<ul>
+<li><code>$(...)</code> runs a command and substitutes its output inline.</li>
+<li><code>mktemp</code> creates a temporary filename and the file itself.</li>
+<li>Pipes send stdout from the command on the left into stdin on the command on the right.</li>
+<li>Unix tools are designed to be composed.</li>
+</ul>
+<h3>What command substitution really does</h3>
+<ul>
+<li>The shell runs the inner command first.</li>
+<li>It captures the command’s stdout.</li>
+<li>It substitutes that text into the outer command line.</li>
+<li>This is why <code>$(mktemp)</code> can be embedded inside a larger command that needs a fresh path.</li>
+</ul>
+<h3>Worked examples</h3>
+<ul>
+<li><code>$(mktemp)</code></li>
+<li>the shell runs <code>mktemp</code>.</li>
+<li>it substitutes the resulting filename into the surrounding command.</li>
+<li>this is useful when a command needs a unique temporary path.</li>
+<li><code>cmd1 | cmd2</code></li>
+<li>stdout from <code>cmd1</code> becomes stdin for <code>cmd2</code>.</li>
+<li>no temporary file is necessary.</li>
+</ul>
+<h3>Debugging habit</h3>
+<ul>
+<li>When a pipeline fails, test each stage by itself.</li>
+<li>Then connect them one at a time.</li>
+<li>This isolates whether the bug is in the producer, the consumer, or the stream connection.</li>
+</ul>
+<h3>Practical pipeline reasoning</h3>
+<ul>
+<li>The left command should emit the format the right command expects.</li>
+<li>If the consumer expects lines and the producer emits one giant string, the pipeline may still run but produce nonsense.</li>
+<li>If the producer prints diagnostics to stderr, a pipe will not carry them.</li>
+<li>That separation is often useful when debugging because errors stay visible.</li>
+</ul>
+<h2>Executables, PATH, and Permissions</h2>
+<ul>
+<li>Bash searches directories listed in <code>PATH</code> when you run a command by name.</li>
+<li>If a program is not in <code>PATH</code>, you must name it with a path such as <code>./myProgram</code>.</li>
+<li><code>./</code> means “in the current directory.”</li>
+<li><code>ls -l</code> shows file permissions.</li>
+<li><code>chmod</code> changes permissions.</li>
+<li>A file still needs execute permission before the kernel will run it as a program.</li>
+</ul>
+<h3>What the shell and kernel are doing</h3>
+<ul>
+<li>The shell decides which file should be executed.</li>
+<li>The kernel decides whether the file may be executed.</li>
+<li>If the file is a script, the shebang selects the interpreter.</li>
+<li>If the file is a binary, the kernel loads it directly.</li>
+</ul>
+<h3>PATH failure mode</h3>
+<ul>
+<li>If you type <code>programName</code> and the shell says command not found, one possibility is that the executable exists but is not on PATH.</li>
+<li>Another is that you forgot <code>./</code> for a local executable.</li>
+<li>Another is that the file does not have execute permission.</li>
+<li>These are different problems even if the error message feels similar.</li>
+</ul>
+<h3>What the machine is doing</h3>
+<ul>
+<li>The shell finds the executable file.</li>
+<li>The kernel checks whether the file is executable.</li>
+<li>If the file is a script, the shebang tells Unix which interpreter to launch.</li>
+<li>If the file is a binary, the kernel loads and executes it directly.</li>
+</ul>
+<h3>Worked example</h3>
+<ul>
+<li><code>gcc</code> produces binaries with the execute bit already set.</li>
+<li>That is why you can run the result right away with <code>./a.out</code>.</li>
+<li>If you compile to <code>hello_world</code>, the shell still will not search the current directory automatically, so <code>./hello_world</code> is the safe form.</li>
+</ul>
+<h3>Permissions thinking</h3>
+<ul>
+<li><code>r</code> means read.</li>
+<li><code>w</code> means write.</li>
+<li><code>x</code> means execute.</li>
+<li><code>chmod u+rw file</code> adds read and write permission for the owner.</li>
+<li>If you add a shebang but forget <code>x</code>, the script still will not run as a program.</li>
+</ul>
+<h2>Scripts and Remote Shells</h2>
+<ul>
+<li>A bash script is just a text file containing bash commands.</li>
+<li><code>#!/bin/bash</code> marks it for bash execution.</li>
+<li><code>$1</code>, <code>$2</code>, <code>$#</code>, and <code>$0</code> expose script arguments and counts.</li>
+<li><code>if</code>, <code>for</code>, <code>while</code>, and functions let scripts express control flow.</li>
+<li><code>ssh username@serverAddress</code> opens a shell on a remote machine.</li>
+<li>Temporary files on shared systems should be deleted promptly.</li>
+</ul>
+<h3>Worked trace: <code>simplefor.sh</code></h3>
+<ul>
+<li>The loop iterates over <code>One</code>, <code>Two</code>, and <code>Three</code>.</li>
+<li>On each iteration, <code>x</code> is set to the next word.</li>
+<li><code>echo</code> prints the current value.</li>
+<li>The loop body is small, but it demonstrates the full control-flow structure of a bash script.</li>
+</ul>
+<h3>Worked trace: <code>simpleWhile.sh</code></h3>
+<ul>
+<li><code>x=0</code> initializes the counter.</li>
+<li>The test <code>[ $x -le 10 ]</code> checks whether the loop should continue.</li>
+<li><code>x=$((x+1))</code> increments the counter with arithmetic expansion.</li>
+<li>The loop stops when the condition becomes false.</li>
+</ul>
+<h3>Reading <code>args.py</code>, <code>pyCat.py</code>, and <code>sillyAdder.py</code></h3>
+<ul>
+<li><code>args.py</code> prints the raw argument list so you can see how Bash passed the command line into Python.</li>
+<li><code>pyCat.py</code> reads filenames from <code>sys.argv[1:]</code> and falls back to stdin when no filenames are present.</li>
+<li><code>sillyAdder.py</code> shows what a robust command-line program should do when it expects exactly two integers.</li>
+<li>These scripts mirror the lecture’s shell concepts because they expose the program side of the shell/program boundary.</li>
+</ul>
+<h3>Lecture code connections</h3>
+<ul>
+<li><code>lecture_code/shell/args.py</code></li>
+<li>prints <code>sys.argv</code> so you can see how Python receives shell arguments.</li>
+<li>this is the direct analog of how C receives <code>argc</code> and <code>argv</code>.</li>
+<li><code>lecture_code/shell/pyCat.py</code></li>
+<li>reads files listed in <code>sys.argv[1:]</code>.</li>
+<li>if there are no arguments, it falls back to stdin.</li>
+<li>this mirrors the shell distinction between filename arguments and redirection.</li>
+<li><code>lecture_code/shell/sillyAdder.py</code></li>
+<li>checks argument count before doing any work.</li>
+<li>it is the right pattern when a tool expects exactly two numeric inputs.</li>
+<li><code>lecture_code/shell/readInput.py</code></li>
+<li>reads from stdin line by line.</li>
+<li>it shows the program side of a pipeline.</li>
+<li><code>lecture_code/shell/outVsErr/printOut.py</code></li>
+<li>prints only to stdout.</li>
+<li><code>lecture_code/shell/outVsErr/printErr.py</code></li>
+<li>prints only to stderr.</li>
+<li><code>lecture_code/shell/errPrints/printBoth.py</code></li>
+<li>prints one line to each stream.</li>
+<li><code>lecture_code/shell/shell_scripts/simplefor.sh</code></li>
+<li>shows a fixed <code>for</code> loop.</li>
+<li><code>lecture_code/shell/shell_scripts/simpleWhile.sh</code></li>
+<li>shows a <code>while</code> loop and arithmetic expansion.</li>
+</ul>
+<h2>Common Failure Narratives</h2>
+<ul>
+<li>A student thinks <code>wc &lt; file.txt</code> passes a filename. It does not; it changes stdin.</li>
+<li>A student runs <code>myProgram</code> from the current directory and gets “command not found” because <code>.</code> is not searched automatically.</li>
+<li>A student uses <code>&gt;</code> when they meant to inspect output and accidentally overwrites a file.</li>
+<li>A student uses single quotes when they intended variable expansion, or double quotes when they intended literal text.</li>
+<li>A student writes a script that assumes a fixed number of arguments and then fails when it is called with the wrong count.</li>
+<li>A student forgets that <code>ssh</code> moves them onto another machine, then edits the wrong copy of a file.</li>
+</ul>
+<h2>Exam Solution Patterns</h2>
+<ul>
+<li>If the question involves a command, split it into program, arguments, redirections, and expansions.</li>
+<li>If the question involves a file path, decide whether it is absolute or relative and what directory the shell is currently in.</li>
+<li>If the question involves output, ask which stream is being used.</li>
+<li>If the question involves a script, check argument count, quoting, permissions, and interpreter selection.</li>
+<li>If the question compares two similar commands, identify whether the difference is in the program’s arguments or in the shell’s handling of input and output.</li>
+</ul>
+<h2>Quick Reference</h2>
+<ul>
+<li>Current directory: <code>pwd</code></li>
+<li>Change directory: <code>cd path</code></li>
+<li>Print file: <code>cat file</code></li>
+<li>Stdout redirection: <code>cmd &gt; file</code></li>
+<li>Stdin redirection: <code>cmd &lt; file</code></li>
+<li>Stderr redirection: <code>cmd 2&gt; file</code></li>
+<li>Pipe: <code>cmd1 | cmd2</code></li>
+<li>Temporary file: <code>mktemp</code></li>
+<li>Inline command substitution: <code>$(cmd)</code></li>
+<li>Bash variable assignment: <code>x=10</code></li>
+<li>Bash arithmetic: <code>$((x + 1))</code></li>
+<li>Last exit status: <code>$?</code></li>
+<li>Remote shell: <code>ssh user@host</code></li>
+<li>Make executable: <code>chmod +x file</code></li>
+<li>Show permissions: <code>ls -l</code></li>
+</ul>
+<h2>Exam Questions</h2>
+<ul>
+<li>Q: What is the difference between <code>wc file.txt</code> and <code>wc &lt; file.txt</code>?</li>
+</ul>
+<p>A: The first passes a filename argument; the second feeds the file contents into stdin.</p>
+<ul>
+<li>Q: What does <code>2&gt;</code> redirect?</li>
+</ul>
+<p>A: Standard error.</p>
+<ul>
+<li>Q: Why might <code>./program</code> be required instead of <code>program</code>?</li>
+</ul>
+<p>A: Because the current directory is not automatically searched through <code>PATH</code>.</p>
+<ul>
+<li>Q: What does a pipe do?</li>
+</ul>
+<p>A: It sends stdout from the command on the left to stdin of the command on the right.</p>
+<ul>
+<li>Q: What does <code>$(mktemp)</code> do?</li>
+</ul>
+<p>A: It runs <code>mktemp</code> and substitutes the resulting filename into the command.</p>
+<ul>
+<li>Q: Why can <code>printBoth.py &gt; out.txt 2&gt; err.txt</code> separate the two outputs cleanly?</li>
+</ul>
+<p>A: Because stdout and stderr are independent streams.</p>
+<ul>
+<li>Q: What is the purpose of a shebang line?</li>
+</ul>
+<p>A: It tells Unix which interpreter to use when the file is executed as a program.</p>
+<ul>
+<li>Q: Why is <code>echo &quot;${x}275&quot;</code> not always the same as <code>echo &quot;$x275&quot;</code>?</li>
+</ul>
+<p>A: Braces make the variable boundary explicit, so Bash does not try to interpret the combined text as a different variable name.</p>
         </article>
-
         <nav class="toc" aria-label="On this page">
           <h2>On this page</h2>
           <ul data-toc-list></ul>
         </nav>
-
         <nav class="page-nav" aria-label="Lecture sequence">
           <a href="/slides/course-intro.html"><span>Previous</span>Course Intro</a>
-          <a href="/slides/?track=shell-cli"><span>Back to Track</span>Shell & CLI</a>
-          <a href="/slides/command-line-args-and-2d-arrays.html"><span>Next</span>Command Line Args & 2D Arrays</a>
+          <a href="/slides/?track=shell-cli"><span>Back to Track</span>Shell and CLI</a>
+          <a href="/slides/c-programming-foundations.html"><span>Next</span>C Programming Foundations</a>
         </nav>
-
-        <p class="callout">Manually curated from <code>summaries/shell.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+        <p class="callout">Built from <code>summaries/01_shell.md</code> and reviewed against <code>slides/01_shell.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

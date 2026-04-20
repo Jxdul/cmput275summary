@@ -1,0 +1,56 @@
+[Q-10-01]
+Question: What is a reference in C++?
+Answer: A reference is an alias for another object; operations on the reference act on the original object.
+
+[Q-10-02]
+Question: Why must a reference be initialized?
+Answer: Because references cannot be reseated later, so they must be bound to an object at creation.
+
+[Q-10-03]
+Question: What is the difference between `&` in a type and `&` as an operator?
+Answer: In a type it means reference syntax; as an operator it means address-of.
+
+[Q-10-04]
+Question: Why can't a non-const lvalue reference bind to `3` or `x + y`?
+Answer: Because those are temporary values and do not provide a stable lvalue target for mutation.
+
+[Q-10-05]
+Question: Why is `const int &` useful as a function parameter?
+Answer: It allows binding to temporaries and prevents the function from mutating the argument.
+
+[Q-10-06]
+Question: Why is returning a reference to a local variable unsafe?
+Answer: Because the local variable is destroyed when the function returns, leaving a dangling reference.
+
+[Q-10-07]
+Question: Why does `cin >> n` mutate `n` without passing `&n`?
+Answer: Because the extraction operator takes the target by reference.
+
+[Q-10-08]
+Question: What happens if you store the return value of `larger(x, y)` in a plain `int`?
+Answer: You get a copy, so changing that variable does not change `x` or `y`.
+
+[Q-10-09]
+Question: Why is `int &z = x; z = y;` not reseating `z`?
+Answer: Because assigning to a reference assigns to the object it aliases. `z` still aliases `x`, and the value of `y` is copied into `x`.
+
+
+[Q-10-10]
+Question: Why should an output operator usually take `const T &` for the object being printed?
+Answer: Printing should not mutate the object, and passing by const reference avoids a copy while allowing temporaries and const objects.
+
+[Q-10-11]
+Question: In `void f(int &a, int b) { a += 10; b += 10; }`, what changes after calling `f(x, y)`?
+Answer: `x` changes because `a` aliases it; `y` does not change because `b` is only a copy.
+
+[Q-10-12]
+Question: In `int &r = z < 0 ? x : y; r = 22;`, what determines whether `x` or `y` changes?
+Answer: The conditional expression chooses the lvalue used to initialize `r`; if `z < 0`, `r` aliases `x`, otherwise it aliases `y`.
+
+[Q-10-13]
+Question: Why does `int &l = larger(x, y); --l;` mutate `x` or `y`, but `int l = larger(x, y); --l;` does not?
+Answer: The reference variable keeps the alias returned by `larger`, while the plain `int` variable receives only a copied value.
+
+[Q-10-14]
+Question: What are the correct parameter roles in `istream &operator>>(istream &in, Vec3D &v)`?
+Answer: The stream is passed by reference so its state is updated and not copied, and `v` is passed by mutable reference so extraction can change the target object.

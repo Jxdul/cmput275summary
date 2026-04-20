@@ -1,0 +1,71 @@
+[Q-13-01]
+Question: What are the Big 5 in C++?
+Answer: Destructor, copy constructor, copy assignment operator, move constructor, and move assignment operator.
+
+[Q-13-02]
+Question: Why is the default copy constructor unsafe for a resource-owning linked list?
+Answer: Because it makes a shallow copy of pointers, which causes aliasing and double frees.
+
+[Q-13-03]
+Question: What does the destructor of `List` need to do?
+Answer: It needs to free the entire owned structure, not just the first node.
+
+[Q-13-04]
+Question: Why is copy assignment different from copy construction?
+Answer: Copy assignment writes into an object that already exists and may already own memory.
+
+[Q-13-05]
+Question: What problem does the self-assignment check solve?
+Answer: It prevents the object from deleting its own data and then trying to copy from a dangling pointer.
+
+[Q-13-06]
+Question: What is the copy-and-swap idiom?
+Answer: A copy-assignment strategy that makes a copy of the source and swaps it with the destination.
+
+[Q-13-07]
+Question: What is an rvalue?
+Answer: A temporary value whose lifetime usually ends at the end of the current expression.
+
+[Q-13-08]
+Question: Why does the move constructor steal the pointer and then null out the source?
+Answer: To avoid a deep copy and to keep the moved-from object in a valid state so its destructor is safe.
+
+[Q-13-09]
+Question: Why is the move assignment operator useful?
+Answer: It lets assignment from a temporary transfer resources efficiently instead of deep-copying them.
+
+[Q-13-10]
+Question: Why is copy elision desirable?
+Answer: It avoids unnecessary copy or move construction when the compiler can build the result directly.
+
+[Q-13-11]
+Question: Drawn as ownership, what is wrong with the default copy constructor for a list whose only pointer field is `head`?
+Answer: It copies the `head` pointer value, so two live lists own the same node chain; mutation aliases and both destructors later try to delete the same nodes.
+
+[Q-13-12]
+Question: In copy-and-swap assignment, how are the destination's old resources eventually freed?
+Answer: They are swapped into the local temporary copy, and when that temporary goes out of scope its destructor frees them.
+
+[Q-13-13]
+Question: Why does `List::List(List &&o) : len{o.len}, head{o.head} { o.head = nullptr; o.len = 0; }` avoid a double free?
+Answer: The new list steals the node chain, and resetting the source prevents the moved-from object's destructor from deleting the stolen chain.
+
+[Q-13-14]
+Question: Which special member is selected by `List b; b = makeList();`, assuming copy elision does not remove the operation?
+Answer: Move assignment, because `b` already exists and `makeList()` produces an rvalue `List`.
+
+[Q-13-15]
+Question: Why should moved-from objects still satisfy class invariants even though their old values are unspecified?
+Answer: They must remain safe to destroy and safe to use in operations that require a valid object state, even if clients cannot rely on the previous contents.
+
+[Q-13-16]
+Question: Why is `delete head; head = new Node{*o.head};` a weak copy-assignment strategy even when it is not self-assignment?
+Answer: If allocation of the new copy fails after the old chain is deleted, the destination has already lost its original value and may be left in an invalid state.
+
+[Q-13-17]
+Question: In move assignment implemented as `swap(o)`, how does the destination's old resource get freed?
+Answer: The old resource is swapped into the rvalue source object; when that temporary or moved-from object is destroyed, its destructor releases the old resource.
+
+[Q-13-18]
+Question: Why is an empty list an important test case for every Big 5 member?
+Answer: Correct code must handle `head == nullptr` without dereferencing it, leaking resources, or breaking invariants such as `len == 0`.

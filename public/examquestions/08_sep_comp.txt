@@ -1,0 +1,60 @@
+[Q-08-01]
+Question: What is the difference between a declaration and a definition?
+Answer: A declaration says an entity exists, while a definition provides the full details and, for variables and functions, the actual storage or body.
+
+[Q-08-02]
+Question: Why do forward declarations matter in separate compilation?
+Answer: They let the compiler accept references to functions or types before their full definitions are seen, while the linker resolves the real locations later.
+
+[Q-08-03]
+Question: What are the four stages of building a C or C++ program in this lecture?
+Answer: Preprocessing, compiling, assembling, and linking.
+
+[Q-08-04]
+Question: What does `#include` do?
+Answer: It copies the contents of the named file into the source file before compilation.
+
+[Q-08-05]
+Question: What is the purpose of a header file?
+Answer: It provides the public interface of a module, usually just the declarations clients need.
+
+[Q-08-06]
+Question: Why does `gcc` produce a linker error when compiling a file without `main`?
+Answer: Because an executable needs an entry point, and the linker cannot find `main`.
+
+[Q-08-07]
+Question: What is an object file?
+Answer: Compiled machine code plus linker information, produced before final linking.
+
+[Q-08-08]
+Question: Why is `struct List;` useful in a header?
+Answer: It gives clients an incomplete type they can use by pointer without exposing the internal representation.
+
+[Q-08-09]
+Question: Why are `#ifdef` and `#ifndef` useful?
+Answer: They let the preprocessor include or exclude code based on whether a symbol is defined.
+
+[Q-08-10]
+Question: Why can client code store a `struct List *` when `struct List` is incomplete?
+Answer: The compiler knows the size of a pointer even when it does not know the size or fields of the pointed-to struct.
+
+
+[Q-08-11]
+Question: When should a struct definition be placed in a header instead of hidden in a `.c` file?
+Answer: Place it in the header when clients are supposed to allocate the type directly or access its fields as part of the public abstraction.
+
+[Q-08-12]
+Question: A file `main.c` includes `list.h` and calls `empty()` and `printList()`. `gcc -c main.c` succeeds, but `gcc main.o -o prog` fails with undefined references to those functions. What stage failed, and what is the fix?
+Answer: Linking failed. The declarations from `list.h` let `main.c` compile, but the linker also needs the object file containing the definitions, such as `list.o`, in the final link command.
+
+[Q-08-13]
+Question: Why does `struct List *l;` compile when `struct List;` is the only visible declaration, but `struct List l;` does not?
+Answer: The compiler knows the size of a pointer without knowing the struct layout, but it cannot allocate a complete `struct List` object unless it knows the struct's size.
+
+[Q-08-14]
+Question: What invariant problem is prevented by hiding `struct Node` and the fields of `struct List` from client code?
+Answer: Clients cannot insert stack-allocated or invalid nodes, create cycles, corrupt `len`, or bypass the module's allocation/freeing discipline.
+
+[Q-08-15]
+Question: How does the PIMPL-style `struct List { struct listImpl *pimpl; };` trade off against a fully opaque `struct List;` header?
+Answer: It lets clients allocate the small public wrapper on the stack because its size is known, while still hiding the real representation behind `struct listImpl`.

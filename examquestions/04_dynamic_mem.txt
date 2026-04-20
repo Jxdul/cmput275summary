@@ -1,0 +1,55 @@
+[Q-DM-01]
+Question: Why does a function that returns a pointer to a local stack array invoke undefined behavior?
+Answer: The local array is destroyed when the function returns, so the pointer becomes dangling and no longer points to valid storage.
+
+[Q-DM-02]
+Question: What is the difference between a memory leak and a dangling pointer?
+Answer: A memory leak happens when heap memory is no longer reachable and cannot be freed, while a dangling pointer still points to memory that has already been freed or gone out of scope.
+
+[Q-DM-03]
+Question: Why does the lecture prefer doubling an array's capacity instead of increasing it by one each time?
+Answer: Doubling keeps append amortized constant time, while growing by one makes repeated copying quadratic in the number of inserted elements.
+
+[Q-DM-04]
+Question: What must a caller do after receiving heap-allocated memory from a function like `digits`?
+Answer: The caller must eventually free the returned memory because ownership of that heap block was transferred to the caller.
+
+[Q-DM-05]
+Question: Why is it important to set a pointer to `NULL` after calling `free` on it?
+Answer: It reduces the chance of accidentally dereferencing or freeing the stale address again, which would otherwise be undefined behavior.
+
+[Q-DM-06]
+Question: Why does `malloc` require the size to be expressed in bytes?
+Answer: `malloc` allocates raw contiguous memory, so the programmer must tell it how many bytes to reserve for the requested objects.
+
+[Q-DM-07]
+Question: Why is `size_t` the preferred type for lengths and capacities?
+Answer: `size_t` is an unsigned type designed to represent object sizes and array indices safely across platforms.
+
+[Q-DM-08]
+Question: What happens if a dynamic array is resized but the program keeps using the old pointer?
+Answer: The old pointer becomes dangling after the old block is freed, and later reads or writes through it are undefined behavior.
+
+[Q-DM-09]
+Question: Why is `malloc` failure checking necessary?
+Answer: `malloc` can return `NULL` when the allocation cannot be satisfied, and dereferencing that pointer would crash the program.
+
+[Q-DM-10]
+Question: What is the key tradeoff in using the heap instead of the stack?
+Answer: The heap gives the programmer flexible lifetime control, but the programmer must explicitly manage allocation and deallocation.
+
+[Q-DM-11]
+Question: A resize function allocates `newArr`, copies values from `arr`, calls `free(arr)`, but forgets `arr = newArr`. What two memory problems can result?
+Answer: The new allocation is leaked because no surviving pointer stores its address, and the program may keep using the old pointer even though that heap block was freed.
+
+[Q-DM-12]
+Question: Why is this allocation style safer than hard-coding byte counts: `int *arr = malloc(sizeof(*arr) * cap);`?
+Answer: It asks for enough bytes for `cap` objects of the pointed-to type and continues to be correct if the pointed-to type changes.
+
+[Q-DM-13]
+Question: In the bad `multiples` example, why might two returned pointers appear to point to the same or overwritten values?
+Answer: Both pointers refer to stack storage from completed function calls, and later calls can reuse that same stack-frame memory.
+
+[Q-DM-14]
+Question: In a dynamic array, which bound should control reading initialized elements and which bound should control whether writing a new element is safe?
+Answer: `len` controls reads of meaningful initialized elements, while `cap` controls whether there is enough allocated space to write another element.

@@ -1,0 +1,27 @@
+[Q-00_intro-1]
+Question: A student has used six slip days already. How many remain, and what is the largest number they can spend on one assignment?
+Answer: Two remain, and the largest number they can spend on one assignment is two because that is all they have left.
+
+[Q-00_intro-2]
+Question: What does one slip day do?
+Answer: It extends an assignment deadline by 24 hours.
+
+[Q-00_intro-3]
+Question: If an excused absence is approved for a missed assignment, where does that weight go?
+Answer: It shifts to the other assignments.
+
+[Q-00_intro-4]
+Question: If an excused absence is approved for a missed morning problem, where does that weight go?
+Answer: It shifts to the other morning problems.
+
+[Q-00_intro-5]
+Question: If an excused absence is approved for a missed midterm, where does that weight go?
+Answer: It shifts to the final exam.
+
+[Q-00_intro-6]
+Question: Why is Ed Discussion the preferred place for most course questions?
+Answer: It lets the answer help the whole class and leaves a searchable record of common problems.
+
+[Q-00_intro-7]
+Question: Why is it a mistake to treat slip days as extra free time?
+Answer: Because they are a limited reserve, and spending them early can leave you with no buffer later in the term.

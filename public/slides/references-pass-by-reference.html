@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>References and Pass by Reference | CMPUT 275 Summaries</title>
+  <meta name="description" content="References as aliases, reference rules, pass-by-reference, const references, returning references, and stream operators.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Summaries</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/exam-practice/">Exam Practice</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>References and Pass by Reference</span></p>
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">C++ Core</p>
+        <h1>References and Pass by Reference</h1>
+        <p>References as aliases, reference rules, pass-by-reference, const references, returning references, and stream operators.</p>
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>slides/10_refs.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C++ streams, pointers, mutation, and operator overloading basics.</p>
+          </article>
+          <article class="meta-card">
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=10_refs">10_refs.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpp/refs, lecture_code/cpp/overload/points</code></p>
+          </article>
+        </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/intro-to-cpp.html">Previous: 09_cpp</a>
+          <a class="btn primary" href="/exam-practice/?deck=10_refs">Practice 10_refs</a>
+          <a class="btn" href="/slides/basic-classes.html">Next: 11_classes</a>
+        </div>
+      </header>
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>References and Pass-by-Reference</h1>
+<h2>What this deck is really about</h2>
+<p>A C++ reference is an alias: another name for an existing object. References let C++ express mutation and efficient parameter passing without making callers explicitly pass addresses.</p>
+<p>The lecture builds three core ideas:</p>
+<ul>
+<li>Reference syntax looks like pointer syntax but follows different rules.</li>
+<li>Pass-by-reference lets functions operate on caller-owned objects.</li>
+<li>Return-by-reference is powerful only when the returned object outlives the function call.</li>
+</ul>
+<p>These ideas explain <code>cin &gt;&gt; n</code>, range loops by reference, overloaded I/O operators, and many class interfaces later in the course.</p>
+<h2>Basic aliasing</h2>
+<pre><code>int x = 5;
+int &amp;y = x;
+
+x = 3; // y now reads as 3
+y = 7; // x now reads as 7</code></pre>
+<p>There is one <code>int</code> object. <code>x</code> and <code>y</code> are two names for it. In <code>lecture_code/cpp/refs/simple.cc</code>, printing <code>&amp;x</code> and <code>&amp;y</code> shows the same address.</p>
+<p>Do not read <code>int &amp;y = x;</code> as &quot;y stores x's address.&quot; A reference may or may not occupy storage as a separate object. The language model is aliasing.</p>
+<h2>Two meanings of <code>&amp;</code></h2>
+<p>The ampersand has different meanings depending on context:</p>
+<pre><code>int &amp;r = x;  // &amp; is part of the type: lvalue reference to int
+int *p = &amp;x; // &amp; is an expression operator: address of x</code></pre>
+<p>Exam habit: first decide whether you are reading a declaration/type or an expression.</p>
+<h2>Reference rules</h2>
+<h3>References must be initialized</h3>
+<pre><code>int &amp;r; // illegal</code></pre>
+<p>A reference cannot be an alias to nothing.</p>
+<h3>References cannot be reseated</h3>
+<pre><code>int x = 1;
+int y = 2;
+int &amp;r = x;
+r = y;</code></pre>
+<p>After this, <code>r</code> still aliases <code>x</code>; the value of <code>y</code> was copied into <code>x</code>. This is different from changing a pointer:</p>
+<pre><code>int *p = &amp;x;
+p = &amp;y; // p now points at y</code></pre>
+<h3>Non-const lvalue references need lvalues</h3>
+<pre><code>int x = 1;
+int y = 2;
+
+int &amp;a = x;     // ok
+int &amp;b = 3;     // illegal
+int &amp;c = x + y; // illegal</code></pre>
+<p><code>3</code> and <code>x + y</code> are temporary values. A non-const lvalue reference could mutate its referent, so C++ requires it to bind to a real object with stable storage.</p>
+<h3>Const references can bind to temporaries</h3>
+<pre><code>const int &amp;r = x + y; // ok</code></pre>
+<p>The <code>const</code> promise says the reference will not be used to mutate the temporary. This is why read-only parameters are often written as <code>const T &amp;</code>.</p>
+<h2>References are not pointers</h2>
+<p>References:</p>
+<ul>
+<li>must be initialized</li>
+<li>cannot be reseated</li>
+<li>are used with ordinary object syntax</li>
+<li>cannot be null in normal C++ usage</li>
+<li>do not require <code>*</code> at use sites</li>
+</ul>
+<p>Pointers:</p>
+<ul>
+<li>can be uninitialized if you write bad code</li>
+<li>can be null</li>
+<li>can be reseated</li>
+<li>require dereferencing to access the pointed-to object</li>
+<li>have their own address and storage</li>
+</ul>
+<p>The lecture also notes:</p>
+<ul>
+<li>no arrays of references</li>
+<li>no pointers to references</li>
+<li>references to pointers are allowed</li>
+</ul>
+<p>Example:</p>
+<pre><code>int *p = &amp;x;
+int *&amp;rp = p; // rp aliases the pointer variable p</code></pre>
+<p>Changing <code>rp</code> changes which address <code>p</code> stores.</p>
+<h2>Pass-by-reference</h2>
+<p>Pass-by-value copies:</p>
+<pre><code>void times2(int n) {
+  n *= 2;
+}</code></pre>
+<p>The caller's variable is unchanged.</p>
+<p>Pass-by-reference aliases the caller's variable:</p>
+<pre><code>void times2(int &amp;n) {
+  n *= 2;
+}
+
+int x = 4;
+times2(x); // x becomes 8</code></pre>
+<p>No <code>&amp;x</code> appears at the call site. The function signature controls whether the argument is copied or aliased.</p>
+<h3>Pass-by-reference trace</h3>
+<pre><code>void f(int &amp;a, int b) {
+  a += 10;
+  b += 10;
+}
+
+int x = 1;
+int y = 2;
+f(x, y);</code></pre>
+<p>Trace:</p>
+<ul>
+<li><code>a</code> aliases <code>x</code>.</li>
+<li><code>b</code> is a copy of <code>y</code>.</li>
+<li><code>a += 10</code> changes <code>x</code> to <code>11</code>.</li>
+<li><code>b += 10</code> changes only the local copy.</li>
+<li>After the call, <code>x == 11</code> and <code>y == 2</code>.</li>
+</ul>
+<h2>When to use reference parameters</h2>
+<p>Use <code>T &amp;</code> when the function should mutate the argument:</p>
+<pre><code>void readVec(std::istream &amp;in, Vec3D &amp;v);</code></pre>
+<p>Use <code>const T &amp;</code> when the function should avoid copying but not mutate:</p>
+<pre><code>void printVec(const Vec3D &amp;v);</code></pre>
+<p>Use pass-by-value for small cheap values or when the function needs its own copy:</p>
+<pre><code>int square(int x);</code></pre>
+<p>Lecture rule of thumb: for data types larger than a pointer, pass by reference; if you do not intend to mutate, make it <code>const</code>.</p>
+<h2>Literal arguments and <code>const</code></h2>
+<pre><code>void printNTimes(int &amp;x, int n);
+printNTimes(3, 4); // illegal</code></pre>
+<p><code>3</code> is a temporary. A mutable reference cannot bind to it.</p>
+<pre><code>void printNTimes(const int &amp;x, int n);
+printNTimes(3, 4); // ok</code></pre>
+<p>Now the function promises not to modify <code>x</code>, so binding a temporary is safe.</p>
+<p>This also affects expressions:</p>
+<pre><code>int x = 2;
+int y = 5;
+printNTimes(x + y, 3); // ok only with const int &amp;</code></pre>
+<h2>Conditional reference initialization</h2>
+<p><code>lecture_code/cpp/refs/conditional_init.cc</code>:</p>
+<pre><code>int x = 3;
+int y = 5;
+int z = 0;
+cin &gt;&gt; z;
+int &amp;r = z &lt; 0 ? x : y;
+r = 22;</code></pre>
+<p>If <code>z &lt; 0</code>, <code>r</code> aliases <code>x</code>. Otherwise <code>r</code> aliases <code>y</code>. The conditional expression chooses which existing lvalue the reference binds to.</p>
+<p>Trace:</p>
+<ul>
+<li>Input <code>-1</code>: <code>r</code> aliases <code>x</code>, so output is <code>x: 22</code>, <code>y: 5</code>.</li>
+<li>Input <code>1</code>: <code>r</code> aliases <code>y</code>, so output is <code>x: 3</code>, <code>y: 22</code>.</li>
+</ul>
+<p>Once initialized, <code>r</code> cannot later switch to the other variable.</p>
+<h2>Returning references</h2>
+<p>Returning by reference means the function call expression can itself be an alias.</p>
+<p>Lecture example from <code>lecture_code/cpp/refs/larger.cc</code>:</p>
+<pre><code>int &amp;larger(int &amp;a, int &amp;b) {
+  return a &gt; b ? a : b;
+}</code></pre>
+<p><code>a</code> and <code>b</code> are references to caller variables, so returning one of them is safe. The caller variables outlive the function call.</p>
+<h3>Copying the result loses aliasing</h3>
+<pre><code>int x = 10;
+int y = 5;
+int l = larger(x, y);
+--l;</code></pre>
+<p><code>l</code> is a new <code>int</code> copy. Decrementing <code>l</code> does not change <code>x</code> or <code>y</code>.</p>
+<h3>Binding the result keeps aliasing</h3>
+<pre><code>int &amp;l = larger(x, y);
+--l;</code></pre>
+<p>Now <code>l</code> aliases whichever variable was larger at that call.</p>
+<p>You can also mutate through the returned reference directly:</p>
+<pre><code>--larger(x, y);</code></pre>
+<p>The expression <code>larger(x, y)</code> refers to either <code>x</code> or <code>y</code>.</p>
+<h2>Dangling reference danger</h2>
+<p>Never return a reference to a local variable:</p>
+<pre><code>int &amp;bad() {
+  int x = 5;
+  return x; // dangling
+}</code></pre>
+<p><code>x</code> is destroyed when <code>bad</code> returns. The caller receives an alias to dead stack storage. This is the same lifetime error as returning a pointer to a local variable.</p>
+<p>Safe return-by-reference targets:</p>
+<ul>
+<li>an object passed in by reference, if the caller owns it</li>
+<li>a field of an object that outlives the call, if the interface permits that</li>
+<li>a static object, with caution</li>
+</ul>
+<p>Unsafe targets:</p>
+<ul>
+<li>local variables</li>
+<li>temporary expression results</li>
+<li>objects owned by a soon-to-be-destroyed local object</li>
+</ul>
+<h2>References and stream input</h2>
+<p><code>cin &gt;&gt; n</code> mutates <code>n</code> without the caller writing <code>&amp;n</code> because the extraction operator takes the target by reference.</p>
+<p>For a user-defined type:</p>
+<pre><code>std::istream &amp;operator&gt;&gt;(std::istream &amp;in, Vec3D &amp;v) {
+  return in &gt;&gt; v.x &gt;&gt; v.y &gt;&gt; v.z;
+}</code></pre>
+<p>Reasoning:</p>
+<ul>
+<li><code>in</code> is a reference because streams should not be copied and the operator must update stream state.</li>
+<li><code>v</code> is a mutable reference because reading should modify the object.</li>
+<li>The return type is <code>std::istream &amp;</code> so chaining works.</li>
+</ul>
+<p>Output:</p>
+<pre><code>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const Vec3D &amp;v) {
+  return out &lt;&lt; &quot;[&quot; &lt;&lt; v.x &lt;&lt; &quot;, &quot; &lt;&lt; v.y &lt;&lt; &quot;, &quot; &lt;&lt; v.z &lt;&lt; &quot;]&quot;;
+}</code></pre>
+<p>Reasoning:</p>
+<ul>
+<li><code>out</code> is a reference because output mutates stream state.</li>
+<li><code>v</code> is <code>const Vec3D &amp;</code> because printing should not change the vector and copying may be expensive.</li>
+<li>Returning <code>out</code> enables <code>cout &lt;&lt; v &lt;&lt; endl</code>.</li>
+</ul>
+<h2>Range loops and references</h2>
+<pre><code>for (int x : v) {
+  x += 1;
+}</code></pre>
+<p>This modifies only the local copy <code>x</code>.</p>
+<pre><code>for (int &amp;x : v) {
+  x += 1;
+}</code></pre>
+<p>This modifies the actual elements.</p>
+<pre><code>for (const int &amp;x : v) {
+  cout &lt;&lt; x &lt;&lt; endl;
+}</code></pre>
+<p>This avoids copying and prevents mutation.</p>
+<h2>Deeper lifetime and aliasing traces</h2>
+<h3>Reference as another name for storage</h3>
+<p>For:</p>
+<pre><code>int x = 5;
+int &amp;y = x;</code></pre>
+<p>the best mental model is:</p>
+<pre><code>storage cell A contains 5
+x names storage cell A
+y also names storage cell A</code></pre>
+<p>After:</p>
+<pre><code>y = 7;</code></pre>
+<p>there is still one integer object:</p>
+<pre><code>storage cell A contains 7
+x reads as 7
+y reads as 7</code></pre>
+<p>This is why <code>lecture_code/cpp/refs/simple.cc</code> prints the same address for <code>x</code> and <code>y</code>.</p>
+<h3>Pointer reseating vs reference assignment</h3>
+<pre><code>int x = 1;
+int y = 2;
+int *p = &amp;x;
+int &amp;r = x;</code></pre>
+<p>After:</p>
+<pre><code>p = &amp;y;</code></pre>
+<p><code>p</code> now stores the address of <code>y</code>. Pointers are objects whose stored address can change.</p>
+<p>After:</p>
+<pre><code>r = y;</code></pre>
+<p><code>r</code> still aliases <code>x</code>; the value of <code>y</code> is copied into <code>x</code>. References are not reseated by assignment.</p>
+<h3>Multi-call pass-by-reference trace</h3>
+<pre><code>void step(int &amp;largest, int &amp;other) {
+  --largest;
+  other += 2;
+}
+
+int a = 5;
+int b = 1;
+step(a, b);
+step(b, a);</code></pre>
+<p>First call:</p>
+<ul>
+<li><code>largest</code> aliases <code>a</code></li>
+<li><code>other</code> aliases <code>b</code></li>
+<li><code>a</code> becomes <code>4</code></li>
+<li><code>b</code> becomes <code>3</code></li>
+</ul>
+<p>Second call:</p>
+<ul>
+<li><code>largest</code> aliases <code>b</code></li>
+<li><code>other</code> aliases <code>a</code></li>
+<li><code>b</code> becomes <code>2</code></li>
+<li><code>a</code> becomes <code>6</code></li>
+</ul>
+<p>Reference parameters bind for each call. The parameter names do not permanently belong to a particular caller variable.</p>
+<h3><code>larger</code> as an assignable expression</h3>
+<p>In <code>lecture_code/cpp/refs/larger.cc</code>:</p>
+<pre><code>int &amp;larger(int &amp;a, int &amp;b) {
+  return a &gt; b ? a : b;
+}</code></pre>
+<p>Starting with <code>x = 10</code>, <code>y = 5</code>:</p>
+<pre><code>cout &lt;&lt; larger(x, y)-- &lt;&lt; endl;</code></pre>
+<p>does not decrement a temporary number. It decrements the caller variable selected by the returned reference.</p>
+<p>Trace:</p>
+<ul>
+<li>while <code>x &gt; y</code>, the function returns an alias to <code>x</code></li>
+<li>postfix <code>--</code> prints the old <code>x</code> and then decrements <code>x</code></li>
+<li>when <code>x &gt; y</code> becomes false, the conditional returns <code>b</code>, which aliases <code>y</code></li>
+<li>then the loop decrements <code>y</code></li>
+</ul>
+<p>If the caller writes:</p>
+<pre><code>int l = larger(x, y);</code></pre>
+<p>the alias is copied into a new integer. If the caller writes:</p>
+<pre><code>int &amp;l = larger(x, y);</code></pre>
+<p>the alias is preserved.</p>
+<h3>Safe and unsafe returned references</h3>
+<p>Unsafe:</p>
+<pre><code>int &amp;bad() {
+  int x = 10;
+  return x;
+}</code></pre>
+<p><code>x</code> dies when the function returns.</p>
+<p>Still unsafe:</p>
+<pre><code>const int &amp;badConst() {
+  int x = 10;
+  return x;
+}</code></pre>
+<p><code>const</code> prevents mutation through the reference; it does not extend the lifetime of a local variable after the function returns.</p>
+<p>Possibly safe:</p>
+<pre><code>int &amp;first(int *arr) {
+  return arr[0];
+}</code></pre>
+<p>This returns an alias into caller-owned storage. It is safe only as long as the caller's array remains alive.</p>
+<p>Design-risky:</p>
+<pre><code>int &amp;Rect::getWidth();</code></pre>
+<p>This may be lifetime-safe while the <code>Rect</code> lives, but it can still be a bad interface because it lets clients bypass invariant checks.</p>
+<h3>Input operator partial mutation trace</h3>
+<p>For:</p>
+<pre><code>istream &amp;operator&gt;&gt;(istream &amp;in, Vec3D &amp;v) {
+  return in &gt;&gt; v.x &gt;&gt; v.y &gt;&gt; v.z;
+}</code></pre>
+<p>and input:</p>
+<pre><code>1 2 nope</code></pre>
+<p>the trace is:</p>
+<ul>
+<li><code>v.x</code> becomes <code>1</code></li>
+<li><code>v.y</code> becomes <code>2</code></li>
+<li>reading <code>v.z</code> fails</li>
+<li>the stream returned from the operator has fail set</li>
+<li><code>v</code> may be partially updated</li>
+</ul>
+<p>The lecture version is good for learning chaining and reference parameters. A more defensive production version might read into local temporaries and assign to <code>v</code> only if all three reads succeed.</p>
+<h3>Const reference and temporary lifetime</h3>
+<p>This is legal:</p>
+<pre><code>const int &amp;r = 3 + 4;</code></pre>
+<p>The temporary is lifetime-extended for the local reference binding.</p>
+<p>This is not safe:</p>
+<pre><code>const int &amp;bad() {
+  return 3 + 4;
+}</code></pre>
+<p>The caller would receive a reference to a temporary that does not live as a stable caller-owned object. For returned references, always identify the storage that will still exist after the function returns.</p>
+<h2>Common failure modes</h2>
+<ul>
+<li>Thinking assignment reseats a reference.</li>
+<li>Forgetting references must be initialized.</li>
+<li>Binding a mutable reference to a temporary.</li>
+<li>Omitting <code>const</code> on read-only reference parameters, which prevents literals and temporaries from being passed.</li>
+<li>Returning a reference to a local variable.</li>
+<li>Storing a reference return in a value variable and expecting aliasing.</li>
+<li>Using <code>auto x</code> in a range loop when <code>auto &amp;x</code> is required.</li>
+<li>Confusing <code>int *&amp;p</code> with an illegal pointer-to-reference.</li>
+</ul>
+<h2>Exam reasoning patterns</h2>
+<p>For reference binding:</p>
+<ol>
+<li>Is the initializer an lvalue with storage?</li>
+<li>Is the reference non-const or const?</li>
+<li>If non-const, reject temporaries and literals.</li>
+<li>If const, binding to a temporary is allowed.</li>
+</ol>
+<p>For mutation:</p>
+<ol>
+<li>Identify the original object the reference aliases.</li>
+<li>Every assignment through the reference changes that object.</li>
+<li>Assignment never changes what the reference aliases.</li>
+</ol>
+<p>For returned references:</p>
+<ol>
+<li>Identify what object is returned.</li>
+<li>Ask whether that object outlives the function call.</li>
+<li>Ask whether the caller stores the result by value or by reference.</li>
+</ol>
+<h2>Quick reference</h2>
+<ul>
+<li><code>int &amp;r = x;</code>: <code>r</code> aliases <code>x</code>.</li>
+<li><code>const int &amp;r = 3;</code>: read-only reference to a temporary is allowed.</li>
+<li><code>int &amp;r = 3;</code>: illegal.</li>
+<li><code>r = y;</code>: assigns to the object aliased by <code>r</code>.</li>
+<li><code>T &amp;</code>: mutable alias parameter.</li>
+<li><code>const T &amp;</code>: read-only alias parameter, avoids copies.</li>
+<li>Return <code>T &amp;</code> only when the referred-to object stays alive.</li>
+</ul>
+        </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/intro-to-cpp.html"><span>Previous</span>Introduction to C++</a>
+          <a href="/slides/?track=cpp-core"><span>Back to Track</span>C++ Core</a>
+          <a href="/slides/basic-classes.html"><span>Next</span>Basic Classes</a>
+        </nav>
+        <p class="callout">Built from <code>summaries/10_refs.md</code> and reviewed against <code>slides/10_refs.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/site.js" defer></script>
+
+</body>
+</html>

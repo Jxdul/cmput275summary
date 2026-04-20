@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mutation and Double Pointers | CMPUT 275 Summaries</title>
-  <meta name="description" content="Returning multiple values via mutation and resizing arrays with double pointers.">
+  <meta name="description" content="Returning extra values through pointer parameters, output parameters, and using double pointers to mutate caller-owned pointers.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -32,358 +31,386 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
     <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Mutation and Double Pointers</span></p>
-
     <section class="study-layout">
       <header class="study-page-header">
-        <p class="kicker">Data & Memory</p>
+        <p class="kicker">Data and Memory</p>
         <h1>Mutation and Double Pointers</h1>
-        <p>Returning multiple values via mutation and resizing arrays with double pointers.</p>
-
+        <p>Returning extra values through pointer parameters, output parameters, and using double pointers to mutate caller-owned pointers.</p>
         <div class="meta-grid">
           <article class="meta-card">
             <h2>Lecture File</h2>
-            <p>mutation.pdf</p>
+            <p>slides/06_mutation.pdf</p>
           </article>
           <article class="meta-card">
             <h2>Prerequisites</h2>
-            <p>C pointer arithmetic, malloc/free, and pass-by-value semantics.</p>
+            <p>Pointers, dynamic arrays, malloc/free, pass-by-value.</p>
           </article>
           <article class="meta-card">
-            <h2>What You Can Do After This</h2>
-            <ul>
-            <li>Return multiple results by mutating caller-provided variables.</li>
-            <li>Resize dynamic arrays without losing caller ownership.</li>
-            <li>Use double pointers when pointer addresses must change.</li>
-            <li>Diagnose double-free and stale-pointer failures.</li>
-            </ul>
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=06_mutation">06_mutation.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpl/mutation</code></p>
           </article>
         </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/command-line-args-and-2d-arrays.html">Previous: 05_cmd_line</a>
+          <a class="btn primary" href="/exam-practice/?deck=06_mutation">Practice 06_mutation</a>
+          <a class="btn" href="/slides/structs-and-adts.html">Next: 07_structs</a>
+        </div>
       </header>
-
       <div class="study-content-wrap">
         <article class="study-article js-study-content">
-<h1>Lecture Identity</h1>
-<p><strong>File/lecture name:</strong> mutation.pdf
-<strong>Main theme:</strong> Techniques for returning multiple values in C/C++ using mutation and managing dynamic array state using double pointers.
-<strong>Prereqs assumed by slides:</strong> C/C++ syntax, basic pointer arithmetic, <code>malloc</code>/<code>free</code>, array indexing, and understanding of pass-by-value vs pass-by-reference.
-<strong>What this lecture enables you to do:</strong></p>
+<h1>06 Mutation as Return Values and Double Pointers</h1>
+<h2>Big Picture</h2>
+<p>C passes arguments by value. That means every function parameter is a local copy. If a function needs to change the caller's data, the caller must pass an address, and the function must write through that pointer.</p>
+<p>This lecture uses that rule in two stages:</p>
 <ul>
-<li>Simulate returning multiple values from a function without using C++ structs or tuples.</li>
-<li>Safely resize a dynamically allocated array within a function so the caller&#39;s pointer remains valid.</li>
-<li>Diagnose and fix double-free errors and memory leaks caused by incorrect pointer mutation.</li>
-<li>Understand the distinction between mutating the value at a pointer vs. mutating the pointer itself.</li>
+<li>Use single pointers as output parameters to return extra values.</li>
+<li>Use double pointers when a function must change the caller's pointer variable itself.</li>
 </ul>
-<h1>Big Picture Map (High-Level)</h1>
-<ol>
-<li><strong>Introduction to Multiple Returns:</strong> Explains why C cannot return multiple values directly (e.g., <code>return (a, b)</code> is invalid).</li>
-<li><strong>Mutation for Returns:</strong> Introduces passing pointers to variables to allow the function to write results back to the caller&#39;s memory.</li>
-<li><strong><code>maxInfo</code> Example:</strong> Walks through evolving a function to return both a maximum value and its index.</li>
-<li><strong>Dynamic Array Resizing:</strong> Introduces the <code>push</code> function for a dynamic array that needs to grow when capacity is reached.</li>
-<li><strong>Single Pointer Mutation:</strong> Shows why passing <code>size_t *len</code> works but passing <code>int *arr</code> alone does not update the caller&#39;s array pointer.</li>
-<li><strong>Double Pointer Necessity:</strong> Demonstrates that to change the array pointer itself (after reallocation), a double pointer (<code>int **</code>) is required.</li>
-<li><strong>Double Free Bug:</strong> Analyzes a crash caused by freeing memory twice (once inside <code>push</code>, once in <code>main</code>) due to pointer mutation failure.</li>
-<li><strong>Memory Leak:</strong> Explains how reallocating memory without updating the caller&#39;s pointer leaks the old memory.</li>
-<li><strong>Encapsulation Hint:</strong> Notes that passing many state variables (<code>arr</code>, <code>len</code>, <code>cap</code>) is cumbersome and suggests encapsulation (though not fully implemented).</li>
-<li><strong>Practice Problem:</strong> Proposes writing a <code>pop</code> function using mutation principles.</li>
-</ol>
-<h1>Key Concepts &amp; Definitions</h1>
-<p><strong>Mutation</strong></p>
+<p>The central question is always:</p>
+<pre><code>Which variable in the caller must be different after the function returns?</code></pre>
+<p>If the caller's <code>x</code> must change, pass <code>&amp;x</code>. If the caller's <code>arr</code> pointer must point somewhere new, pass <code>&amp;arr</code>, which has type <code>int **</code> when <code>arr</code> has type <code>int *</code>.</p>
+<h2>Returning Multiple Values with Output Parameters</h2>
+<p>C functions return one value directly. To produce additional results, write into caller-provided memory.</p>
+<p>The lecture's <code>maxInfo</code> example computes both:</p>
 <ul>
-<li><strong>Definition:</strong> Modifying the contents of a memory location that the caller owns, accessed via a pointer passed to the function.</li>
-<li><strong>Why it matters:</strong> It is the primary mechanism in C/C++ to return multiple values or update state (like array length) without returning complex structures.</li>
-<li><strong>Common confusion:</strong> Confusing mutation of the <em>value</em> (<code>*ptr = val</code>) with mutation of the <em>pointer</em> (<code>ptr = new_ptr</code>).</li>
-<li><strong>Tiny example:</strong> <code>void set(int *x, int v) { *x = v; }</code> mutates the integer at <code>x</code>.</li>
+<li>the maximum value in an array;</li>
+<li>the index where that maximum occurs.</li>
 </ul>
-<p><strong>Double Pointer</strong></p>
-<ul>
-<li><strong>Definition:</strong> A pointer that points to another pointer (e.g., <code>int **arr</code>). Used to modify the address stored in the caller&#39;s pointer variable.</li>
-<li><strong>Why it matters:</strong> Essential for functions that need to reallocate memory and update the caller&#39;s pointer to the new address.</li>
-<li><strong>Common confusion:</strong> Thinking <code>int **</code> is a 2D array. It is a pointer to a pointer.</li>
-<li><strong>Tiny example:</strong> <code>push(int **arr, ...)</code> allows <code>*arr = newArr;</code> to update the caller&#39;s <code>arr</code>.</li>
-</ul>
-<p><strong>Dangling Pointer</strong></p>
-<ul>
-<li><strong>Definition:</strong> A pointer that points to memory that has been freed (e.g., via <code>free()</code>).</li>
-<li><strong>Why it matters:</strong> Accessing a dangling pointer causes undefined behavior (crashes or data corruption).</li>
-<li><strong>Common confusion:</strong> Believing the pointer is still valid just because the variable name exists.</li>
-<li><strong>Tiny example:</strong> <code>free(arr); arr = newArr;</code> makes the old <code>arr</code> dangling.</li>
-</ul>
-<p><strong>Memory Leak</strong></p>
-<ul>
-<li><strong>Definition:</strong> Allocating memory but losing the only pointer to it, making it impossible to free.</li>
-<li><strong>Why it matters:</strong> Leads to exhaustion of heap memory over time.</li>
-<li><strong>Common confusion:</strong> Thinking <code>free()</code> is optional if the program ends.</li>
-<li><strong>Tiny example:</strong> <code>arr = newArr;</code> without updating the caller&#39;s pointer leaks the old <code>arr</code>.</li>
-</ul>
-<h1>Core Mechanics / How-To</h1>
-<p><strong>How to return multiple values in C</strong></p>
-<ol>
-<li>Identify the values you need to return (e.g., <code>float max</code>, <code>size_t index</code>).</li>
-<li>Add extra parameters to the function signature that are pointers to these variables (e.g., <code>float *max</code>, <code>size_t *ind</code>).</li>
-<li>Inside the function, compute the values.</li>
-<li>Dereference the pointers to store the values (e.g., <code>*max = maxSoFar;</code>).</li>
-<li>Return only one value (usually the primary result).</li>
-</ol>
-<p><strong>How to resize a dynamic array safely</strong></p>
-<ol>
-<li>Check if <code>len == cap</code>.</li>
-<li>If true, allocate new memory (<code>malloc</code>).</li>
-<li>Copy old data to new memory.</li>
-<li><strong>Crucial Step:</strong> Free the old memory (<code>free(*arr)</code>).</li>
-<li><strong>Crucial Step:</strong> Update the caller&#39;s pointer (<code>*arr = newArr</code>).</li>
-<li>Update capacity (<code>*cap = *cap * 2</code>).</li>
-<li>Ensure the caller passes the address of the pointer (<code>&amp;arr</code>), not the pointer itself.</li>
-</ol>
-<p><strong>How to choose between single vs double pointer</strong></p>
-<ol>
-<li><strong>Single Pointer (<code>int *arr</code>):</strong> Use if you only need to read the array or update the <em>contents</em> (e.g., <code>arr[i] = val</code>).</li>
-<li><strong>Double Pointer (<code>int **arr</code>):</strong> Use if you need to change <em>where</em> the array is stored (e.g., reallocation).</li>
-<li><strong>Decision:</strong> If the function might return a new pointer to a different memory block, use double pointer.</li>
-</ol>
-<h1>Code Patterns &amp; Idioms</h1>
-<p><strong>Pattern: Mutation via Pointer</strong></p>
-<ul>
-<li><strong>When to use it:</strong> When you need to return a value that is not the return type of the function.</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">void setMax(float *max, float val) {
-    *max = val;
-}
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Forgetting the <code>*</code> when writing (<code>max = val</code> instead of <code>*max = val</code>).</li>
-<li><strong>How to avoid it:</strong> Remember <code>*</code> means &quot;write to the memory at this address&quot;.</li>
-</ul>
-<p><strong>Pattern: Double Pointer Reallocation</strong></p>
-<ul>
-<li><strong>When to use it:</strong> When a function needs to change the pointer variable in the caller (e.g., resizing).</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">void push(int **arr, size_t *len, size_t *cap) {
-    if (*len == *cap) {
-        // ... allocate newArr ...
-        free(*arr);
-        *cap = *cap * 2;
-        *arr = newArr; // Update caller&#39;s pointer
+<p>From <code>lecture_code/cpl/mutation/maxinfo.c</code>:</p>
+<pre><code>float maxInfo(float *arr, int len, int *indLoc) {
+  assert(len &gt; 0);
+  int maxInd = 0;
+  float maxVal = arr[0];
+  for (int i = 1; i &lt; len; ++i) {
+    if (arr[i] &gt; arr[maxInd]) {
+      maxInd = i;
+      maxVal = arr[i];
     }
-    (*arr)[*len] = val;
-    ++*len;
-}
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Updating local <code>arr</code> instead of <code>*arr</code> (<code>arr = newArr</code> vs <code>*arr = newArr</code>).</li>
-<li><strong>How to avoid it:</strong> Always dereference the double pointer (<code>*arr</code>) when modifying the caller&#39;s pointer.</li>
-</ul>
-<p><strong>Pattern: Caller Responsibility</strong></p>
-<ul>
-<li><strong>When to use it:</strong> Always remember who owns the memory.</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">int main() {
-    int *arr = malloc(...);
-    push(&amp;arr, ...); // Pass address of arr
-    // ... use arr ...
-    free(arr); // Caller frees
-}
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Calling <code>free(arr)</code> inside <code>push</code> and then <code>free(arr)</code> in <code>main</code>.</li>
-<li><strong>How to avoid it:</strong> If <code>push</code> frees memory, it must update the pointer so <code>main</code> knows not to free the old one.</li>
-</ul>
-<h1>Pitfalls, Edge Cases, and Debugging</h1>
+  }
+  *indLoc = maxInd;
+  return maxVal;
+}</code></pre>
+<p>The caller:</p>
+<pre><code>int maxInd = 0;
+float max = maxInfo(arr, len, &amp;maxInd);</code></pre>
+<p>Reasoning:</p>
 <ol>
-<li><strong>Symptom:</strong> <code>free(): double free detected in tcache</code><ul>
-<li><strong>Likely cause:</strong> <code>push</code> freed the old array and updated its local pointer, but <code>main</code> still holds the old pointer and frees it later.</li>
-<li><strong>Fix:</strong> Pass <code>&amp;arr</code> (double pointer) so <code>push</code> can update <code>main</code>&#39;s pointer to the new allocation.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Program crashes with &quot;Segmentation fault&quot; after <code>push</code>.<ul>
-<li><strong>Likely cause:</strong> <code>arr</code> in <code>main</code> is dangling (points to freed memory) because <code>push</code> reallocated but didn&#39;t update <code>main</code>&#39;s pointer.</li>
-<li><strong>Fix:</strong> Use double pointer (<code>int **arr</code>) and dereference (<code>*arr</code>) inside <code>push</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>printArray</code> prints nothing or wrong values.<ul>
-<li><strong>Likely cause:</strong> <code>len</code> was updated locally in <code>push</code> but not passed by address (<code>&amp;len</code>).</li>
-<li><strong>Fix:</strong> Pass <code>&amp;len</code> to <code>push</code> and dereference (<code>*len</code>) inside.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Memory usage grows indefinitely.<ul>
-<li><strong>Likely cause:</strong> Old memory was freed in <code>push</code>, but the new pointer was lost (leaked) because <code>main</code>&#39;s pointer wasn&#39;t updated.</li>
-<li><strong>Fix:</strong> Ensure <code>*arr = newArr</code> updates the caller&#39;s pointer.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>scanf</code> or <code>printf</code> behaves unexpectedly.<ul>
-<li><strong>Likely cause:</strong> <code>len</code> is 0 because it wasn&#39;t mutated in <code>push</code>.</li>
-<li><strong>Fix:</strong> Pass <code>&amp;len</code> to <code>push</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Compiler warning &quot;passing argument 1 of &#39;push&#39; from incompatible pointer type&quot;.<ul>
-<li><strong>Likely cause:</strong> Trying to pass <code>arr</code> (<code>int *</code>) to a function expecting <code>int **</code>.</li>
-<li><strong>Fix:</strong> Pass <code>&amp;arr</code> in <code>main</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>assert(len &gt; 0)</code> fails immediately.<ul>
-<li><strong>Likely cause:</strong> <code>len</code> was not initialized or not updated correctly in <code>main</code>.</li>
-<li><strong>Fix:</strong> Ensure <code>len</code> is initialized to 0 in <code>main</code> and passed by address.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>malloc</code> returns <code>NULL</code> but code proceeds.<ul>
-<li><strong>Likely cause:</strong> Memory exhaustion (unlikely in small examples) or logic error.</li>
-<li><strong>Fix:</strong> Always check return value of <code>malloc</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>free()</code> called on uninitialized pointer.<ul>
-<li><strong>Likely cause:</strong> <code>arr</code> was never allocated before <code>push</code> tried to free it.</li>
-<li><strong>Fix:</strong> Ensure <code>malloc</code> is called before <code>push</code> or handle <code>len == 0</code> case.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>cap</code> variable is not updated in <code>main</code>.<ul>
-<li><strong>Likely cause:</strong> <code>cap</code> was passed by value, not by address.</li>
-<li><strong>Fix:</strong> Pass <code>&amp;cap</code> to <code>push</code> and dereference (<code>*cap</code>) inside.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>push</code> function signature has too many parameters.<ul>
-<li><strong>Likely cause:</strong> State is scattered (<code>arr</code>, <code>len</code>, <code>cap</code>).</li>
-<li><strong>Fix:</strong> Encapsulate state in a struct (not covered in slides, but noted as a future direction).</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>main</code> crashes before EOF.<ul>
-<li><strong>Likely cause:</strong> <code>push</code> crashed due to double free or invalid pointer access.</li>
-<li><strong>Fix:</strong> Use double pointer logic correctly.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>printf</code> shows garbage values.<ul>
-<li><strong>Likely cause:</strong> <code>maxInd</code> or <code>max</code> not initialized or not mutated correctly.</li>
-<li><strong>Fix:</strong> Ensure pointers to <code>maxInd</code> and <code>max</code> are passed and dereferenced.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>free()</code> called on <code>arr</code> in <code>main</code> after <code>push</code> reallocated.<ul>
-<li><strong>Likely cause:</strong> <code>push</code> updated <code>*arr</code> but <code>main</code> still thinks <code>arr</code> points to old memory.</li>
-<li><strong>Fix:</strong> <code>push</code> must update <code>*arr</code> so <code>main</code>&#39;s <code>arr</code> points to new memory.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>push</code> function compiles but logic is wrong.<ul>
-<li><strong>Likely cause:</strong> Confusion between <code>arr</code> (local) and <code>*arr</code> (caller&#39;s).</li>
-<li><strong>Fix:</strong> Remember <code>*arr</code> is the caller&#39;s pointer.</li>
-</ul>
-</li>
+<li><code>maxInfo</code> returns the maximum value normally.</li>
+<li><code>&amp;maxInd</code> gives the function the address of the caller's variable.</li>
+<li><code>*indLoc = maxInd;</code> writes into that caller variable.</li>
+<li>After the function returns, the caller can read both <code>max</code> and <code>maxInd</code>.</li>
 </ol>
-<h1>Exam-Style Questions (with answers)</h1>
+<h2>Why <code>return (a, b)</code> Does Not Work</h2>
+<p>This statement is legal C:</p>
+<pre><code>return (maxSoFar, maxInd);</code></pre>
+<p>But it does not return two values. It uses the comma operator:</p>
 <ol>
-<li><strong>Q:</strong> In C, can a function return two values directly like <code>return (a, b)</code>?
-<strong>A:</strong> No. C functions return a single value. Use mutation (pointers) to return multiple values.</li>
-<li><strong>Q:</strong> What is the signature of <code>maxInfo</code> if it returns the max value and writes the index to a variable provided by the caller?
-<strong>A:</strong> <code>float maxInfo(float *arr, size_t len, size_t *ind);</code></li>
-<li><strong>Q:</strong> Why does <code>push(int *arr, ...)</code> fail to update the caller&#39;s array pointer after reallocation?
-<strong>A:</strong> Because <code>arr</code> is passed by value. Changes to <code>arr</code> inside <code>push</code> do not affect the caller&#39;s <code>arr</code>.</li>
-<li><strong>Q:</strong> What is the correct call to <code>push</code> if it takes a double pointer?
-<strong>A:</strong> <code>push(&amp;arr, val, &amp;len, &amp;cap);</code></li>
-<li><strong>Q:</strong> What happens if <code>push</code> frees the old array but does not update the caller&#39;s pointer?
-<strong>A:</strong> The caller&#39;s pointer becomes dangling. Accessing it causes undefined behavior.</li>
-<li><strong>Q:</strong> What is the difference between <code>*arr = newArr</code> and <code>arr = newArr</code> inside a function taking <code>int **arr</code>?
-<strong>A:</strong> <code>*arr = newArr</code> updates the caller&#39;s pointer. <code>arr = newArr</code> only updates the local pointer.</li>
-<li><strong>Q:</strong> Why is <code>free(arr)</code> dangerous if <code>push</code> already freed the old array?
-<strong>A:</strong> It causes a double free error because the same memory block is freed twice.</li>
-<li><strong>Q:</strong> What is the purpose of <code>assert(len &gt; 0)</code> in <code>maxInfo</code>?
-<strong>A:</strong> To ensure the array is not empty before accessing <code>arr[0]</code>.</li>
-<li><strong>Q:</strong> If <code>push</code> reallocates memory, what must happen to the <code>cap</code> variable?
-<strong>A:</strong> It must be updated (<code>*cap = *cap * 2</code>) so the caller knows the new capacity.</li>
-<li><strong>Q:</strong> What is the return type of <code>maxInfo</code> if it uses mutation for both values?
-<strong>A:</strong> <code>void</code> (since all values are returned via mutation).</li>
-<li><strong>Q:</strong> What is the consequence of not passing <code>&amp;cap</code> to <code>push</code>?
-<strong>A:</strong> The caller&#39;s <code>cap</code> variable remains unchanged, leading to incorrect logic in subsequent calls.</li>
-<li><strong>Q:</strong> How do you fix the &quot;double free&quot; error in the <code>push</code> example?
-<strong>A:</strong> Pass <code>&amp;arr</code> (double pointer) so <code>push</code> can update the caller&#39;s pointer to the new allocation.</li>
+<li>Evaluate <code>maxSoFar</code>.</li>
+<li>Discard that result.</li>
+<li>Evaluate <code>maxInd</code>.</li>
+<li>Return only <code>maxInd</code>.</li>
 </ol>
-<h1>Quick Reference / Cheat Sheet</h1>
-<p><strong>Rules for Mutation:</strong></p>
+<p>This is often an exam trap. The code compiles, but it does not mean what a beginner might hope.</p>
+<h2>Mutation-Only Version</h2>
+<p>A function can also return <code>void</code> and write all results through pointers:</p>
+<pre><code>void maxInfo(float *arr, size_t len, float *max, size_t *ind) {
+  assert(len &gt; 0);
+  float maxSoFar = arr[0];
+  size_t maxInd = 0;
+
+  for (size_t i = 1; i &lt; len; ++i) {
+    if (arr[i] &gt; maxSoFar) {
+      maxSoFar = arr[i];
+      maxInd = i;
+    }
+  }
+
+  *max = maxSoFar;
+  *ind = maxInd;
+}</code></pre>
+<p>Caller:</p>
+<pre><code>float max;
+size_t ind;
+maxInfo(arr, len, &amp;max, &amp;ind);</code></pre>
+<p>This style is useful when there is no single obvious primary result, or when a function's direct return value is reserved for success/failure.</p>
+<h2>Pass-by-Value Versus Pass-by-Pointer</h2>
+<p>This function cannot update the caller's length:</p>
+<pre><code>void bad_inc(size_t len) {
+  ++len;
+}</code></pre>
+<p><code>len</code> is a local copy. The caller's variable is unchanged.</p>
+<p>This function can update the caller's length:</p>
+<pre><code>void good_inc(size_t *len) {
+  ++(*len);
+}</code></pre>
+<p>Caller:</p>
+<pre><code>size_t len = 0;
+good_inc(&amp;len);</code></pre>
+<p>Memory model:</p>
 <ul>
-<li><strong>To return a value:</strong> Pass a pointer (<code>Type *ptr</code>) and dereference it (<code>*ptr = val</code>).</li>
-<li><strong>To change a pointer:</strong> Pass a pointer to a pointer (<code>Type **ptr</code>) and dereference it (<code>*ptr = new_ptr</code>).</li>
-<li><strong>To update a scalar:</strong> Pass a pointer (<code>Type *ptr</code>) and dereference it (<code>*ptr = val</code>).</li>
+<li><code>&amp;len</code> is the address of the caller's variable.</li>
+<li>Inside the function, <code>len</code> is a pointer storing that address.</li>
+<li><code>*len</code> names the caller's actual variable.</li>
 </ul>
-<p><strong>Memory Management:</strong></p>
+<h2>Dynamic Array <code>append</code>: Why Each Attempt Fails</h2>
+<p>The lecture builds toward this final interface:</p>
+<pre><code>void append(int **arr, int *len, int *cap, int v);</code></pre>
+<p>Each pointer level corresponds to caller state that may need to change.</p>
+<h3>Attempt 1: Everything by Value</h3>
+<pre><code>void push(int *arr, int val, size_t len, size_t cap) {
+  if (len == cap) {
+    int *newArr = malloc(sizeof(int) * cap * 2);
+    for (size_t i = 0; i &lt; len; ++i) {
+      newArr[i] = arr[i];
+    }
+    free(arr);
+    cap = cap * 2;
+    arr = newArr;
+  }
+  arr[len] = val;
+  ++len;
+}</code></pre>
+<p>Problems:</p>
 <ul>
-<li><strong><code>malloc</code></strong>: Allocates memory. Returns <code>void*</code>.</li>
-<li><strong><code>free</code></strong>: Frees memory. Must be called exactly once per <code>malloc</code>.</li>
-<li><strong><code>sizeof</code></strong>: Returns size in bytes.</li>
-<li><strong><code>sizeof(int)</code></strong>: Size of an integer (usually 4 bytes).</li>
+<li><code>len</code> is a copy, so the caller's length does not change.</li>
+<li><code>cap</code> is a copy, so the caller's capacity does not change.</li>
+<li><code>arr</code> is a copy of the pointer, so reassigning it does not reassign the caller's pointer.</li>
 </ul>
-<p><strong>Double Pointer Syntax:</strong></p>
-<ul>
-<li><strong>Declaration:</strong> <code>int **arr;</code></li>
-<li><strong>Initialization:</strong> <code>int *arr = malloc(...);</code> then <code>int **ptr = &amp;arr;</code></li>
-<li><strong>Update Caller:</strong> <code>*ptr = newArr;</code></li>
-<li><strong>Access Element:</strong> <code>(*ptr)[i]</code> or <code>(*ptr)[i]</code></li>
-</ul>
-<p><strong>Common Errors:</strong></p>
-<ul>
-<li><strong>Double Free:</strong> Freeing memory twice.</li>
-<li><strong>Dangling Pointer:</strong> Using a pointer after the memory it points to is freed.</li>
-<li><strong>Memory Leak:</strong> Losing the pointer to allocated memory.</li>
-</ul>
-<h1>Mini Glossary</h1>
+<p>If no resize happens, the value may be written into the array, but the caller still thinks <code>len</code> is unchanged. Printing <code>len</code> elements prints nothing if <code>len</code> remains 0.</p>
+<h3>Attempt 2: Fix <code>len</code> Only</h3>
+<pre><code>void push(int *arr, int val, size_t *len, size_t cap) {
+  ...
+  arr[*len] = val;
+  ++*len;
+}</code></pre>
+<p>This lets the function update the caller's length, but <code>cap</code> and <code>arr</code> are still local copies. Once resizing happens, the caller may keep stale state.</p>
+<h3>Attempt 3: Fix <code>len</code> and <code>cap</code></h3>
+<pre><code>void push(int *arr, int val, size_t *len, size_t *cap) {
+  if (*len == *cap) {
+    int *newArr = malloc(*cap * sizeof(int) * 2);
+    for (size_t i = 0; i &lt; *len; ++i) {
+      newArr[i] = arr[i];
+    }
+    free(arr);
+    *cap = *cap * 2;
+    arr = newArr;
+  }
+  arr[*len] = val;
+  ++*len;
+}</code></pre>
+<p>This still fails when resizing happens:</p>
 <ol>
-<li><strong>Mutation:</strong> Modifying data at a memory address passed to a function.</li>
-<li><strong>Double Pointer:</strong> A pointer that points to another pointer (<code>Type **</code>).</li>
-<li><strong>Dangling Pointer:</strong> A pointer pointing to freed memory.</li>
-<li><strong>Memory Leak:</strong> Allocating memory but losing the pointer to it.</li>
-<li><strong>Pass-by-Value:</strong> Copying the value of a variable to a function.</li>
-<li><strong>Pass-by-Reference:</strong> Passing the address of a variable to a function (via pointer).</li>
-<li><strong>Heap:</strong> The region of memory for dynamic allocation (<code>malloc</code>).</li>
-<li><strong>Stack:</strong> The region of memory for local variables.</li>
-<li><strong>Undefined Behavior:</strong> Behavior not specified by the language standard (e.g., double free).</li>
-<li><strong>Encapsulation:</strong> Grouping data and functions together (hinted at in slides).</li>
-<li><strong>Reallocation:</strong> Allocating new memory and copying old data.</li>
-<li><strong>Capacity:</strong> The maximum number of elements an array can hold.</li>
-<li><strong>Length:</strong> The current number of elements in an array.</li>
-<li><strong>Index:</strong> The position of an element in an array.</li>
-<li><strong>Array:</strong> A collection of elements of the same type.</li>
-<li><strong>Pointer:</strong> A variable that stores a memory address.</li>
-<li><strong>Dereference:</strong> Accessing the value at a memory address (<code>*ptr</code>).</li>
-<li><strong>Address-of:</strong> Getting the memory address of a variable (<code>&amp;var</code>).</li>
-<li><strong>Void:</strong> A type indicating no return value.</li>
-<li><strong>Size_t:</strong> A type representing the size of an object (usually <code>unsigned long</code>).</li>
+<li><code>arr</code> in <code>main</code> points to heap block A.</li>
+<li><code>push</code> receives a local copy of that address.</li>
+<li><code>push</code> allocates heap block B.</li>
+<li><code>push</code> copies A into B.</li>
+<li><code>push</code> frees A.</li>
+<li><code>push</code> sets its local <code>arr</code> copy to B.</li>
+<li><code>push</code> returns.</li>
+<li>The caller's <code>arr</code> still points to A, which is now freed.</li>
+<li>B is leaked because no caller variable points to it.</li>
 </ol>
-<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<p>This explains both the dangling pointer and the double-free crash from the slides.</p>
+<h2>Fixed <code>append</code> with a Double Pointer</h2>
+<p>From <code>lecture_code/cpl/mutation/doublingArray.c</code>:</p>
+<pre><code>void append(int **arr, int *len, int *cap, int v) {
+  if (*cap == *len) {
+    int *newArr = malloc(sizeof(int) * (*cap * 2));
+    for (int i = 0; i &lt; *len; ++i) {
+      newArr[i] = (*arr)[i];
+    }
+    free(*arr);
+    *arr = newArr;
+    *cap = *cap * 2;
+  }
+  (*arr)[(*len)++] = v;
+}</code></pre>
+<p>Caller:</p>
+<pre><code>int cap = 4;
+int *arr = malloc(sizeof(int) * cap);
+int len = 0;
+append(&amp;arr, &amp;len, &amp;cap, 10);</code></pre>
+<p>Why each argument is an address:</p>
 <ul>
-<li><strong>C++ Classes:</strong> The slides hint at encapsulation but do not show C++ classes or structs.</li>
-<li><strong>Smart Pointers:</strong> <code>std::unique_ptr</code>, <code>std::shared_ptr</code>, or <code>std::vector</code> are not covered.</li>
-<li><strong>C++ STL:</strong> Standard Template Library containers are not discussed.</li>
-<li><strong>Exception Handling:</strong> <code>try/catch</code> blocks are not covered.</li>
-<li><strong>RAII:</strong> Resource Acquisition Is Initialization pattern is not explicitly taught.</li>
-<li><strong>Multithreading:</strong> Thread safety of <code>push</code>/<code>pop</code> is not discussed.</li>
-<li><strong>Memory Alignment:</strong> <code>alignof</code> or padding is not covered.</li>
-<li><strong>Pointers to Pointers to Pointers:</strong> Triple pointers (<code>int ***</code>) are not covered.</li>
+<li><code>&amp;arr</code> lets <code>append</code> change the caller's pointer variable.</li>
+<li><code>&amp;len</code> lets <code>append</code> change the caller's length.</li>
+<li><code>&amp;cap</code> lets <code>append</code> change the caller's capacity.</li>
 </ul>
-<h1>Slide Anchors (Traceability)</h1>
+<p>Inside <code>append</code>:</p>
 <ul>
-<li><strong>Returning Multiple Values:</strong> Slide 3 (&quot;Returning Multiple Values&quot;) - &quot;We can&#39;t return two values in C.&quot;</li>
-<li><strong>Mutation for Returns:</strong> Slide 5 (&quot;maxInfo using mutation and return&quot;) - <code>*ind = maxInd; return maxSoFar;</code></li>
-<li><strong>Double Pointer Necessity:</strong> Slide 21 (&quot;push fixed&quot;) - <code>void push(int **arr, ...)</code></li>
-<li><strong>Double Free Error:</strong> Slide 19 (&quot;Take 3 | problem&quot;) - &quot;free(): double free detected in tcache&quot;</li>
-<li><strong>Dangling Pointer:</strong> Slide 20 (&quot;Take 3 | problem&quot;) - &quot;main&#39;s variable... dangling pointer&quot;</li>
-<li><strong>Memory Leak:</strong> Slide 20 (&quot;Take 3 | problem&quot;) - &quot;new array push allocated was leaked&quot;</li>
-<li><strong>Caller Responsibility:</strong> Slide 23 (&quot;main for fixed push&quot;) - <code>push(&amp;arr, x, &amp;len, &amp;cap);</code></li>
-<li><strong>Encapsulation Hint:</strong> Slide 25 (&quot;Lots of data representing one thing&quot;) - &quot;That&#39;s becoming a lot of parameters to pass&quot;</li>
-<li><strong>Practice Problem:</strong> Slide 24 (&quot;Practice Problem&quot;) - &quot;Write a function pop&quot;</li>
-<li><strong>Table of Contents:</strong> Slide 1 (&quot;Table of Contents&quot;) - Lists Pass-by-Pointer, Using Double Pointers.</li>
+<li><code>arr</code> has type <code>int **</code>.</li>
+<li><code>*arr</code> is the caller's <code>int *</code> variable.</li>
+<li><code>(*arr)[i]</code> indexes the caller's active heap array.</li>
+<li><code>*arr = newArr</code> changes the caller's pointer.</li>
+</ul>
+<p>Parentheses matter. <code>(*arr)[i]</code> means index the integer array pointed to by the caller's pointer. <code>*arr[i]</code> would index <code>arr</code> first and then dereference, which is not this data shape.</p>
+<h2>Worked Trace: Fixed <code>append</code></h2>
+<p>Initial state:</p>
+<pre><code>main:
+  arr -&gt; A: [4, 8, 15, 16]
+  len = 4
+  cap = 4</code></pre>
+<p>Call:</p>
+<pre><code>append(&amp;arr, &amp;len, &amp;cap, 23);</code></pre>
+<p>Inside <code>append</code>:</p>
+<ol>
+<li><code>*len == *cap</code>, so the array is full.</li>
+<li>Allocate B with capacity 8.</li>
+<li class="list-subheading">Copy values:</li>
+</ol>
+<pre><code>B[0] = A[0] = 4
+B[1] = A[1] = 8
+B[2] = A[2] = 15
+B[3] = A[3] = 16</code></pre>
+<ol>
+<li><code>free(*arr)</code> frees A.</li>
+<li><code>*arr = newArr</code> changes <code>main</code>'s <code>arr</code> to point at B.</li>
+<li><code>*cap = *cap * 2</code> changes <code>main</code>'s <code>cap</code> to 8.</li>
+<li><code>(*arr)[(*len)++] = 23</code> writes B[4] and then changes <code>main</code>'s <code>len</code> to 5.</li>
+</ol>
+<p>Final state:</p>
+<pre><code>main:
+  arr -&gt; B: [4, 8, 15, 16, 23, _, _, _]
+  len = 5
+  cap = 8</code></pre>
+<h2><code>pop</code> and What It Really Mutates</h2>
+<p>The lecture code has:</p>
+<pre><code>void pop(int **arr, int *len, int *cap) {
+  --*len;
+}</code></pre>
+<p>This only removes the last item logically. It does not erase the old value from memory and does not shrink the capacity.</p>
+<p>For an array:</p>
+<pre><code>arr = [3, 5, 9, 12, _, _, _, _]
+len = 4
+cap = 8</code></pre>
+<p>After <code>pop</code>, <code>len = 3</code>. The old <code>12</code> may still sit in <code>arr[3]</code>, but it is outside the meaningful range. The valid elements are only indices <code>0</code> through <code>len - 1</code>.</p>
+<p>A robust <code>pop</code> should check that <code>len &gt; 0</code> before decrementing. Otherwise <code>--*len</code> can underflow when <code>len</code> is an unsigned type or become negative when signed.</p>
+<h2>Debugging Double Pointer Code</h2>
+<p>Use the &quot;caller variable&quot; test:</p>
+<ul>
+<li>If the function only changes elements inside an existing array, <code>int *arr</code> may be enough.</li>
+<li>If the function changes which allocation the caller's array pointer names, use <code>int **arr</code>.</li>
+<li>If the function changes a scalar in the caller, use a pointer to that scalar, such as <code>size_t *len</code>.</li>
+</ul>
+<p>Draw two boxes:</p>
+<pre><code>main's arr variable: stores address A
+function's arr parameter: stores address of main's arr variable</code></pre>
+<p>Then decode:</p>
+<ul>
+<li><code>arr</code> is the address of the caller's pointer variable.</li>
+<li><code>*arr</code> is the caller's pointer variable.</li>
+<li><code>**arr</code> is the first integer in the caller's array.</li>
+<li><code>(*arr)[i]</code> is the <code>i</code>th integer in the caller's array.</li>
+</ul>
+<h2>Common Failure Modes</h2>
+<ul>
+<li>Forgetting <code>&amp;</code> at the call site for an output parameter.</li>
+<li>Writing to <code>ptr</code> when you meant <code>*ptr</code>.</li>
+<li>Updating a local copy and expecting the caller to see it.</li>
+<li>Reassigning a local pointer after <code>malloc</code>, leaking the new allocation.</li>
+<li>Freeing the old allocation but not updating the caller's pointer.</li>
+<li>Forgetting parentheses in <code>(*arr)[i]</code>.</li>
+<li>Passing an uninitialized pointer as an output destination.</li>
+<li>Calling <code>pop</code> on an empty array.</li>
+<li>Forgetting that <code>len</code>, <code>cap</code>, and <code>arr</code> are separate pieces of state that must stay consistent.</li>
+<li>Using <code>int</code> and <code>size_t</code> inconsistently in comparisons and loops.</li>
+</ul>
+<h2>Practical Interface Design</h2>
+<p>Output parameters make a function more powerful but also easier to misuse. Good C interfaces should document:</p>
+<ul>
+<li>which parameters are inputs;</li>
+<li>which parameters are outputs;</li>
+<li>which parameters may be mutated;</li>
+<li>whether the function may allocate;</li>
+<li>whether ownership transfers;</li>
+<li>what the function does on allocation failure.</li>
+</ul>
+<p>For example:</p>
+<pre><code>int append(int **arr, size_t *len, size_t *cap, int v);</code></pre>
+<p>Returning <code>int</code> could report success or failure:</p>
+<ul>
+<li><code>1</code> for success;</li>
+<li><code>0</code> for allocation failure.</li>
+</ul>
+<p>That is often stronger than a <code>void</code> function because callers can handle <code>malloc</code> failure.</p>
+<h2>Exam Reasoning Patterns</h2>
+<p>When asked whether a function needs a pointer:</p>
+<ol>
+<li>Identify the variable in the caller that must change.</li>
+<li>If the caller variable is an <code>int</code>, pass <code>int *</code>.</li>
+<li>If the caller variable is an <code>int *</code>, pass <code>int **</code>.</li>
+<li>If the caller variable is a <code>struct List *</code>, replacing it would require <code>struct List **</code>.</li>
+<li>If only the object pointed to needs mutation, a single pointer to that object may be enough.</li>
+</ol>
+<p>When tracing a bad resize:</p>
+<ol>
+<li>Name the old block A.</li>
+<li>Name the new block B.</li>
+<li>Track which variable points to A or B.</li>
+<li>After <code>free(A)</code>, mark every pointer to A as dangling.</li>
+<li>If no caller variable points to B, mark B as leaked.</li>
+</ol>
+<h2>Quick Reference</h2>
+<ul>
+<li><code>T *out</code> lets a function write a <code>T</code> into caller-owned storage.</li>
+<li><code>T **out</code> lets a function replace a caller-owned <code>T *</code> pointer.</li>
+<li>Pass <code>&amp;x</code> when the function should mutate <code>x</code>.</li>
+<li>Pass <code>&amp;arr</code> when the function may make <code>arr</code> point to a new allocation.</li>
+<li><code>(*arr)[i]</code> is the correct form when <code>arr</code> is an <code>int **</code> pointing to the caller's array pointer.</li>
+<li>C returns one value directly; output parameters are the standard workaround for multiple results.</li>
+</ul>
+<h2>Exam Questions</h2>
+<ul>
+<li>Why does <code>maxInfo</code> use an output parameter for the index?</li>
+<li>Why is <code>return (maxSoFar, maxInd);</code> not a valid multi-value return?</li>
+<li>Why does <code>push</code> need <code>int **arr</code> instead of <code>int *arr</code>?</li>
+<li>What bug appears when a resized array is freed but the caller keeps the old pointer?</li>
+<li>What is the difference between <code>size_t *len</code> and <code>size_t len</code> as a function parameter?</li>
+<li>Why does <code>append(&amp;arr, &amp;len, &amp;cap, x)</code> work while <code>append(arr, len, cap, x)</code> does not?</li>
+<li>What does a double free tell you about ownership?</li>
+<li>Why is a local pointer reassignment invisible to the caller?</li>
+<li>In <code>append</code>, explain the difference between <code>arr</code>, <code>*arr</code>, and <code>(*arr)[0]</code>.</li>
+<li>What should a safe <code>pop</code> check before decrementing <code>len</code>?</li>
 </ul>
         </article>
-
         <nav class="toc" aria-label="On this page">
           <h2>On this page</h2>
           <ul data-toc-list></ul>
         </nav>
-
         <nav class="page-nav" aria-label="Lecture sequence">
-          <a href="/slides/dynamic-memory-management.html"><span>Previous</span>Dynamic Memory Management</a>
-          <a href="/slides/?track=data-memory"><span>Back to Track</span>Data & Memory</a>
-          <a href="/slides/separate-compilation-and-headers.html"><span>Next</span>Separate Compilation and Headers</a>
+          <a href="/slides/command-line-args-and-2d-arrays.html"><span>Previous</span>Command Line Args and Multi-Dimensional Arrays</a>
+          <a href="/slides/?track=data-memory"><span>Back to Track</span>Data and Memory</a>
+          <a href="/slides/structs-and-adts.html"><span>Next</span>Structs and ADTs</a>
         </nav>
-
-        <p class="callout">Manually curated from <code>summaries/mutation.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+        <p class="callout">Built from <code>summaries/06_mutation.md</code> and reviewed against <code>slides/06_mutation.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

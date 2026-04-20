@@ -1,0 +1,55 @@
+[Q-CL-01]
+Question: What does `argc` represent in `int main(int argc, char **argv)`?
+Answer: It is the number of command line arguments passed to the program, including the program name itself.
+
+[Q-CL-02]
+Question: What is stored in `argv[0]`?
+Answer: The program name or path used to invoke the executable.
+
+[Q-CL-03]
+Question: Why are command line arguments received as strings?
+Answer: The operating system passes them as text, so the program must convert numeric arguments itself if it wants to do arithmetic.
+
+[Q-CL-04]
+Question: How do you read `char *argv[]` with the spiral rule?
+Answer: It means argv is an array of pointers to characters, which in practice are C strings.
+
+[Q-CL-05]
+Question: Why can `char *argv[]` also be written as `char **argv`?
+Answer: Because array parameters decay to pointers, so the function receives a pointer to the first element of the argument vector.
+
+[Q-CL-06]
+Question: Why is `argv` not enough by itself to know whether data is an array or a single item?
+Answer: A pointer does not encode shape; you need convention and supporting information such as `argc` to know the size and meaning of the pointed-to data.
+
+[Q-CL-07]
+Question: Why does freeing only the outer pointer of a pointer-based 2D array leak memory?
+Answer: Each row was allocated separately, so freeing the outer array does not free the row allocations.
+
+[Q-CL-08]
+Question: How is a matrix element located in a flat 1D representation?
+Answer: With row-major indexing: `matrix[i * cols + j]`.
+
+[Q-CL-09]
+Question: Why is a pointer-to-pointers 2D array potentially slower than a flat 1D array?
+Answer: The rows may be scattered across the heap, which adds indirection and can hurt cache performance.
+
+[Q-CL-10]
+Question: In the lecture's `wc`-style program, what do `-l`, `-w`, and `-c` control?
+Answer: They select whether the program prints the line count, word count, and character count respectively.
+
+[Q-CL-11]
+Question: If a program is run as `./mul 6 7`, what are `argc`, `argv[0]`, `argv[1]`, and `argv[2]`?
+Answer: `argc` is 3, `argv[0]` is `"./mul"`, `argv[1]` is `"6"`, and `argv[2]` is `"7"`.
+
+[Q-CL-12]
+Question: Why should matrix indexing with a flat array use `row * cols + col` rather than `row * rows + col`?
+Answer: Each complete row contains `cols` elements, so moving down one row skips exactly the number of columns, not the number of rows.
+
+[Q-CL-13]
+Question: What is the ownership difference between an `int **` matrix with separately allocated rows and a flat `int *` matrix?
+Answer: The `int **` matrix owns one outer allocation plus one allocation per row, while the flat matrix owns one contiguous allocation.
+
+[Q-CL-14]
+Question: Why is `strcmp(argv[i], "-l") == 0` needed instead of `argv[i] == "-l"`?
+Answer: `strcmp` compares string contents, while `==` compares pointer addresses and does not reliably test whether two strings contain the same characters.

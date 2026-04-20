@@ -1,0 +1,55 @@
+[Q-02_c_pl-1]
+Question: Why is C described as a compiled language?
+Answer: Because C source is translated by a compiler into machine code binaries that the CPU can execute.
+
+[Q-02_c_pl-2]
+Question: Why must every C program have a `main` function?
+Answer: `main` is the entry point that the operating system and compiler arrange for program start.
+
+[Q-02_c_pl-3]
+Question: What does `return 0;` from `main` mean?
+Answer: It returns an exit status of 0 to the operating system, which usually indicates success.
+
+[Q-02_c_pl-4]
+Question: What is the difference between signed and unsigned integers?
+Answer: Signed integers use two’s complement interpretation, while unsigned integers interpret the bits as an ordinary nonnegative binary value.
+
+[Q-02_c_pl-5]
+Question: Why is overflow possible in C integers?
+Answer: Because integers have fixed width, so values that exceed the available bits wrap or lose carried bits depending on the type and operation.
+
+[Q-02_c_pl-6]
+Question: Why does `times2(x)` not mutate the caller’s `x` in C?
+Answer: The parameter receives a local copy of the value, so the function changes its own copy instead of the caller’s variable.
+
+[Q-02_c_pl-7]
+Question: What does `printf("%c", c)` print?
+Answer: It prints the character value of `c`.
+
+[Q-02_c_pl-8]
+Question: What does `printf("%.2f", z)` do?
+Answer: It prints a floating-point value with two digits after the decimal point.
+
+[Q-02_c_pl-9]
+Question: What is the practical meaning of the stack in C?
+Answer: It stores local variables and function call frames, and that storage disappears when the function returns.
+
+[Q-02_c_pl-10]
+Question: What are the four memory segments discussed in the lecture?
+Answer: Text, data, heap, and stack.
+
+[Q-02_c_pl-11]
+Question: Why is `char` useful for representing text?
+Answer: Because C treats characters as numeric byte values, which can be interpreted through ASCII.
+
+[Q-02_c_pl-12]
+Question: What does `sizeof` measure?
+Answer: The size of its operand in bytes.
+
+[Q-02_c_pl-13]
+Question: What is the difference between `++x` and `x++`?
+Answer: Prefix increment mutates first and yields the new value; postfix increment yields the old value and mutates afterward.
+
+[Q-02_c_pl-14]
+Question: Why is it dangerous to write code that depends on the order in which function arguments are evaluated?
+Answer: Because the order is unspecified, so different compilers may evaluate the arguments in different orders.

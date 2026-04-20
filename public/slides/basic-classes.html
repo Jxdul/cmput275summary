@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Basic Classes | CMPUT 275 Summaries</title>
+  <meta name="description" content="Classes, objects, methods, constructors, member initialization lists, access control, headers, getters/setters, and friends.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Summaries</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/exam-practice/">Exam Practice</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Basic Classes</span></p>
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">C++ OOP</p>
+        <h1>Basic Classes</h1>
+        <p>Classes, objects, methods, constructors, member initialization lists, access control, headers, getters/setters, and friends.</p>
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>slides/11_classes.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C structs, ADTs, C++ references, streams, and separate compilation.</p>
+          </article>
+          <article class="meta-card">
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=11_classes">11_classes.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpp/classes, lecture_code/cpp/oop</code></p>
+          </article>
+        </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/references-pass-by-reference.html">Previous: 10_refs</a>
+          <a class="btn primary" href="/exam-practice/?deck=11_classes">Practice 11_classes</a>
+          <a class="btn" href="/slides/the-big-5.html">Next: 13_big5</a>
+        </div>
+      </header>
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Basic Classes</h1>
+<h2>What this deck is really about</h2>
+<p>C++ classes let a type own both data and behavior. The lecture starts with simple <code>struct</code> objects, then shows why real ADTs need constructors, access control, member initialization lists, separate implementation files, and carefully chosen public operations.</p>
+<p>The main design question is:</p>
+<p>What must clients be allowed to do, and what must the type prevent so its invariants stay true?</p>
+<h2>Core vocabulary</h2>
+<ul>
+<li>Class: a type that groups data and operations.</li>
+<li>Object: an instance of a class.</li>
+<li>Field/member variable: data stored inside each object.</li>
+<li>Method/member function: function that belongs to the class.</li>
+<li>Constructor: special method that initializes a new object.</li>
+<li>Invariant: condition that should always hold for valid objects.</li>
+<li>Public interface: operations client code may use.</li>
+<li>Private representation: implementation details clients may not touch.</li>
+</ul>
+<h2>Methods and <code>this</code></h2>
+<p>Lecture starting point:</p>
+<pre><code>struct Rect {
+  int x, y, w, h;
+
+  int area() {
+    return w * h;
+  }
+};</code></pre>
+<p>Usage:</p>
+<pre><code>Rect r{1, 2, 5, 10};
+std::cout &lt;&lt; r.area() &lt;&lt; std::endl;</code></pre>
+<p>Every non-static method has an implicit parameter named <code>this</code>, which points at the object receiving the call. Inside <code>r.area()</code>, the expression <code>w * h</code> is shorthand for <code>this-&gt;w * this-&gt;h</code>.</p>
+<p>If two objects exist:</p>
+<pre><code>Rect r{1, 2, 5, 10};
+Rect q{2, 3, 2, 2};</code></pre>
+<p><code>r.area()</code> uses <code>r</code>'s fields, and <code>q.area()</code> uses <code>q</code>'s fields. Same method body, different implicit object.</p>
+<h2>Aggregate initialization and why it fails ADTs</h2>
+<p>Brace initialization of a plain aggregate initializes fields in declaration order:</p>
+<pre><code>Rect r{1, 2, 5, 10};</code></pre>
+<p>For simple data carriers this can be fine. For ADTs, it is often too permissive:</p>
+<pre><code>Rect bad{1, 2, -5, 3};
+Rect missing{7, 8};
+Rect uninitialized;</code></pre>
+<p>If a rectangle must have positive width and height, clients should not be able to create invalid combinations directly.</p>
+<h2>Constructors</h2>
+<p>A constructor runs automatically when an object is created.</p>
+<p>Lecture <code>Rect</code> constructor:</p>
+<pre><code>struct Rect {
+  int x, y, w, h;
+
+  Rect(int x, int y, int w, int h) {
+    this-&gt;x = x;
+    this-&gt;y = y;
+    this-&gt;w = w &gt; 0 ? w : 1;
+    this-&gt;h = h &gt; 0 ? h : 1;
+  }
+};</code></pre>
+<p>Now every four-argument <code>Rect</code> creation enforces positive dimensions.</p>
+<p>Once you define a constructor, aggregate initialization is no longer the model. The client must call an available constructor:</p>
+<pre><code>Rect a{1, 2, 3, 4};     // ok
+Rect b{1, 2, 3};        // error: no matching constructor
+Rect c{5, 6, 7, 8, 9};  // error
+Rect d;                 // error unless default constructor exists
+Rect *p = new Rect;     // error unless default constructor exists
+Rect *z = new Rect{1, 2, 3, 4}; // ok</code></pre>
+<h2>Default constructors</h2>
+<p>A zero-parameter constructor is the default constructor:</p>
+<pre><code>Rect() {
+  x = 0;
+  y = 0;
+  w = 1;
+  h = 1;
+}</code></pre>
+<p>Use a default constructor only when there is a meaningful default object. A 1-by-1 rectangle at the origin is reasonable. A student with no ID may not be.</p>
+<h2>Object creation order</h2>
+<p>The lecture's three visible steps:</p>
+<ol>
+<li>Space for the object is allocated.</li>
+<li>Fields are initialized.</li>
+<li>The constructor body runs.</li>
+</ol>
+<p>This explains why assigning in the constructor body is not the same as initializing.</p>
+<h2>Member initialization lists</h2>
+<p>The member initialization list (MIL) controls step 2:</p>
+<pre><code>struct Student {
+  int numCourses;
+  float gpa;
+  const int sID;
+
+  Student(int numCourses, float gpa, int sID)
+    : numCourses{numCourses},
+      gpa{gpa &gt; 0 ? gpa : 0},
+      sID{sID} {}
+};</code></pre>
+<p><code>const</code> fields and reference fields must be initialized in the MIL. Assigning to them in the constructor body is too late because they have already been initialized.</p>
+<p>Prefer MILs for all fields. Initializing once is clearer and avoids default-initialize-then-assign waste.</p>
+<h3>MIL order failure mode</h3>
+<p><code>lecture_code/cpp/classes/milOrder.cc</code>:</p>
+<pre><code>struct Foo {
+  int x, y;
+  Foo(int yp) : y{yp}, x{y} {}
+};</code></pre>
+<p>Even though the MIL writes <code>y{yp}</code> first, fields initialize in declaration order: <code>x</code> first, then <code>y</code>. So <code>x{y}</code> reads <code>y</code> before <code>y</code> has been initialized.</p>
+<p>Exam rule: initialization order follows field declaration order, not MIL order.</p>
+<h2>Access control</h2>
+<p>C++ access specifiers:</p>
+<ul>
+<li><code>public</code>: accessible from any code.</li>
+<li><code>private</code>: accessible only from class methods and friends.</li>
+<li><code>protected</code>: accessible from class methods and derived classes; not central in this course.</li>
+</ul>
+<p><code>struct</code> and <code>class</code> differ only in default access:</p>
+<ul>
+<li><code>struct</code> defaults to public.</li>
+<li><code>class</code> defaults to private.</li>
+</ul>
+<p>This:</p>
+<pre><code>class Rect {
+  int x, y, w, h;
+public:
+  Rect(int x, int y, int w, int h);
+  int area();
+};</code></pre>
+<p>has private fields by default.</p>
+<h2>Private fields protect invariants</h2>
+<p>The constructor can enforce positive width and height at creation:</p>
+<pre><code>Rect r{1, 1, 3, 4};</code></pre>
+<p>But if fields are public, client code can later write:</p>
+<pre><code>r.w = -10;</code></pre>
+<p>Now the invariant is broken after construction. Making fields private prevents direct invalid mutation. If width changes are allowed, expose a setter that validates:</p>
+<pre><code>void setWidth(int nw) {
+  w = nw &gt; 0 ? nw : 1;
+}</code></pre>
+<p>Do not return mutable references to private fields unless that is truly part of the abstraction. The lecture <code>rectSep</code> code includes a warning:</p>
+<pre><code>int &amp;getWidth(); // Should not be a reference!!!</code></pre>
+<p>Why? Because:</p>
+<pre><code>int &amp;tw = t.getWidth();
+tw = -1;</code></pre>
+<p>would bypass the setter and break the invariant.</p>
+<h2>Getters and setters are not automatic</h2>
+<p>A getter is appropriate when reading a field is part of the public abstraction. A setter is appropriate when direct client-controlled changes are valid and can be checked.</p>
+<p>They are not appropriate just because another function wants private data.</p>
+<p>Better questions:</p>
+<ul>
+<li>Does the client need the field, or do they need a behavior?</li>
+<li>Can a setter preserve the invariant?</li>
+<li>Would exposing this field lock in the representation?</li>
+<li>Would a non-const reference getter give clients uncontrolled mutation?</li>
+</ul>
+<p>For printing a <code>Rect</code>, clients do not necessarily need <code>getX</code>, <code>getY</code>, <code>getWidth</code>, and <code>getHeight</code>. They need a printing operation.</p>
+<h2>Separate class declarations and definitions</h2>
+<p>Header:</p>
+<pre><code>class Rect {
+  int x, y, w, h;
+public:
+  Rect(int x, int y, int w, int h);
+  Rect();
+  int area();
+};</code></pre>
+<p>Implementation:</p>
+<pre><code>Rect::Rect(int x, int y, int w, int h)
+  : x{x}, y{y}, w{w &gt; 0 ? w : 1}, h{h &gt; 0 ? h : 1} {}
+
+Rect::Rect()
+  : x{0}, y{0}, w{1}, h{1} {}
+
+int Rect::area() {
+  return w * h;
+}</code></pre>
+<p><code>Rect::area</code> means &quot;the <code>area</code> method in the <code>Rect</code> scope.&quot; Without <code>Rect::</code>, the implementation would define an unrelated free function named <code>area</code>.</p>
+<p>Header hygiene:</p>
+<ul>
+<li>Avoid <code>using namespace std;</code> in headers.</li>
+<li>Use <code>std::ostream</code> in declarations.</li>
+<li>Keep implementation details out of public declarations where possible.</li>
+</ul>
+<h2>Overloaded output and friends</h2>
+<p>The natural output syntax is:</p>
+<pre><code>std::cout &lt;&lt; r;</code></pre>
+<p>That means the left operand is the stream and the right operand is the <code>Rect</code>. A standalone operator has the right shape:</p>
+<pre><code>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const Rect &amp;r);</code></pre>
+<p>But a standalone function cannot access private fields. Making it a member gives the wrong operand order; it would support awkward syntax like:</p>
+<pre><code>r &lt;&lt; std::cout;</code></pre>
+<p>The usual solution is a friend:</p>
+<pre><code>class Rect {
+  int x, y, w, h;
+public:
+  friend std::ostream &amp;operator&lt;&lt;(std::ostream &amp;, const Rect &amp;);
+};</code></pre>
+<p>Implementation:</p>
+<pre><code>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const Rect &amp;r) {
+  return out &lt;&lt; r.w &lt;&lt; &quot;*&quot; &lt;&lt; r.h
+             &lt;&lt; &quot; rectangle at (&quot; &lt;&lt; r.x &lt;&lt; &quot;, &quot; &lt;&lt; r.y &lt;&lt; &quot;)&quot;;
+}</code></pre>
+<p>A friend function is not a method. It is an external function that the class has granted private access.</p>
+<p>Use friends sparingly. Each friend is another place that can depend on and potentially violate representation details.</p>
+<h2>Worked design example: <code>Rect</code></h2>
+<p>Bad ADT:</p>
+<pre><code>struct Rect {
+  int x, y, w, h;
+};</code></pre>
+<p>Problems:</p>
+<ul>
+<li>invalid width and height are allowed</li>
+<li>fields can be changed to invalid values later</li>
+<li>representation is public forever</li>
+<li>no behavior explains what operations are valid</li>
+</ul>
+<p>Better ADT:</p>
+<pre><code>class Rect {
+  int x, y, w, h;
+public:
+  Rect(int x, int y, int w, int h)
+    : x{x}, y{y}, w{w &gt; 0 ? w : 1}, h{h &gt; 0 ? h : 1} {}
+
+  Rect() : x{0}, y{0}, w{1}, h{1} {}
+
+  int area() const {
+    return w * h;
+  }
+
+  void setWidth(int nw) {
+    w = nw &gt; 0 ? nw : 1;
+  }
+};</code></pre>
+<p>The public operations preserve the invariant. The private representation can later change without forcing all clients to change.</p>
+<h2>Deeper object, constructor, and design reasoning</h2>
+<h3>Object layout and <code>this</code></h3>
+<p>For:</p>
+<pre><code>Rect r{1, 2, 5, 10};
+Rect q{2, 3, 2, 2};</code></pre>
+<p>think of two separate objects:</p>
+<pre><code>r: x=1 y=2 w=5 h=10
+q: x=2 y=3 w=2 h=2</code></pre>
+<p>There is one compiled <code>Rect::area</code> method, but each call supplies a different hidden receiver:</p>
+<pre><code>r.area(); // this points at r
+q.area(); // this points at q</code></pre>
+<p>Inside the method, <code>w * h</code> means <code>this-&gt;w * this-&gt;h</code>. This is also why constructor code sometimes needs <code>this-&gt;x = x;</code>: the field and the parameter have the same name, and <code>this-&gt;x</code> selects the field.</p>
+<h3>Constructor and MIL timeline</h3>
+<p>Object creation has a timeline:</p>
+<pre><code>1. allocate storage for the object
+2. initialize fields
+3. run constructor body</code></pre>
+<p>For a <code>Student</code> with a const field:</p>
+<pre><code>struct Student {
+  int numCourses;
+  float gpa;
+  const int sID;
+};</code></pre>
+<p>the constructor body is too late to initialize <code>sID</code>. This fails:</p>
+<pre><code>Student(int courses, float g, int id) {
+  sID = id;
+}</code></pre>
+<p>because <code>sID</code> must already have been initialized before the body starts.</p>
+<p>The MIL fixes the timing:</p>
+<pre><code>Student(int courses, float g, int id)
+  : numCourses{courses},
+    gpa{g &gt; 0 ? g : 0},
+    sID{id} {}</code></pre>
+<p>Now all fields are initialized in step 2.</p>
+<h3>Declaration order beats MIL order</h3>
+<p><code>lecture_code/cpp/classes/milOrder.cc</code> shows:</p>
+<pre><code>struct Foo {
+  int x, y;
+  Foo(int yp) : y{yp}, x{y} {}
+};</code></pre>
+<p>Even though <code>y{yp}</code> appears first in the MIL, fields initialize in declaration order: <code>x</code> then <code>y</code>. So <code>x{y}</code> reads <code>y</code> before <code>y</code> has been initialized. Reordering the MIL text does not fix the problem; the field declarations or dependency must change.</p>
+<h3>Invariant attacks</h3>
+<p>Public fields allow direct invalid mutation:</p>
+<pre><code>Rect r{1, 2, 3, 4};
+r.w = -10;</code></pre>
+<p>Private fields block that, but a mutable reference getter reopens the hole:</p>
+<pre><code>int &amp;rw = r.getWidth();
+rw = -10;</code></pre>
+<p>This is why the lecture's <code>rectSep</code> header comments that <code>int &amp;getWidth()</code> should not be a reference. It leaks a write-capable alias to private representation.</p>
+<p>A setter can preserve the invariant:</p>
+<pre><code>void setWidth(int nw) {
+  w = nw &gt; 0 ? nw : 1;
+}</code></pre>
+<p>Public methods should be the only normal way to change private state, and those methods should enforce the class rules.</p>
+<h3>Class separate-compilation trace</h3>
+<p>In <code>lecture_code/cpp/classes/rectSep/</code>, <code>rect.h</code> declares the class, and <code>rect.cc</code> defines the methods:</p>
+<pre><code>Rect::Rect(int x, int y, int w, int h) : x{x}, y{y}, w{w}, h{h} {}
+int Rect::area() { return w * h; }</code></pre>
+<p>Build shape:</p>
+<pre><code>g++ -std=c++17 -Wall -Wvla -Werror -c rect.cc
+g++ -std=c++17 -Wall -Wvla -Werror -c main.cc
+g++ rect.o main.o -o rectprog</code></pre>
+<p>If <code>main.cc</code> includes <code>rect.h</code> but the final link omits <code>rect.o</code>, the client can compile but the linker cannot find the method definitions. This is the C++ class version of the separate-compilation lesson.</p>
+<p>If the implementation forgets the scope:</p>
+<pre><code>int area() { return w * h; }</code></pre>
+<p>that is not a <code>Rect</code> method. <code>w</code> and <code>h</code> are not in scope, and even if a free function compiled, it would not satisfy calls to <code>Rect::area</code>.</p>
+<h3>Friend vs getter design</h3>
+<p>For output, the desired syntax is:</p>
+<pre><code>cout &lt;&lt; r;</code></pre>
+<p>That means the stream is the left operand. A member <code>operator&lt;&lt;</code> would put the <code>Rect</code> object in the implicit left-operand position, giving the wrong natural syntax. A non-member operator has the right operand order:</p>
+<pre><code>ostream &amp;operator&lt;&lt;(ostream &amp;out, const Rect &amp;r);</code></pre>
+<p>If it needs private fields, friendship is a targeted grant:</p>
+<pre><code>friend std::ostream &amp;operator&lt;&lt;(std::ostream &amp;, const Rect &amp;);</code></pre>
+<p>Adding getters for every field only so one output function can print the object exposes more than necessary. A friend weakens encapsulation too, but in a narrower and more intentional way.</p>
+<h3>Class design failure patterns</h3>
+<p>Bad designs usually fail in one of these ways:</p>
+<ul>
+<li>no constructor owns valid initialization</li>
+<li>a default constructor creates a nonsense object</li>
+<li>public fields let clients bypass invariants</li>
+<li>reference getters leak mutable aliases</li>
+<li>setters assign blindly without validation</li>
+<li>headers expose namespace pollution with <code>using namespace std;</code></li>
+<li>implementation functions forget <code>ClassName::</code></li>
+<li>friends are added casually instead of for specific external operations</li>
+</ul>
+<p>The fix is to decide the abstraction first. A class should expose operations that make sense for the concept, not merely expose its storage with function syntax.</p>
+<h3>Object layout vs access control</h3>
+<p>Access control changes what code is allowed to name; it does not mean private fields are stored somewhere mystical. A <code>Rect</code> object with private <code>x</code>, <code>y</code>, <code>w</code>, and <code>h</code> still contains those fields as part of the object. The compiler enforces that only class methods and friends can access them directly.</p>
+<p>This matters for reasoning about methods. <code>area()</code> can read <code>w</code> and <code>h</code> because it is a <code>Rect</code> method. A standalone function cannot read them unless it uses public methods or has been declared a friend. The object layout exists either way; access rules decide which code is trusted to touch it.</p>
+<h3>Constructor design choices</h3>
+<p>The lecture constructor clamps invalid dimensions:</p>
+<pre><code>w{w &gt; 0 ? w : 1}</code></pre>
+<p>That is one policy. Another class might reject invalid arguments instead. The important learning point is not that every rectangle must silently clamp values. The point is that the constructor is where the class takes responsibility for valid creation. If the invariant is &quot;positive width and height,&quot; then every constructor must establish it, and every mutating public method must preserve it.</p>
+<h3>Reading class code on exams</h3>
+<p>When shown a class definition, first mark the public interface and private representation. Then ask which code is client code and which code is trusted class code. Many mistakes become obvious from that split:</p>
+<ul>
+<li>client code cannot access private fields</li>
+<li>friends are not methods, but they are trusted for private access</li>
+<li>method definitions outside the class need <code>ClassName::</code></li>
+<li>constructor bodies run after field initialization</li>
+<li>non-const reference getters can leak mutation authority</li>
+</ul>
+<h2>Common failure modes</h2>
+<ul>
+<li>Treating classes as structs with functions and leaving fields public.</li>
+<li>Adding a default constructor even when no valid default object exists.</li>
+<li>Assigning to <code>const</code> fields in the constructor body.</li>
+<li>Assuming MIL order is the written order instead of declaration order.</li>
+<li>Returning non-const references to private fields.</li>
+<li>Writing setters that do not preserve invariants.</li>
+<li>Making I/O operators members and getting operand order wrong.</li>
+<li>Adding getters for every field when the real public need is a behavior.</li>
+<li>Placing <code>using namespace std;</code> in a header.</li>
+</ul>
+<h2>Exam reasoning patterns</h2>
+<p>For construction questions:</p>
+<ol>
+<li>List the available constructors.</li>
+<li>Match the syntax to a constructor.</li>
+<li>Check which fields initialize in the MIL.</li>
+<li>Apply declaration-order initialization.</li>
+<li>Run the constructor body after initialization.</li>
+</ol>
+<p>For invariant questions:</p>
+<ol>
+<li>State the invariant.</li>
+<li>Identify every public operation that can affect it.</li>
+<li>Check whether public fields or reference getters bypass validation.</li>
+<li>Decide whether a getter/setter or behavior method is the better interface.</li>
+</ol>
+<p>For output-operator questions:</p>
+<ol>
+<li>Desired syntax is <code>out &lt;&lt; obj</code>.</li>
+<li>Therefore the left operand must be <code>std::ostream &amp;</code>.</li>
+<li>The operator should be a standalone function.</li>
+<li>If it needs private access, declare it as a friend.</li>
+<li>Return the stream by reference and do not force a newline.</li>
+</ol>
+<h2>Quick reference</h2>
+<ul>
+<li><code>this</code>: pointer to the implicit receiver object.</li>
+<li>Constructor body: runs after fields are initialized.</li>
+<li>MIL: initializes fields before constructor body.</li>
+<li>Initialization order: declaration order.</li>
+<li><code>struct</code>: default public.</li>
+<li><code>class</code>: default private.</li>
+<li><code>private</code>: protect representation and invariants.</li>
+<li><code>friend</code>: non-member function granted private access.</li>
+<li><code>ClassName::method</code>: definition of a method outside the class body.</li>
+</ul>
+        </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/references-pass-by-reference.html"><span>Previous</span>References and Pass by Reference</a>
+          <a href="/slides/?track=cpp-oop"><span>Back to Track</span>C++ OOP</a>
+          <a href="/slides/the-big-5.html"><span>Next</span>The Big 5</a>
+        </nav>
+        <p class="callout">Built from <code>summaries/11_classes.md</code> and reviewed against <code>slides/11_classes.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/site.js" defer></script>
+
+</body>
+</html>

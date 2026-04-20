@@ -496,16 +496,30 @@
     const toolBar = document.createElement('div');
     toolBar.className = 'study-tools';
 
+    const controls = document.createElement('div');
+    controls.className = 'study-tool-controls';
+
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'study-mode-toggle';
     toggle.setAttribute('aria-pressed', 'false');
 
+    const expandAll = document.createElement('button');
+    expandAll.type = 'button';
+    expandAll.className = 'study-mode-toggle secondary';
+    expandAll.textContent = 'Expand All';
+
+    const collapseAll = document.createElement('button');
+    collapseAll.type = 'button';
+    collapseAll.className = 'study-mode-toggle secondary';
+    collapseAll.textContent = 'Collapse All';
+
     const hint = document.createElement('p');
     hint.className = 'study-tools-hint';
-    hint.textContent = 'Study mode keeps concise bullets visible and hides long details until you reveal them.';
+    hint.textContent = 'Read everything first. Use Study Mode only when reviewing, then expand details for examples and edge cases.';
 
-    toolBar.append(toggle, hint);
+    controls.append(toggle, expandAll, collapseAll);
+    toolBar.append(controls, hint);
     const metaGrid = header.querySelector('.meta-grid');
     if (metaGrid) {
       header.insertBefore(toolBar, metaGrid);
@@ -526,6 +540,18 @@
       const enabled = !root.classList.contains('study-mode');
       localStorage.setItem(STUDY_MODE_KEY, enabled ? 'on' : 'off');
       applyStudyMode(enabled);
+    });
+
+    expandAll.addEventListener('click', () => {
+      article.querySelectorAll('.study-section').forEach((section) => {
+        section.open = true;
+      });
+    });
+
+    collapseAll.addEventListener('click', () => {
+      article.querySelectorAll('.study-section').forEach((section) => {
+        section.open = false;
+      });
     });
   }
 

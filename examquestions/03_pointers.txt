@@ -1,0 +1,55 @@
+[Q-03_pointers-1]
+Question: What is a pointer in C?
+Answer: A pointer is a value that stores a memory address.
+
+[Q-03_pointers-2]
+Question: What do `&x` and `*p` mean?
+Answer: `&x` gives the address of `x`, and `*p` dereferences `p` to access the value at that address.
+
+[Q-03_pointers-3]
+Question: Why does `times2(int *p)` mutate the caller’s variable?
+Answer: Because it writes through the address held in `p`, which refers to the caller’s storage.
+
+[Q-03_pointers-4]
+Question: What does `scanf("%d", &x)` require?
+Answer: It requires the address of `x` so `scanf` has somewhere to store the integer it reads.
+
+[Q-03_pointers-5]
+Question: Why can a failed `scanf` integer read loop forever?
+Answer: The invalid character remains in the input stream, so repeated reads keep failing on the same data.
+
+[Q-03_pointers-6]
+Question: Why is `sizeof(arr)` useful on a real array but not on an array parameter?
+Answer: Because array parameters decay to pointers, so `sizeof` then measures the pointer instead of the full array.
+
+[Q-03_pointers-7]
+Question: What does `p[i]` mean when `p` is a pointer?
+Answer: It means `*(p + i)`.
+
+[Q-03_pointers-8]
+Question: Why does pointer arithmetic depend on the pointed-to type?
+Answer: Because adding one element advances by `sizeof(*p)` bytes, not by one raw byte.
+
+[Q-03_pointers-9]
+Question: What makes a valid C string?
+Answer: It must be a null-terminated array of characters ending with `'\0'`.
+
+[Q-03_pointers-10]
+Question: Why is `char *s = "Text/Data";` dangerous if you try to write through `s`?
+Answer: The string literal usually lives in read-only storage, so writing through it is undefined behavior.
+
+[Q-03_pointers-11]
+Question: Why should string literal pointers usually be declared `const char *`?
+Answer: To prevent accidental writes to memory that should not be modified.
+
+[Q-03_pointers-12]
+Question: What does `strlen` count?
+Answer: The number of characters before the null terminator.
+
+[Q-03_pointers-13]
+Question: What is the difference between `sizeof(arr)` and `sizeof(p)` when `arr` is a real array and `p` is a pointer?
+Answer: `sizeof(arr)` measures the whole array storage, while `sizeof(p)` measures the size of the pointer itself.
+
+[Q-03_pointers-14]
+Question: Why is `buf1 < buf2` not a valid way to compare two C strings lexicographically?
+Answer: Because it compares the addresses of the arrays, not the characters stored in them.

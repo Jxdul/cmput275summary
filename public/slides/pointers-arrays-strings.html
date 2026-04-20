@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pointers, Arrays, and Strings | CMPUT 275 Summaries</title>
-  <meta name="description" content="Pointer semantics, array decay, input handling, and string safety.">
+  <title>Pointers, Arrays, Input, and Strings | CMPUT 275 Summaries</title>
+  <meta name="description" content="Pointers, address-of and dereference, scanf, robust input loops, array decay, pointer arithmetic, and C strings.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -32,400 +31,486 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
-    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Pointers, Arrays, and Strings</span></p>
-
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Pointers, Arrays, Input, and Strings</span></p>
     <section class="study-layout">
       <header class="study-page-header">
         <p class="kicker">C Core</p>
-        <h1>Pointers, Arrays, and Strings</h1>
-        <p>Pointer semantics, array decay, input handling, and string safety.</p>
-
+        <h1>Pointers, Arrays, Input, and Strings</h1>
+        <p>Pointers, address-of and dereference, scanf, robust input loops, array decay, pointer arithmetic, and C strings.</p>
         <div class="meta-grid">
           <article class="meta-card">
             <h2>Lecture File</h2>
-            <p>pointers.pdf</p>
+            <p>slides/03_pointers.pdf</p>
           </article>
           <article class="meta-card">
             <h2>Prerequisites</h2>
-            <p>Basic C syntax, stack memory model, and printf usage.</p>
+            <p>C syntax, functions, basic memory model, and formatted I/O.</p>
           </article>
           <article class="meta-card">
-            <h2>What You Can Do After This</h2>
-            <ul>
-            <li>Use pointers and dereferencing safely.</li>
-            <li>Handle scanf failures and EOF robustly.</li>
-            <li>Pass arrays to functions without size bugs.</li>
-            <li>Use const-correct string handling patterns.</li>
-            </ul>
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=03_pointers">03_pointers.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpl/pointers, lecture_code/cpl/arrays, lecture_code/cpl/input</code></p>
           </article>
         </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/c-programming-foundations.html">Previous: 02_c_pl</a>
+          <a class="btn primary" href="/exam-practice/?deck=03_pointers">Practice 03_pointers</a>
+          <a class="btn" href="/slides/dynamic-memory-management.html">Next: 04_dynamic_mem</a>
+        </div>
       </header>
-
       <div class="study-content-wrap">
         <article class="study-article js-study-content">
-<h1>Lecture Identity</h1>
-<p><strong>File/lecture name:</strong> pointers.pdf<br><strong>Main theme:</strong> C Pointers, Arrays, and Strings: Memory addresses, input handling, and string manipulation.<br><strong>Prereqs assumed by slides:</strong> Basic C syntax (variables, loops, functions), understanding of stack memory, and familiarity with <code>printf</code>.<br><strong>What this lecture enables you to do:</strong></p>
+<h1>03 Pointers and Arrays</h1>
+<h2>Big Picture</h2>
 <ul>
-<li>Manipulate memory directly using pointers and dereferencing.</li>
-<li>Handle user input robustly, including error checking and EOF detection.</li>
-<li>Understand array decay and pass arrays to functions safely.</li>
-<li>Manage string literals and use the standard string library functions.</li>
+<li>This lecture introduces pointers as memory addresses and then uses them to explain mutation, input, arrays, and strings.</li>
+<li>The important shift is that C exposes storage layout directly: you can read and write through a pointer, and arrays become pointer-like in many expressions.</li>
+<li>The rest of the lecture turns that model into practical tools for input handling, array processing, and C string work.</li>
 </ul>
-<h1>Big Picture Map (High-Level)</h1>
-<ol>
-<li><strong>Pointers Fundamentals:</strong> Definition, declaration, assignment using <code>&amp;</code>, and dereferencing using <code>*</code>.</li>
-<li><strong>Pointer Arithmetic &amp; Memory:</strong> Understanding memory layout, word size, hexadecimal addresses, and aliasing.</li>
-<li><strong>Input Handling (<code>scanf</code>):</strong> Reading integers, handling non-integer input errors, and detecting EOF.</li>
-<li><strong>Arrays:</strong> Declaration, <code>sizeof</code> operator, iteration, and initialization.</li>
-<li><strong>Arrays and Functions:</strong> Array decay, passing arrays as pointers, and mutation implications.</li>
-<li><strong>Strings:</strong> Storage of literals vs. stack arrays, <code>const</code> correctness, and string library functions (<code>strlen</code>, <code>strcat</code>).</li>
-</ol>
-<h1>Key Concepts &amp; Definitions</h1>
-<table>
-<thead>
-<tr>
-<th align="left">Name</th>
-<th align="left">Definition</th>
-<th align="left">Why it matters</th>
-<th align="left">Common confusion / misconception</th>
-<th align="left">Tiny example</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Pointer</strong></td>
-<td align="left">A data type that stores a memory address rather than a value.</td>
-<td align="left">Allows direct manipulation of memory and passing data by reference.</td>
-<td align="left">Confusing the pointer (address) with the value it points to.</td>
-<td align="left"><code>int *ptr;</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Dereference</strong></td>
-<td align="left">Using <code>*</code> to access the value stored at the memory address held by a pointer.</td>
-<td align="left">Essential for reading or modifying data via a pointer.</td>
-<td align="left">Thinking <code>*ptr</code> is a multiplication operator.</td>
-<td align="left"><code>*ptr = 10;</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Array Decay</strong></td>
-<td align="left">When an array is passed to a function, it decays into a pointer to its first element.</td>
-<td align="left">Explains why <code>sizeof</code> on a function parameter returns pointer size, not array size.</td>
-<td align="left">Believing <code>int arr[]</code> and <code>int *arr</code> are identical in all contexts.</td>
-<td align="left"><code>void f(int arr[])</code></td>
-</tr>
-<tr>
-<td align="left"><strong><code>scanf</code> Return</strong></td>
-<td align="left">Returns the number of items successfully read.</td>
-<td align="left">Critical for error handling; allows detecting non-integer input.</td>
-<td align="left">Assuming it always returns 1 or ignores failures.</td>
-<td align="left"><code>if (scanf(&quot;%d&quot;, &amp;x) == 1)</code></td>
-</tr>
-<tr>
-<td align="left"><strong><code>const</code></strong></td>
-<td align="left">A type modifier indicating data should not be modified.</td>
-<td align="left">Prevents accidental writes to read-only memory (like string literals).</td>
-<td align="left">Confusing <code>const int *</code> (ptr to const) with <code>int * const</code> (const ptr).</td>
-<td align="left"><code>const char *s = &quot;text&quot;;</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Null-Terminated String</strong></td>
-<td align="left">A C string is an array of characters ending with <code>\0</code> (ASCII 0).</td>
-<td align="left">Required for functions like <code>strlen</code> to know where the string ends.</td>
-<td align="left">Thinking the length of the literal is the string length.</td>
-<td align="left"><code>&quot;abc&quot;</code> is 3 chars, <code>&quot;abc\0&quot;</code> is 4 bytes.</td>
-</tr>
-<tr>
-<td align="left"><strong>EOF</strong></td>
-<td align="left">End-of-File indicator, returned by <code>getchar</code> or checked via <code>feof</code>.</td>
-<td align="left">Signals the end of input stream (e.g., Ctrl+D).</td>
-<td align="left">Checking <code>feof</code> before reading vs. after reading.</td>
-<td align="left"><code>while (!feof(stdin))</code></td>
-</tr>
-</tbody></table>
-<h1>Core Mechanics / How-To</h1>
-<p><strong>1. How to declare and assign a pointer safely</strong></p>
-<ol>
-<li>Declare the pointer with the correct type: <code>int *ptr;</code></li>
-<li>Do not assign arbitrary numbers (e.g., <code>ptr = 1000;</code>) unless you know the address is valid.</li>
-<li>Assign the address of a valid variable using the address-of operator: <code>ptr = &amp;x;</code></li>
-<li><em>Example:</em><pre><code class="language-c">int x = 10;
-int *ptr = &amp;x; // Safe
-</code></pre>
-</li>
-</ol>
-<p><strong>2. How to handle <code>scanf</code> input errors robustly</strong></p>
-<ol>
-<li>Check the return value of <code>scanf</code> immediately after the call.</li>
-<li>If the return value is not 1 (for an int), the input stream contains garbage.</li>
-<li>Consume the offending character(s) to prevent an infinite loop.</li>
-<li><em>Example:</em><pre><code class="language-c">int ret = scanf(&quot;%d&quot;, &amp;x);
-if (ret != 1) {
-    char c;
-    scanf(&quot;%c&quot;, &amp;c); // Consume bad input
-}
-</code></pre>
-</li>
-</ol>
-<p><strong>3. How to iterate over an array safely</strong></p>
-<ol>
-<li>Calculate the length using <code>sizeof(arr) / sizeof(arr[0])</code> (only works for local arrays).</li>
-<li>Use a loop index <code>i</code> from <code>0</code> to <code>len - 1</code>.</li>
-<li><em>Example:</em><pre><code class="language-c">unsigned int len = sizeof(arr) / sizeof(arr[0]);
-for (unsigned int i = 0; i &lt; len; ++i) { ... }
-</code></pre>
-</li>
-</ol>
-<p><strong>4. How to pass arrays to functions</strong></p>
-<ol>
-<li>Remember that the function parameter <code>int arr[]</code> is treated as <code>int *arr</code>.</li>
-<li>You must pass the size explicitly (e.g., <code>void f(int arr[], unsigned int size)</code>).</li>
-<li>Do not use <code>sizeof(arr)</code> inside the function to get the array length.</li>
-<li><em>Example:</em><pre><code class="language-c">void printArray(int arr[], unsigned int size) {
-    for (unsigned int i = 0; i &lt; size; ++i) {
-        printf(&quot;%d\n&quot;, arr[i]);
-    }
-}
-</code></pre>
-</li>
-</ol>
-<p><strong>5. How to declare string literals correctly</strong></p>
-<ol>
-<li>Use <code>char myS[] = &quot;text&quot;;</code> for stack-allocated, modifiable strings.</li>
-<li>Use <code>const char *s = &quot;text&quot;;</code> for pointers to string literals (read-only).</li>
-<li>Never modify a pointer to a string literal (e.g., <code>s[0] = &#39;X&#39;</code> crashes).</li>
-<li><em>Example:</em><pre><code class="language-c">char myS[] = &quot;On Stack&quot;; // Modifiable
-const char *s = &quot;Text&quot;;  // Read-only
-</code></pre>
-</li>
-</ol>
-<h1>Code Patterns &amp; Idioms</h1>
-<table>
-<thead>
-<tr>
-<th align="left">Pattern Name</th>
-<th align="left">When to use it</th>
-<th align="left">Correct minimal example</th>
-<th align="left">Common bug + how to avoid it</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Pointer to Const</strong></td>
-<td align="left">When you want to read data but not modify it.</td>
-<td align="left"><code>const int *px = &amp;x;</code></td>
-<td align="left">Bug: <code>*px = 5;</code> (Compiler error). Fix: Use <code>const</code>.</td>
-</tr>
-<tr>
-<td align="left"><strong>Const Pointer</strong></td>
-<td align="left">When the pointer itself should not change address.</td>
-<td align="left"><code>int * const py = &amp;y;</code></td>
-<td align="left">Bug: <code>py = &amp;x;</code> (Compiler error). Fix: Use <code>const</code> on pointer.</td>
-</tr>
-<tr>
-<td align="left"><strong>Input Loop</strong></td>
-<td align="left">When reading until EOF or valid input.</td>
-<td align="left"><code>while (scanf(...) == 1) { ... }</code></td>
-<td align="left">Bug: Infinite loop on bad input. Fix: Consume bad char with <code>scanf(&quot;%c&quot;, &amp;c)</code>.</td>
-</tr>
-<tr>
-<td align="left"><strong>Array Decay</strong></td>
-<td align="left">When passing arrays to functions.</td>
-<td align="left"><code>void f(int arr[])</code></td>
-<td align="left">Bug: <code>sizeof(arr)</code> returns pointer size. Fix: Pass size explicitly.</td>
-</tr>
-<tr>
-<td align="left"><strong>String Length</strong></td>
-<td align="left">When calculating string length.</td>
-<td align="left"><code>strlen(p)</code></td>
-<td align="left">Bug: <code>sizeof(p)</code> returns pointer size. Fix: Use <code>strlen</code> or <code>sizeof(arr)/sizeof(char)</code> for stack arrays.</td>
-</tr>
-</tbody></table>
-<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<h2>What a Pointer Is</h2>
 <ul>
-<li><strong>Symptom:</strong> Program crashes immediately after <code>s[0] = &#39;X&#39;;</code> where <code>s</code> points to a literal.<ul>
-<li><strong>Likely cause:</strong> Modifying read-only memory (string literal stored in text segment).</li>
-<li><strong>Fix:</strong> Use <code>char myS[] = &quot;text&quot;;</code> instead of <code>char *s = &quot;text&quot;;</code>.</li>
+<li>A pointer stores a memory address.</li>
+<li>The address identifies some other data in memory.</li>
+<li>A pointer lets you read or write the data at that address.</li>
+<li><code>int *ptr;</code> declares a pointer to <code>int</code>.</li>
+<li>The <code>*</code> belongs to the type.</li>
+<li><code>&amp;x</code> gives the address of <code>x</code>.</li>
+<li>You should not assign arbitrary numbers to pointers.</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>sizeof(arr)</code> returns 4 (or 8) inside a function instead of 40.<ul>
-<li><strong>Likely cause:</strong> Array decay; <code>arr</code> is a pointer, not an array.</li>
-<li><strong>Fix:</strong> Pass the size as a separate argument.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Infinite loop when reading integers with <code>scanf</code>.<ul>
-<li><strong>Likely cause:</strong> <code>scanf</code> fails to read, leaves bad input in stream, loop repeats.</li>
-<li><strong>Fix:</strong> Consume the bad character(s) after a failed read.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>&amp;arr</code> and <code>arr</code> print the same address.<ul>
-<li><strong>Likely cause:</strong> Array decay in expressions; <code>arr</code> evaluates to address of first element.</li>
-<li><strong>Fix:</strong> Understand <code>&amp;arr</code> is address of the array object, <code>arr</code> is address of first element.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>strlen</code> returns incorrect length for a stack array.<ul>
-<li><strong>Likely cause:</strong> Confusing <code>sizeof</code> (bytes) with <code>strlen</code> (chars).</li>
-<li><strong>Fix:</strong> Use <code>sizeof(arr)/sizeof(char)</code> for stack arrays, <code>strlen</code> for pointers.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>scanf</code> returns 0 but program continues.<ul>
-<li><strong>Likely cause:</strong> Input stream contains non-matching data.</li>
-<li><strong>Fix:</strong> Check return value and handle error.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>const int *px</code> allows changing <code>px</code> but not <code>*px</code>.<ul>
-<li><strong>Likely cause:</strong> Misunderstanding <code>const</code> placement.</li>
-<li><strong>Fix:</strong> <code>const</code> before <code>*</code> protects the value; <code>const</code> after <code>*</code> protects the pointer.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>printf(&quot;%p\n&quot;, ptr)</code> prints a random address.<ul>
-<li><strong>Likely cause:</strong> Pointer not initialized or assigned a valid address.</li>
-<li><strong>Fix:</strong> Initialize with <code>&amp;variable</code> or <code>NULL</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>arr</code> and <code>p</code> (where <code>p = arr</code>) behave differently in <code>sizeof</code>.<ul>
-<li><strong>Likely cause:</strong> <code>arr</code> is an array, <code>p</code> is a pointer.</li>
-<li><strong>Fix:</strong> Use <code>sizeof(arr)</code> only for local arrays.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>scanf</code> leaves newline character in buffer.<ul>
-<li><strong>Likely cause:</strong> Mixing <code>scanf(&quot;%d&quot;)</code> and <code>scanf(&quot;%c&quot;)</code>.</li>
-<li><strong>Fix:</strong> Use <code>scanf(&quot;%c&quot;, &amp;c)</code> to consume the newline.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>strcat</code> overflows destination buffer.<ul>
-<li><strong>Likely cause:</strong> Destination array is too small.</li>
-<li><strong>Fix:</strong> Ensure <code>dest</code> has enough space for <code>src</code> + null terminator.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>arr</code> and <code>&amp;arr</code> are different in <code>printf</code>.<ul>
-<li><strong>Likely cause:</strong> <code>arr</code> decays to pointer, <code>&amp;arr</code> is address of array object.</li>
-<li><strong>Fix:</strong> Use <code>&amp;arr</code> only if you need the address of the array object itself.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>const</code> variable left uninitialized.<ul>
-<li><strong>Likely cause:</strong> <code>const</code> variables must be initialized.</li>
-<li><strong>Fix:</strong> Always provide an initial value for <code>const</code> variables.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>scanf</code> fails to read integer but loop continues.<ul>
-<li><strong>Likely cause:</strong> Bad input not consumed.</li>
-<li><strong>Fix:</strong> Consume bad input character.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>sizeof</code> on array parameter returns pointer size.<ul>
-<li><strong>Likely cause:</strong> Array decay.</li>
-<li><strong>Fix:</strong> Pass size explicitly.</li>
-</ul>
-</li>
-</ul>
-<h1>Exam-Style Questions (with answers)</h1>
-<ol>
-<li><strong>Q:</strong> What is the output of <code>printf(&quot;%d\n&quot;, *ptr);</code> if <code>int x = 10; int *ptr = &amp;x;</code>?
-<strong>A:</strong> <code>10</code> (Dereferencing <code>ptr</code> accesses the value of <code>x</code>).</li>
-<li><strong>Q:</strong> Why does <code>scanf(&quot;%d&quot;, &amp;x)</code> return 0 if the user types &quot;abc&quot;?
-<strong>A:</strong> It returns 0 because no integer was successfully read.</li>
-<li><strong>Q:</strong> What is the difference between <code>char *s = &quot;text&quot;;</code> and <code>char s[] = &quot;text&quot;;</code>?
-<strong>A:</strong> <code>s</code> points to a read-only literal (crash if modified); <code>s[]</code> is a modifiable stack array.</li>
-<li><strong>Q:</strong> What happens if you call <code>sizeof(arr)</code> inside a function where <code>arr</code> is a parameter?
-<strong>A:</strong> It returns the size of a pointer (e.g., 4 or 8 bytes), not the array size.</li>
-<li><strong>Q:</strong> What is the return type of <code>scanf</code>?
-<strong>A:</strong> <code>int</code> (number of items successfully read).</li>
-<li><strong>Q:</strong> What does <code>const char *s</code> mean?
-<strong>A:</strong> Pointer to a constant character (cannot modify the data pointed to).</li>
-<li><strong>Q:</strong> What is the value of <code>&amp;arr</code> vs <code>arr</code> for an array <code>int arr[5]</code>?
-<strong>A:</strong> <code>arr</code> is the address of the first element; <code>&amp;arr</code> is the address of the array object (different type).</li>
-<li><strong>Q:</strong> How do you fix an infinite loop when reading integers with <code>scanf</code>?
-<strong>A:</strong> Consume the bad input character(s) after a failed read.</li>
-<li><strong>Q:</strong> What is &quot;Array Decay&quot;?
-<strong>A:</strong> The process where an array name is treated as a pointer to its first element in expressions.</li>
-<li><strong>Q:</strong> What is the ASCII value of the null terminator?
-<strong>A:</strong> 0 (represented as <code>\0</code>).</li>
-<li><strong>Q:</strong> Can you use <code>sizeof</code> to find the length of a string passed to a function?
-<strong>A:</strong> No, because of array decay; you must pass the size explicitly.</li>
-<li><strong>Q:</strong> What does <code>feof(stdin)</code> return?
-<strong>A:</strong> True (non-zero) only after an attempted read fails due to EOF.</li>
-</ol>
-<h1>Quick Reference / Cheat Sheet</h1>
+<h3>Mental model</h3>
 <ul>
-<li><strong>Pointer Declaration:</strong> <code>type *name;</code></li>
-<li><strong>Address-of:</strong> <code>&amp;variable</code></li>
-<li><strong>Dereference:</strong> <code>*pointer</code></li>
-<li><strong>Array Size (Local):</strong> <code>sizeof(arr) / sizeof(arr[0])</code></li>
-<li><strong>Array Size (Function Param):</strong> <code>sizeof(arr)</code> returns pointer size (use passed size).</li>
-<li><strong>String Literal:</strong> <code>const char *s = &quot;text&quot;;</code> (Read-only)</li>
-<li><strong>Stack String:</strong> <code>char s[] = &quot;text&quot;;</code> (Modifiable)</li>
-<li><strong><code>scanf</code> Return:</strong> Number of items read.</li>
-<li><strong><code>EOF</code>:</strong> End of file indicator.</li>
-<li><strong><code>strlen</code>:</strong> Returns length of string (null-terminated).</li>
-<li><strong><code>strcat</code>:</strong> Concatenates strings (dest must be large enough).</li>
-<li><strong><code>const</code> Placement:</strong> <code>const int *p</code> (ptr to const) vs <code>int * const p</code> (const ptr).</li>
-<li><strong><code>&amp;arr</code> vs <code>arr</code>:</strong> <code>arr</code> decays to <code>&amp;arr[0]</code>.</li>
+<li>A normal variable stores a value.</li>
+<li>A pointer stores where a value lives.</li>
+<li>The pointer itself is a value too, but its meaning is “address of something else.”</li>
+<li>The type tells C how to interpret the bytes at that address when you dereference it.</li>
 </ul>
-<h1>Mini Glossary</h1>
-<ol>
-<li><strong>Pointer:</strong> Variable storing a memory address.</li>
-<li><strong>Dereference:</strong> Accessing value at address via <code>*</code>.</li>
-<li><strong>Alias:</strong> Using a pointer to access/modify the original variable.</li>
-<li><strong>Array Decay:</strong> Array becoming a pointer when passed to a function.</li>
-<li><strong>Stack:</strong> Memory region for local variables (grows towards lower addresses).</li>
-<li><strong>Heap:</strong> Memory region for dynamic allocation (not covered in slides).</li>
-<li><strong>Text Segment:</strong> Memory region for string literals (read-only).</li>
-<li><strong>EOF:</strong> End-of-File indicator.</li>
-<li><strong>Null Terminator:</strong> <code>\0</code> character ending a C string.</li>
-<li><strong>Lexicographical:</strong> String comparison order (ASCII value).</li>
-<li><strong>Const:</strong> Type modifier preventing modification.</li>
-<li><strong>Address-of:</strong> Operator <code>&amp;</code> returning memory address.</li>
-<li><strong>Pointer Arithmetic:</strong> Adding integers to pointers (scaled by type size).</li>
-<li><strong>Word:</strong> Group of bytes (typically 4 bytes in this context).</li>
-<li><strong>Hexadecimal:</strong> Base-16 number system for addresses.</li>
-<li><strong>Stream:</strong> Sequence of data (e.g., standard input).</li>
-<li><strong>Mutation:</strong> Changing the value of a variable.</li>
-<li><strong>Segmentation Fault:</strong> Crash due to invalid memory access.</li>
-<li><strong>Standard Input:</strong> <code>stdin</code> (keyboard).</li>
-<li><strong>Return Value:</strong> Result of a function call.</li>
-</ol>
-<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<h2>Dereferencing and Aliasing</h2>
 <ul>
-<li><strong>Dynamic Memory Allocation:</strong> <code>malloc</code>, <code>calloc</code>, <code>free</code> are not covered in these slides.</li>
-<li><strong>Structs and Unions:</strong> Composite data types are not covered.</li>
-<li><strong>C++ Specifics:</strong> Classes, inheritance, or OOP concepts (despite course description).</li>
-<li><strong>Graph Algorithms:</strong> Shortest paths, Dijkstra, etc. (despite course description).</li>
-<li><strong>Client-Server Computing:</strong> Network programming concepts.</li>
-<li><strong>Recursion:</strong> Not explicitly covered in this lecture (though mentioned in course description).</li>
-<li><strong>Bitwise Operators:</strong> Not covered in this lecture.</li>
-<li><strong>File I/O:</strong> <code>fopen</code>, <code>fread</code>, <code>fwrite</code> (only <code>stdin</code>/<code>stdout</code> covered).</li>
+<li><code>*ptr</code> follows the pointer to the value it points at.</li>
+<li>Dereferencing is an alias for the underlying storage.</li>
+<li>Assigning through a dereferenced pointer mutates the original object.</li>
 </ul>
-<h1>Slide Anchors (Traceability)</h1>
+<h3>Worked trace: <code>simple.c</code></h3>
 <ul>
-<li><strong>Pointers Definition:</strong> Slide 2 (&quot;A pointer is a datatype that stores a memory address&quot;).</li>
-<li><strong>Dereferencing:</strong> Slide 5 (&quot;The dereference operator (unary*) allows us to &#39;follow&#39; a pointer&quot;).</li>
-<li><strong><code>scanf</code> Error Handling:</strong> Slide 16 (&quot;scanf returns the number of successfully read items&quot;).</li>
-<li><strong>Infinite Loop Fix:</strong> Slide 19 (&quot;Solution: try to read an integer, if we fail remove exactly one character&quot;).</li>
-<li><strong>Array Decay:</strong> Slide 35 (&quot;C copies only the address of the first element of the array... We call this array decay&quot;).</li>
-<li><strong><code>sizeof</code> on Arrays:</strong> Slide 30 (&quot;The sizeof operator evaluates to the size (in bytes) of its operand&quot;).</li>
-<li><strong>String Literals Storage:</strong> Slide 53 (&quot;String literals are stored often in the text or data segment... marked read-only&quot;).</li>
-<li><strong><code>const</code> Usage:</strong> Slide 55 (&quot;Pointers to string literals should always be pointers to const char&quot;).</li>
-<li><strong><code>strlen</code> Implementation:</strong> Slide 61 (&quot;Here is one way one could implement strlen&quot;).</li>
-<li><strong>String Library Functions:</strong> Slide 63 (<code>strcmp</code>, <code>strchr</code>, <code>strcat</code> descriptions).</li>
+<li><code>int x = 10;</code></li>
+<li><code>int *p = &amp;x;</code></li>
+<li><code>p</code> now stores the address of <code>x</code>.</li>
+<li><code>printf(&quot;value of p: %p\n&quot;, p);</code> prints the address.</li>
+<li><code>printf(&quot;value of dereferenced p (*p): %d\n&quot;, *p);</code> prints <code>10</code>.</li>
+<li><code>*p = -1;</code> writes through the pointer.</li>
+<li><code>printf(&quot;The value of x: %d\n&quot;, x);</code> prints <code>-1</code> because <code>x</code> and <code>*p</code> refer to the same storage.</li>
 </ul>
+<h3>Common mistaken model</h3>
+<ul>
+<li>A student may think <code>*p</code> is just “a copy of x.”</li>
+<li>It is not.</li>
+<li><code>*p</code> is a different way to name the same memory.</li>
+<li>That is why writes through <code>*p</code> change <code>x</code>.</li>
+</ul>
+<h2>Mutation Through Pointers</h2>
+<ul>
+<li><code>times2(int *p)</code> can modify the caller’s value by writing through <code>*p</code>.</li>
+<li>Passing <code>&amp;x</code> into such a function lets the function change <code>x</code>.</li>
+<li>This is the core reason pointers matter in C.</li>
+</ul>
+<h3>Worked trace: <code>times2.c</code></h3>
+<ul>
+<li>Start with <code>x = 10</code>.</li>
+<li>Call <code>times2(&amp;x)</code>.</li>
+<li>The function receives the address of <code>x</code>.</li>
+<li><code>*p = *p * 2;</code> doubles the value stored at that address.</li>
+<li>After the first call, <code>x</code> becomes <code>20</code>.</li>
+<li>After the second call, <code>x</code> becomes <code>40</code>.</li>
+</ul>
+<h3>Why this works</h3>
+<ul>
+<li>C passes arguments by value.</li>
+<li>When you pass an <code>int</code>, the callee gets a copy.</li>
+<li>When you pass an <code>int *</code>, the callee gets a copy of the address.</li>
+<li>The copy of the address still points to the caller’s storage, so dereferencing it reaches the caller’s object.</li>
+</ul>
+<h3>Debugging habit</h3>
+<ul>
+<li>If a function “isn’t mutating the caller’s variable,” check whether you passed the value or the address.</li>
+<li>If a function parameter is <code>int x</code>, it can only mutate its local copy.</li>
+<li>If the goal is mutation, the parameter usually needs to be a pointer.</li>
+</ul>
+<h2>Words, Addresses, and Hex</h2>
+<ul>
+<li>A word is a group of bytes, commonly 4 or 8.</li>
+<li>The lecture diagrams assume 4-byte words.</li>
+<li>Hexadecimal is the normal way to display addresses.</li>
+</ul>
+<h3>Why addresses are usually shown in hex</h3>
+<ul>
+<li>Raw binary addresses are too long to read comfortably.</li>
+<li>Hex compresses four bits into one digit.</li>
+<li>That makes memory diagrams readable without losing the bit structure.</li>
+</ul>
+<h2>Pointer Size and Pointer Arithmetic</h2>
+<ul>
+<li><code>sizeof</code> can show the size of a value versus the size of a pointer.</li>
+<li>Pointer arithmetic scales by the pointed-to type size.</li>
+<li>Adding 1 to an <code>int *</code> advances by <code>sizeof(int)</code> bytes.</li>
+<li>Pointer subtraction yields element distance, not raw byte distance.</li>
+</ul>
+<h3>Worked trace: <code>sizes.c</code></h3>
+<ul>
+<li>The code prints <code>sizeof(int)</code> and <code>sizeof(int *)</code>.</li>
+<li>Those are not the same thing.</li>
+<li>It then sets <code>p = &amp;x</code> and increments <code>p</code>.</li>
+<li>Incrementing the pointer moves it by one <code>int</code> worth of storage.</li>
+</ul>
+<h3>Worked trace: <code>pointerArithmetic.c</code></h3>
+<ul>
+<li><code>int *p = &amp;x;</code></li>
+<li><code>long long int *z = &amp;y;</code></li>
+<li><code>++p;</code> advances by one <code>int</code>.</li>
+<li><code>++z;</code> advances by one <code>long long int</code>.</li>
+<li>The machine is not adding one raw byte.</li>
+<li>It is adding one element of the pointed-to type.</li>
+</ul>
+<h3>What the machine is doing</h3>
+<ul>
+<li>The compiler knows the size of the pointed-to type.</li>
+<li>Pointer arithmetic multiplies the step by that size.</li>
+<li>That is why <code>p + 1</code> and <code>z + 1</code> can move by different numbers of bytes.</li>
+</ul>
+<h2>Invalid and Dangerous Pointers</h2>
+<ul>
+<li>You should not assign arbitrary numbers to pointers.</li>
+<li><code>&amp;4</code> is invalid because the literal <code>4</code> is not a stored object with a normal address you may take.</li>
+<li>Walking a pointer across unrelated data is undefined behavior.</li>
+</ul>
+<h3>Worked trace: <code>rvalue.c</code></h3>
+<ul>
+<li>The code tries to do <code>int *p = &amp;4;</code></li>
+<li>That is invalid because <code>4</code> is an rvalue.</li>
+<li>An rvalue may exist only as a temporary expression result.</li>
+<li>It is not guaranteed to have an address you can take.</li>
+</ul>
+<h3>Worked trace: <code>badBehaviour.c</code></h3>
+<ul>
+<li>The program prints addresses and then increments a pointer through unrelated storage.</li>
+<li>That is not a valid way to “scan memory.”</li>
+<li>A pointer must stay within a valid object or one-past-the-end.</li>
+<li>Crossing into unrelated objects makes the behavior undefined.</li>
+</ul>
+<h2>Arrays: What They Are and What They Are Not</h2>
+<ul>
+<li>Arrays are fixed-size collections of same-typed elements.</li>
+<li>They are contiguous in memory.</li>
+<li>Array size must be known when allocating stack arrays.</li>
+<li><code>sizeof</code> works on actual arrays, but not on array parameters after decay.</li>
+<li>Arrays are not pointers.</li>
+</ul>
+<h3>Important distinction</h3>
+<ul>
+<li>An array stores elements.</li>
+<li>A pointer stores an address.</li>
+<li>In many expressions, an array name evaluates to the address of its first element.</li>
+<li>That is why arrays sometimes “look like pointers,” but they are not the same type.</li>
+</ul>
+<h3>Worked trace: <code>whatIsAnArray.c</code></h3>
+<ul>
+<li>The array <code>arr</code> really is an array.</li>
+<li><code>sizeof arr</code> measures the whole array storage.</li>
+<li><code>arr</code> in an expression decays to the address of the first element.</li>
+<li><code>&amp;arr</code> is the address of the whole array object, which is why the type is different even if the numeric address prints the same.</li>
+<li><code>arr[2]</code>, <code>*(arr + 2)</code>, and <code>2[arr]</code> all refer to the same element because indexing is pointer arithmetic plus dereference.</li>
+</ul>
+<h3>Common mistaken model</h3>
+<ul>
+<li>Students often believe <code>arr</code> “is just a pointer.”</li>
+<li>Better: an array can decay to a pointer in expressions, but it is still an array object.</li>
+<li>That distinction is why <code>sizeof</code> and function parameters behave differently.</li>
+</ul>
+<h2>Array Parameters and Length</h2>
+<ul>
+<li>When passed to a function, an array usually decays to a pointer to its first element.</li>
+<li>That is why <code>void f(int arr[])</code> and <code>void f(int *arr)</code> are effectively the same in parameter position.</li>
+<li>Because of decay, the callee must be given the length separately.</li>
+</ul>
+<h3>Worked trace: <code>printArray.c</code></h3>
+<ul>
+<li><code>main</code> creates a real array with ten elements.</li>
+<li><code>printArray(arr, sizeof arr/sizeof arr[0]);</code> passes the pointer-like value and the length.</li>
+<li><code>printArray(arr + 2, (sizeof arr/sizeof arr[0]) - 2);</code> passes a pointer to the third element and the remaining length.</li>
+<li>The function can print from the middle because the data are contiguous.</li>
+</ul>
+<h3>Debugging habit</h3>
+<ul>
+<li>If a function needs to know how many elements are valid, pass the length explicitly.</li>
+<li>Do not try to recover the original array size inside the function after decay.</li>
+</ul>
+<h2>Traversing and Mutating Arrays</h2>
+<ul>
+<li>Arrays are often traversed with index-based loops.</li>
+<li>Pointer iteration is another valid pattern.</li>
+<li>Mutation through arrays and pointers changes the same storage because arrays are contiguous.</li>
+</ul>
+<h3>Worked trace: <code>argmax.c</code></h3>
+<ul>
+<li>The first version starts <code>max</code> at the first element.</li>
+<li>It walks <code>cur</code> from <code>arr</code> to <code>arr + len</code>.</li>
+<li>Whenever <code>*cur &gt; *max</code>, it updates <code>max</code>.</li>
+<li>At the end, <code>max - arr</code> gives the index of the largest element.</li>
+<li>The second version does the same job with an explicit index variable.</li>
+</ul>
+<h3>Worked trace: <code>replace.c</code></h3>
+<ul>
+<li><code>end</code> points one past the last valid element.</li>
+<li>The loop walks from <code>arr</code> up to <code>end</code>.</li>
+<li>When <code>*arr == tar</code>, the code writes <code>repl</code> into that slot.</li>
+<li>The function returns the number of replacements.</li>
+<li>This is a canonical in-place mutation pattern.</li>
+</ul>
+<h2>Strings</h2>
+<ul>
+<li>C has no dedicated string type.</li>
+<li>Strings are null-terminated arrays of <code>char</code>.</li>
+<li>A character array without <code>'\0'</code> is not a valid C string.</li>
+</ul>
+<h3>Storage of strings</h3>
+<ul>
+<li><code>char myS[] = &quot;This is stored on the stack&quot;;</code></li>
+<li>creates a writable array on the stack.</li>
+<li>the characters are copied into the array storage.</li>
+<li><code>char *p = &quot;This is stored in the text or data segment&quot;;</code></li>
+<li>points at string-literal storage.</li>
+<li>writing through <code>p</code> is undefined behavior.</li>
+</ul>
+<h3>Worked trace: <code>storage.c</code></h3>
+<ul>
+<li><code>myS</code> is a real array.</li>
+<li><code>myS[0] = 'X';</code> is legal because the array is writable.</li>
+<li><code>p</code> points at a string literal.</li>
+<li><code>p[0] = 'X';</code> is a bug because the literal storage should not be modified.</li>
+<li>The printed addresses demonstrate that the writable stack array and the literal live in different storage.</li>
+</ul>
+<h3>Why <code>const char *</code> matters</h3>
+<ul>
+<li><code>const char *</code> says “pointer to read-only characters.”</li>
+<li>It prevents accidental writes through the pointer.</li>
+<li>That is the correct type for string literals and other read-only string data.</li>
+</ul>
+<h2>String Length, Comparison, and Search</h2>
+<ul>
+<li><code>strlen</code> counts characters until the null terminator.</li>
+<li><code>strcmp</code> compares lexicographically.</li>
+<li><code>strchr</code> searches for a character.</li>
+<li><code>strcat</code> appends strings, but only if the destination buffer is large enough.</li>
+</ul>
+<h3>Worked trace: <code>strSize.c</code></h3>
+<ul>
+<li><code>char s[] = &quot;abcd&quot;;</code></li>
+<li><code>strlen(s)</code> returns <code>4</code> because it counts characters before <code>'\0'</code>.</li>
+<li><code>sizeof s</code> returns the size of the whole array storage, including the terminator.</li>
+<li>This is one of the most common C mistakes: length and storage size are not the same thing.</li>
+</ul>
+<h3>Worked trace: <code>myStrLen.c</code></h3>
+<ul>
+<li><code>ourstrlen</code> starts at the first character.</li>
+<li>It advances while <code>*p</code> is nonzero.</li>
+<li>It increments <code>len</code> with each character.</li>
+<li>When it reaches <code>'\0'</code>, it stops.</li>
+<li>This is exactly the mental model you should have for <code>strlen</code>.</li>
+</ul>
+<h3>Worked trace: <code>comparing.c</code></h3>
+<ul>
+<li><code>buf1 &lt; buf2</code> compares addresses, not string content.</li>
+<li>That is the wrong mental model if you want lexical order.</li>
+<li><code>cmps</code> walks both strings until it finds a difference or a terminator.</li>
+<li>The function then returns <code>-1</code>, <code>0</code>, or <code>1</code> based on character comparison.</li>
+</ul>
+<h3>Worked trace: <code>mystrchr.c</code></h3>
+<ul>
+<li>The function scans a string one character at a time.</li>
+<li>If it finds the target, it returns a pointer to that position.</li>
+<li>If it reaches the null terminator, it returns <code>NULL</code>.</li>
+<li>The returned pointer may point into stack storage, heap storage, or a literal; the pointer itself is just an address.</li>
+</ul>
+<h2>Safer String Input</h2>
+<ul>
+<li>Plain <code>scanf(&quot;%s&quot;, buff)</code> is dangerous because it can overrun a buffer.</li>
+<li>A width limit like <code>&quot;%15s&quot;</code> bounds how many characters are read.</li>
+</ul>
+<h3>Worked trace: <code>readingStrings.c</code></h3>
+<ul>
+<li><code>char buff[16];</code></li>
+<li><code>scanf(&quot;%15s&quot;, buff)</code> reads at most 15 characters plus the null terminator.</li>
+<li>The remaining input stays in the stream if the user typed more than 15 characters.</li>
+<li>That is safer than unbounded <code>%s</code>, but it also means long input can be split across reads.</li>
+</ul>
+<h2>Input and Error Recovery</h2>
+<ul>
+<li><code>scanf</code> reads formatted input from stdin.</li>
+<li>It returns the number of successfully read items.</li>
+<li>If the return value is not what you expected, input likely failed.</li>
+<li>A failed integer read leaves the bad character in the stream.</li>
+<li>Repeating the same read without consuming anything repeats the failure.</li>
+<li>The fix is to consume the offending character and try again.</li>
+<li><code>feof(stdin)</code> and <code>EOF</code> help detect end of input.</li>
+<li><code>getchar()</code> reads one character and returns <code>EOF</code> at end of file.</li>
+</ul>
+<h3>Worked trace: integer-reading loop</h3>
+<ul>
+<li>Try <code>scanf(&quot;%d&quot;, &amp;x)</code>.</li>
+<li>If it succeeds, use the value.</li>
+<li>If it fails, consume one character with <code>scanf(&quot;%c&quot;, &amp;c)</code> or a similar strategy.</li>
+<li>Then try again.</li>
+<li>Without the consume step, the invalid character stays at the front of the stream forever.</li>
+</ul>
+<h3>What the machine is doing</h3>
+<ul>
+<li><code>scanf</code> does not magically remove bad input.</li>
+<li>It only removes data it successfully consumes.</li>
+<li>If the next character is not valid for the requested format, the read fails and the stream position does not move past that character.</li>
+</ul>
+<h2>Lecture Code Connections</h2>
+<ul>
+<li><code>lecture_code/cpl/pointers/simple.c</code></li>
+<li>Shows address-of, dereference, and mutation through <code>*p</code>.</li>
+<li><code>lecture_code/cpl/pointers/times2.c</code></li>
+<li>Shows the pointer-based version of <code>times2</code> that actually changes the caller’s variable.</li>
+<li><code>lecture_code/cpl/pointers/sizes.c</code></li>
+<li>Shows the size of a value versus the size of a pointer, and how pointer arithmetic advances by the pointed-to type size.</li>
+<li><code>lecture_code/cpl/pointers/rvalue.c</code></li>
+<li>Shows that you cannot take the address of a literal rvalue like <code>4</code>.</li>
+<li><code>lecture_code/cpl/pointers/pointerArithmetic.c</code></li>
+<li>Shows pointer arithmetic on different pointed-to types and why the increment depends on <code>sizeof(*p)</code>.</li>
+<li><code>lecture_code/cpl/pointers/badBehaviour.c</code></li>
+<li>Demonstrates undefined behavior from walking a pointer across unrelated data.</li>
+<li><code>lecture_code/cpl/arrays/whatIsAnArray.c</code></li>
+<li>Shows the array-versus-pointer distinction and the indexing identity <code>arr[i] == *(arr + i)</code>.</li>
+<li><code>lecture_code/cpl/arrays/printArray.c</code></li>
+<li>Shows that array parameters behave like pointer parameters and need explicit length.</li>
+<li><code>lecture_code/cpl/arrays/argmax.c</code></li>
+<li>Uses pointer iteration and array indexing to find the index of the maximum element.</li>
+<li><code>lecture_code/cpl/arrays/replace.c</code></li>
+<li>Shows in-place mutation of array elements and count-returning replacement logic.</li>
+<li><code>lecture_code/cpl/arrays/strings/storage.c</code></li>
+<li>Shows writable stack strings versus read-only string literals.</li>
+<li><code>lecture_code/cpl/arrays/strings/readingStrings.c</code></li>
+<li>Shows safer bounded string reading with <code>scanf(&quot;%15s&quot;, buff)</code>.</li>
+<li><code>lecture_code/cpl/arrays/strings/strSize.c</code></li>
+<li>Contrasts <code>strlen</code> with <code>sizeof</code> on a stack string.</li>
+<li><code>lecture_code/cpl/arrays/strings/myStrLen.c</code></li>
+<li>Implements string length manually by scanning until <code>'\0'</code>.</li>
+<li><code>lecture_code/cpl/arrays/strings/comparing.c</code></li>
+<li>Shows why address comparison is not string comparison.</li>
+<li><code>lecture_code/cpl/arrays/strings/mystrchr.c</code></li>
+<li>Shows a search function that returns a pointer into the input string or <code>NULL</code>.</li>
+</ul>
+<h2>Common Failure Narratives</h2>
+<ul>
+<li>A student thinks a pointer is “the value itself” and then gets confused when two variables alias the same storage.</li>
+<li>A student uses <code>&amp;4</code> or another rvalue and expects every expression to have an address.</li>
+<li>A student assumes arrays and pointers are interchangeable and then misuses <code>sizeof</code>.</li>
+<li>A student passes an array to a function but forgets to pass the length, so the callee cannot tell how much storage is valid.</li>
+<li>A student reads a non-integer with <code>scanf(&quot;%d&quot;, &amp;x)</code> and then loops forever because the bad character is still sitting in stdin.</li>
+<li>A student compares strings with <code>&lt;</code> and <code>&gt;</code> and accidentally compares addresses.</li>
+<li>A student writes into a string literal through <code>char *</code> and hits undefined behavior.</li>
+<li>A student uses <code>%s</code> with no width limit and overflows a fixed buffer.</li>
+</ul>
+<h2>Exam Solution Patterns</h2>
+<ul>
+<li>If a question asks why a function mutates the caller’s value, explain aliasing through pointers.</li>
+<li>If a question asks about <code>scanf</code>, remember that it needs an address so it can store the parsed value.</li>
+<li>If a question asks about array length inside a function, remember array decay and the loss of size information.</li>
+<li>If a question asks about pointer arithmetic, convert the idea to “elements, not bytes.”</li>
+<li>If a question asks about strings, look for the null terminator and the storage location.</li>
+<li>If a question asks about a loop that will not stop, inspect whether bad input is being consumed.</li>
+</ul>
+<h2>Quick Reference</h2>
+<ul>
+<li>Pointer declaration: <code>int *p</code></li>
+<li>Address-of: <code>&amp;x</code></li>
+<li>Dereference: <code>*p</code></li>
+<li>Array indexing: <code>arr[i]</code></li>
+<li>Pointer indexing: <code>p[i] == *(p + i)</code></li>
+<li>Array length on a real array: <code>sizeof(arr) / sizeof(arr[0])</code></li>
+<li>String terminator: <code>'\0'</code></li>
+<li>Read integer: <code>scanf(&quot;%d&quot;, &amp;x)</code></li>
+<li>Read bounded string: <code>scanf(&quot;%15s&quot;, buff)</code></li>
+<li>Check EOF: <code>feof(stdin)</code></li>
+<li>Read one character: <code>getchar()</code></li>
+<li>String length: <code>strlen</code></li>
+<li>Comparison: <code>strcmp</code></li>
+<li>Search: <code>strchr</code></li>
+<li>Append: <code>strcat</code></li>
+<li>Use <code>const char *</code> for string literals</li>
+</ul>
+<h2>Exam Questions</h2>
+<ul>
+<li>Q: Why does <code>times2(int *p)</code> mutate the caller’s variable, but <code>times2(int x)</code> does not?</li>
+</ul>
+<p>A: The pointer version writes through the caller’s address, while the value version only mutates a local copy.</p>
+<ul>
+<li>Q: What does <code>p[i]</code> mean for a pointer <code>p</code>?</li>
+</ul>
+<p>A: It means <code>*(p + i)</code>.</p>
+<ul>
+<li>Q: Why can’t you use <code>sizeof</code> to get the length of an array parameter?</li>
+</ul>
+<p>A: Because array parameters decay to pointers, and <code>sizeof</code> then measures the pointer, not the original array.</p>
+<ul>
+<li>Q: What does <code>'\0'</code> represent?</li>
+</ul>
+<p>A: The null terminator that marks the end of a C string.</p>
+<ul>
+<li>Q: Why is <code>char *s = &quot;Text/Data&quot;;</code> dangerous if you try to write through <code>s</code>?</li>
+</ul>
+<p>A: It points at read-only string literal storage, so writing through it is undefined behavior and often crashes.</p>
+<ul>
+<li>Q: What does <code>scanf(&quot;%d&quot;, &amp;x)</code> require that <code>scanf(&quot;%d&quot;, x)</code> does not?</li>
+</ul>
+<p>A: It requires the address of <code>x</code>, because <code>scanf</code> needs somewhere to store the value it reads.</p>
+<ul>
+<li>Q: Why is pointer arithmetic scaled by type size?</li>
+</ul>
+<p>A: Because advancing by one element means moving by <code>sizeof(*p)</code> bytes, not by one raw byte.</p>
+<ul>
+<li>Q: Why can a failed integer read loop forever?</li>
+</ul>
+<p>A: The invalid character stays in the input stream unless it is explicitly consumed.</p>
         </article>
-
         <nav class="toc" aria-label="On this page">
           <h2>On this page</h2>
           <ul data-toc-list></ul>
         </nav>
-
         <nav class="page-nav" aria-label="Lecture sequence">
           <a href="/slides/c-programming-foundations.html"><span>Previous</span>C Programming Foundations</a>
           <a href="/slides/?track=c-core"><span>Back to Track</span>C Core</a>
-          <a href="/slides/structs-and-adts.html"><span>Next</span>Structs and ADTs</a>
+          <a href="/slides/dynamic-memory-management.html"><span>Next</span>Dynamic Memory Management</a>
         </nav>
-
-        <p class="callout">Manually curated from <code>summaries/pointers.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+        <p class="callout">Built from <code>summaries/03_pointers.md</code> and reviewed against <code>slides/03_pointers.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

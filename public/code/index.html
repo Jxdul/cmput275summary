@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Code | CMPUT 275 Summaries</title>
-  <meta name="description" content="Roadmap for CMPUT 275 code summaries and practice references.">
+  <meta name="description" content="Lecture code map for CMPUT 275 summaries.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
         <span class="brand-mark" aria-hidden="true">275</span>
-        <span>CMPUT 275 Study Hub</span>
+        <span>CMPUT 275 Summaries</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
         <a href="/">Home</a>
@@ -31,63 +31,98 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
     <section class="hero">
-      <p class="kicker">Code Area</p>
-      <h1>Code summaries are coming next. incomplete.</h1>
-      <p>
-        This section is incomplete.
-      </p>
-      <div class="cta-row">
-        <a class="btn primary" href="/slides/">Study Slide Summaries</a>
-        <a class="btn" href="/slides/pointers-arrays-strings.html">Jump to Pointer Patterns</a>
-      </div>
+      <p class="kicker">Code References</p>
+      <h1>Lecture code mapped to the summaries.</h1>
+      <p>Use these folders while reading the summaries. The fastest way to learn the memory topics is to trace the lecture code beside the explanations.</p>
     </section>
-
-    <section class="section" aria-labelledby="roadmap-heading">
-      <h2 id="roadmap-heading">Roadmap</h2>
-      <p>Planned additions for this section.</p>
+    <section class="section" aria-labelledby="code-map-heading">
+      <h2 id="code-map-heading">Code Map</h2>
       <div class="roadmap-grid">
         <article class="roadmap-card">
-          <h3>Core C Idioms</h3>
-          <p>Curated snippets for pointers, arrays, string handling, and input parsing.</p>
+          <h3>Shell scripts and streams</h3>
+          <p><code>lecture_code/shell</code></p>
+          <p>Arguments, redirection, pipes, stdout/stderr examples, and reusable Bash scripts.</p>
         </article>
         <article class="roadmap-card">
-          <h3>Memory Safety Playbook</h3>
-          <p>Allocation/free patterns, ownership rules, and common bug diagnostics.</p>
+          <h3>C fundamentals</h3>
+          <p><code>lecture_code/cpl/smallExamples</code></p>
+          <p>Hello world, types, character/integer behavior, conditions, loops, and bitwise examples.</p>
         </article>
         <article class="roadmap-card">
-          <h3>Build Workflow Recipes</h3>
-          <p>Compile/link examples with multi-file projects and header organization.</p>
+          <h3>Pointers, arrays, and input</h3>
+          <p><code>lecture_code/cpl/pointers, lecture_code/cpl/arrays, lecture_code/cpl/input</code></p>
+          <p>Pointer aliasing, array decay, strings, scanf failure handling, and wc-style input processing.</p>
         </article>
         <article class="roadmap-card">
-          <h3>Practice Drills</h3>
-          <p>Short code-trace and bug-fix exercises matched to lecture topics.</p>
+          <h3>Dynamic memory and ADTs</h3>
+          <p><code>lecture_code/cpl/dynamic, lecture_code/cpl/mutation, lecture_code/cpl/aggregate, lecture_code/cpl/sep_comp</code></p>
+          <p>Growing arrays, output parameters, structs, linked lists, headers, and incomplete types.</p>
+        </article>
+        <article class="roadmap-card">
+          <h3>C++ core and OOP</h3>
+          <p><code>lecture_code/cpp</code></p>
+          <p>Streams, references, constructors, classes, operator overloads, and Big 5 resource ownership.</p>
         </article>
       </div>
     </section>
-
-    <section class="section" aria-labelledby="resources-heading">
-      <h2 id="resources-heading">Current Resources</h2>
-      <p class="muted">Use these slide pages right now for code-heavy revision:</p>
+    <section class="section" aria-labelledby="lecture-code-heading">
+      <h2 id="lecture-code-heading">Where to Start</h2>
+      <p>Open a summary first, then use its lecture-code section to decide which source file to trace. The code is most useful when read with the matching PDF topic beside it.</p>
       <div class="path-grid">
+        <a class="path-card" href="/slides/shell-bash-basics.html">
+          <h3>Shell and Bash Basics</h3>
+          <p>Operating systems, shell commands, paths, streams, redirection, pipes, permissions, SSH, and Bash scripts.</p>
+        </a>
         <a class="path-card" href="/slides/c-programming-foundations.html">
           <h3>C Programming Foundations</h3>
-          <p>Language syntax, number representations, and function mechanics.</p>
+          <p>C as a compiled, statically typed language; number systems; basic syntax; functions; and memory layout.</p>
         </a>
         <a class="path-card" href="/slides/pointers-arrays-strings.html">
-          <h3>Pointers, Arrays, and Strings</h3>
-          <p>Essential memory and input patterns you will use in assignments.</p>
+          <h3>Pointers, Arrays, Input, and Strings</h3>
+          <p>Pointers, address-of and dereference, scanf, robust input loops, array decay, pointer arithmetic, and C strings.</p>
         </a>
         <a class="path-card" href="/slides/dynamic-memory-management.html">
           <h3>Dynamic Memory Management</h3>
-          <p>Heap allocation, resizing, and lifetime reasoning.</p>
+          <p>Heap allocation, malloc/free, lifetimes, dangling pointers, leaks, growing arrays, and doubling capacity.</p>
+        </a>
+        <a class="path-card" href="/slides/command-line-args-and-2d-arrays.html">
+          <h3>Command Line Args and Multi-Dimensional Arrays</h3>
+          <p>argc/argv, double pointers, strings from the OS, pointer-to-pointer 2D arrays, and flat 1D matrix storage.</p>
+        </a>
+        <a class="path-card" href="/slides/mutation-and-double-pointers.html">
+          <h3>Mutation and Double Pointers</h3>
+          <p>Returning extra values through pointer parameters, output parameters, and using double pointers to mutate caller-owned pointers.</p>
+        </a>
+        <a class="path-card" href="/slides/structs-and-adts.html">
+          <h3>Structs and ADTs</h3>
+          <p>C structs, member access, struct pointers, arrow operator, linked lists, ADT design, and encapsulation motivation.</p>
+        </a>
+        <a class="path-card" href="/slides/separate-compilation-and-headers.html">
+          <h3>Separate Compilation and Headers</h3>
+          <p>Declarations versus definitions, preprocessing, object files, linking, headers, incomplete types, and C encapsulation.</p>
+        </a>
+        <a class="path-card" href="/slides/intro-to-cpp.html">
+          <h3>Introduction to C++</h3>
+          <p>Modern C++ style, g++, streams, stream state, manipulators, new/delete, function overloading, and operator overloading.</p>
+        </a>
+        <a class="path-card" href="/slides/references-pass-by-reference.html">
+          <h3>References and Pass by Reference</h3>
+          <p>References as aliases, reference rules, pass-by-reference, const references, returning references, and stream operators.</p>
+        </a>
+        <a class="path-card" href="/slides/basic-classes.html">
+          <h3>Basic Classes</h3>
+          <p>Classes, objects, methods, constructors, member initialization lists, access control, headers, getters/setters, and friends.</p>
+        </a>
+        <a class="path-card" href="/slides/the-big-5.html">
+          <h3>The Big 5</h3>
+          <p>Destructors, copy constructors, copy assignment, move operations, copy elision, and the rule of five for resource-owning classes.</p>
         </a>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

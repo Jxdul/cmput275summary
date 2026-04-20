@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Big 5 | CMPUT 275 Summaries</title>
+  <meta name="description" content="Destructors, copy constructors, copy assignment, move operations, copy elision, and the rule of five for resource-owning classes.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Summaries</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/exam-practice/">Exam Practice</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>The Big 5</span></p>
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">C++ OOP</p>
+        <h1>The Big 5</h1>
+        <p>Destructors, copy constructors, copy assignment, move operations, copy elision, and the rule of five for resource-owning classes.</p>
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>slides/13_big5.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C++ classes, heap allocation with new/delete, linked-list ADT, references.</p>
+          </article>
+          <article class="meta-card">
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=13_big5">13_big5.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpp/big5, lecture_code/cpp/raii</code></p>
+          </article>
+        </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/basic-classes.html">Previous: 11_classes</a>
+          <a class="btn primary" href="/exam-practice/?deck=13_big5">Practice 13_big5</a>
+          <a class="btn" href="/slides/">Back to Slides</a>
+        </div>
+      </header>
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>The Big 5</h1>
+<h2>What this deck is really about</h2>
+<p>The Big 5 are the special member functions a resource-owning C++ class usually needs:</p>
+<ul>
+<li>destructor</li>
+<li>copy constructor</li>
+<li>copy assignment operator</li>
+<li>move constructor</li>
+<li>move assignment operator</li>
+</ul>
+<p>The lecture's <code>List</code> owns heap-allocated nodes. That makes ownership explicit: exactly one <code>List</code> should be responsible for deleting a node chain at any time. The Big 5 are the tools for preserving that rule across object lifetimes, copies, assignments, moves, and destruction.</p>
+<h2>The running example</h2>
+<p>From <code>lecture_code/cpp/big5/list/list.h</code>:</p>
+<pre><code>class List {
+  struct Node {
+    int data;
+    Node *next;
+    Node(int data, Node *next);
+    ~Node();
+    Node(const Node &amp;o);
+  };
+
+  int len;
+  Node *head;
+  void swap(List &amp;o);
+
+public:
+  List();
+  List(const List &amp;l);
+  List(List &amp;&amp;o);
+  ~List();
+  List &amp;operator=(const List &amp;o);
+  List &amp;operator=(List &amp;&amp;o);
+  List &amp;cons(int data);
+};</code></pre>
+<p><code>Node</code> is nested because it is an implementation detail of <code>List</code>. Client code should not create nodes or manipulate node pointers.</p>
+<p>Invariant:</p>
+<ul>
+<li><code>len</code> is the number of nodes reachable from <code>head</code>.</li>
+<li><code>head</code> is either <code>nullptr</code> or points to a heap-allocated node chain.</li>
+<li>Each node owns the rest of the chain through <code>next</code>.</li>
+<li>No two live <code>List</code> objects own the same node chain unless the class is deliberately designed for shared ownership, which this one is not.</li>
+</ul>
+<h2>Destructor</h2>
+<p>Problem:</p>
+<pre><code>List l;
+l.cons(1).cons(2).cons(3);</code></pre>
+<p><code>cons</code> uses <code>new Node{...}</code>. If nothing deletes those nodes, every list leaks memory.</p>
+<p>Destructor:</p>
+<pre><code>List::~List() {
+  delete head;
+}
+
+List::Node::~Node() {
+  delete next;
+}</code></pre>
+<p>This works recursively:</p>
+<ul>
+<li>Deleting the head node runs the head node's destructor.</li>
+<li>That destructor deletes <code>next</code>.</li>
+<li>Deleting <code>next</code> runs the next node's destructor.</li>
+<li>The chain continues until <code>nullptr</code>.</li>
+</ul>
+<p>Important: <code>delete nullptr</code> is safe, so the base case is natural.</p>
+<p>Failure modes:</p>
+<ul>
+<li>No destructor: leak every allocated node.</li>
+<li>Destructor deletes only the first node and <code>Node</code> does not delete <code>next</code>: leak the rest.</li>
+<li>Two lists own the same head pointer: both destructors delete the same nodes, causing double free.</li>
+</ul>
+<h2>Copy constructor</h2>
+<p>Copy construction creates a new object from an existing object:</p>
+<pre><code>List l1;
+l1.cons(1).cons(2).cons(3);
+List l2 = l1; // copy constructor</code></pre>
+<p>The compiler-generated copy constructor copies fields memberwise:</p>
+<pre><code>l2.len  = l1.len
+l2.head = l1.head</code></pre>
+<p>That is a shallow copy. Both lists point at the same nodes.</p>
+<p>Consequences:</p>
+<ul>
+<li>Mutating a node through one list changes what the other sees.</li>
+<li>When both destructors run, the same node chain is deleted twice.</li>
+</ul>
+<p>Correct copy constructor:</p>
+<pre><code>List::Node::Node(const List::Node &amp;o)
+  : data{o.data},
+    next{o.next ? new Node{*o.next} : nullptr} {}
+
+List::List(const List &amp;o)
+  : len{o.len},
+    head{o.head ? new Node{*o.head} : nullptr} {}</code></pre>
+<p>This is a deep copy. Every source node gets a newly allocated destination node. After copying, <code>l1</code> and <code>l2</code> have equal values but independent ownership.</p>
+<h3>Why the parameter is a reference</h3>
+<pre><code>List(const List &amp;o);</code></pre>
+<p>If the copy constructor took <code>List o</code> by value, creating the parameter would itself require copying a <code>List</code>, which would call the copy constructor before it has even started. That is infinite recursion conceptually and illegal in practice.</p>
+<h2>When copy construction happens</h2>
+<p>Common cases:</p>
+<pre><code>List b = a;        // initialize new object from existing object
+List b{a};         // same idea
+void f(List p);    // passing by value copies into p
+return localList;  // returning by value may copy or move, unless elided</code></pre>
+<p>Construction means a new object is being created. If the left-hand object already exists, it is assignment, not construction.</p>
+<h2>Copy assignment operator</h2>
+<p>Copy assignment writes into an existing object:</p>
+<pre><code>List l1;
+List l2;
+l2 = l1; // copy assignment, not copy construction</code></pre>
+<p>The target <code>l2</code> may already own nodes. A correct assignment must:</p>
+<ul>
+<li>avoid leaking the old nodes</li>
+<li>avoid shallow ownership</li>
+<li>handle self-assignment</li>
+<li>leave the target valid if copying fails</li>
+<li>return <code>*this</code> by reference so chained assignment works</li>
+</ul>
+<h3>Naive assignment 1: leak</h3>
+<pre><code>List &amp;List::operator=(const List &amp;o) {
+  head = o.head ? new Node{*o.head} : nullptr;
+  len = o.len;
+  return *this;
+}</code></pre>
+<p>If <code>this</code> already owned a chain, the old <code>head</code> pointer is overwritten and lost. Leak.</p>
+<h3>Naive assignment 2: self-assignment bug</h3>
+<pre><code>List &amp;List::operator=(const List &amp;o) {
+  delete head;
+  head = o.head ? new Node{*o.head} : nullptr;
+  len = o.len;
+  return *this;
+}</code></pre>
+<p>For <code>l = l</code>, <code>o.head</code> and <code>this-&gt;head</code> are the same pointer. The code deletes the chain, then tries to copy from the deleted chain. Undefined behavior.</p>
+<p>Self-assignment can be accidental:</p>
+<pre><code>arr[i] = arr[j];</code></pre>
+<p>If <code>i == j</code>, the object is assigned to itself.</p>
+<h3>Better but still duplicated</h3>
+<pre><code>List &amp;List::operator=(const List &amp;o) {
+  if (this == &amp;o) return *this;
+  Node *oldHead = head;
+  head = o.head ? new Node{*o.head} : nullptr;
+  len = o.len;
+  delete oldHead;
+  return *this;
+}</code></pre>
+<p>This avoids the self-assignment bug and deletes old memory only after the new copy succeeds. But it duplicates copy logic already present in the copy constructor.</p>
+<h2>Copy-and-swap</h2>
+<p>Lecture implementation:</p>
+<pre><code>void List::swap(List &amp;o) {
+  std::swap(len, o.len);
+  std::swap(head, o.head);
+}
+
+List &amp;List::operator=(const List &amp;o) {
+  List tmp{o};
+  swap(tmp);
+  return *this;
+}</code></pre>
+<p>Trace for <code>q = l</code>:</p>
+<ol>
+<li><code>tmp</code> is copy-constructed from <code>l</code>. If allocation fails, <code>q</code> is unchanged.</li>
+<li><code>q.swap(tmp)</code> gives <code>q</code> the new copied chain and gives <code>tmp</code> q's old chain.</li>
+<li><code>tmp</code> goes out of scope.</li>
+<li><code>tmp</code>'s destructor deletes q's old chain.</li>
+</ol>
+<p>Why it is strong:</p>
+<ul>
+<li>old resources are freed automatically</li>
+<li>copy logic is reused</li>
+<li>self-assignment is safe because the temporary is a separate deep copy</li>
+<li>target remains unchanged if copying fails before the swap</li>
+</ul>
+<p>The swap itself should be simple and non-throwing. If swap can fail halfway, the safety argument breaks.</p>
+<h2>Move constructor</h2>
+<p>Copying a whole list is wasteful when the source is a temporary that is about to die.</p>
+<p>Example from lecture:</p>
+<pre><code>List incrementList(List p) {
+  for (int i = 0; i &lt; p.getLen(); ++i) {
+    p.setIth(i, p.getIth(i) + 1);
+  }
+  return p;
+}
+
+List l2{incrementList(l1)};</code></pre>
+<p>The argument <code>p</code> is a copy of <code>l1</code>, so mutating it is safe. When <code>p</code> is returned by value, it is about to leave scope. Deep-copying its nodes just to destroy <code>p</code> is unnecessary.</p>
+<p>Move constructor:</p>
+<pre><code>List::List(List &amp;&amp;o)
+  : len{o.len}, head{o.head} {
+  o.head = nullptr;
+  o.len = 0;
+}</code></pre>
+<p>Trace:</p>
+<ol>
+<li>Destination copies the source pointer value.</li>
+<li>Destination now owns the node chain.</li>
+<li>Source is reset to an empty valid state.</li>
+<li>Source destructor later runs safely and deletes nothing.</li>
+</ol>
+<p>The moved-from object must remain valid, but its old value is not guaranteed.</p>
+<h2>Lvalues, rvalues, and move selection</h2>
+<p>For this course:</p>
+<ul>
+<li>lvalue: non-temporary object with a stable identity, such as a named variable.</li>
+<li>rvalue: temporary value, often produced by a function returning by value.</li>
+</ul>
+<pre><code>List a;
+List b{a};              // a is an lvalue, copy constructor
+List c{incrementList(a)}; // function result is an rvalue, move constructor may be used</code></pre>
+<p><code>List &amp;&amp;</code> is an rvalue reference parameter. It lets the class provide a special constructor for temporary source objects.</p>
+<p>Important subtlety: a named variable of type <code>List &amp;&amp;</code> is an lvalue when used by name inside the function. The lecture does not dwell on this, but it explains why move implementations must be deliberate.</p>
+<h2>Move assignment operator</h2>
+<p>Assignment from a temporary:</p>
+<pre><code>List l2;
+l2 = incrementList(l1);</code></pre>
+<p>Without move assignment, this can call copy assignment and deep-copy from a temporary. Move assignment handles rvalue right-hand sides:</p>
+<pre><code>List &amp;List::operator=(List &amp;&amp;o) {
+  swap(o);
+  return *this;
+}</code></pre>
+<p>Trace:</p>
+<ol>
+<li><code>o</code> refers to the temporary result.</li>
+<li><code>this</code> swaps its old chain with <code>o</code>'s chain.</li>
+<li><code>this</code> now owns the useful temporary's data.</li>
+<li><code>o</code> owns the old chain.</li>
+<li>The temporary is destroyed, freeing the old chain.</li>
+</ol>
+<p>This reuses <code>swap</code> and avoids writing deletion logic again.</p>
+<h2>Copy elision</h2>
+<p>Sometimes expected copy or move constructor prints do not appear. The compiler is allowed to construct an object directly in its final destination.</p>
+<p>Example pattern:</p>
+<pre><code>Foo makeFoo() {
+  Foo ret{5};
+  return ret;
+}
+
+Foo f{makeFoo()};</code></pre>
+<p>Without elision, there may be moves from <code>ret</code> to a return-value object and from that return-value object to <code>f</code>. With elision, the compiler can construct directly in <code>f</code>'s storage.</p>
+<p>The lecture mentions <code>-fno-elide-constructors</code> as a way to see the hidden moves in experiments.</p>
+<p>Exam point: copy elision can change which constructor calls you observe, but it does not excuse incorrect copy or move implementations. Your class must be correct when the Big 5 are called.</p>
+<h2>Dynamic array comparison</h2>
+<p><code>lecture_code/cpp/sepComp/dynArray/list.cc</code> owns an array:</p>
+<pre><code>List::List() : len{0}, cap{4}, arr{new int[cap]} {}
+
+List::~List() {
+  delete[] arr;
+}</code></pre>
+<p>The same ownership reasoning applies:</p>
+<ul>
+<li>copy constructor allocates a new array and copies elements</li>
+<li>destructor uses <code>delete[]</code></li>
+<li>move constructor steals <code>arr</code> and resets source to <code>nullptr</code>, <code>len = 0</code>, <code>cap = 0</code></li>
+<li>copy assignment uses copy-and-swap</li>
+<li>move assignment swaps with the temporary</li>
+</ul>
+<p>This shows the Big 5 are not about linked lists specifically. They are about any class that owns a resource.</p>
+<h2>Ownership trace: shallow vs deep copy</h2>
+<p>Shallow copy:</p>
+<pre><code>l1.head ---&gt; [3] -&gt; [2] -&gt; [1] -&gt; null
+l2.head -----^</code></pre>
+<p>Two owners, one chain. Bad.</p>
+<p>Deep copy:</p>
+<pre><code>l1.head ---&gt; [3] -&gt; [2] -&gt; [1] -&gt; null
+l2.head ---&gt; [3] -&gt; [2] -&gt; [1] -&gt; null</code></pre>
+<p>Two owners, two chains. Mutating one list does not mutate the other. Destructors delete separate allocations.</p>
+<p>Move:</p>
+<p>Before:</p>
+<pre><code>temp.head ---&gt; [4] -&gt; [3] -&gt; null
+dest.head ---&gt; old chain</code></pre>
+<p>After move construction:</p>
+<pre><code>dest.head ---&gt; [4] -&gt; [3] -&gt; null
+temp.head ---&gt; null</code></pre>
+<p>After move assignment by swap:</p>
+<pre><code>dest.head ---&gt; temp's useful chain
+temp.head ---&gt; dest's old chain</code></pre>
+<p>Then the temporary destructor frees the old chain.</p>
+<h2>Big 5 signatures</h2>
+<p>For a class <code>List</code>:</p>
+<pre><code>~List();
+List(const List &amp;o);
+List &amp;operator=(const List &amp;o);
+List(List &amp;&amp;o);
+List &amp;operator=(List &amp;&amp;o);</code></pre>
+<p>Why these forms:</p>
+<ul>
+<li>Destructor has no return type and no parameters.</li>
+<li>Copy constructor takes <code>const List &amp;</code>.</li>
+<li>Copy assignment takes <code>const List &amp;</code> and returns <code>List &amp;</code>.</li>
+<li>Move constructor takes <code>List &amp;&amp;</code>.</li>
+<li>Move assignment takes <code>List &amp;&amp;</code> and returns <code>List &amp;</code>.</li>
+</ul>
+<h2>Deeper ownership, RAII, and exception-safety reasoning</h2>
+<h3>Why Big 5 is about ownership</h3>
+<p>A class like:</p>
+<pre><code>struct Point {
+  int x;
+  int y;
+};</code></pre>
+<p>can usually be copied memberwise. The fields contain the whole value.</p>
+<p>The lecture <code>List</code> is different:</p>
+<pre><code>List object contains: len and head pointer
+heap contains: actual node chain</code></pre>
+<p>Copying the pointer does not copy the list. It only creates two owners for the same resource. The Big 5 exist because object lifetime operations must respect ownership.</p>
+<p>Ownership test:</p>
+<ul>
+<li>Does the destructor need to release something?</li>
+<li>Does copying a field accidentally share something that should be independent?</li>
+<li>Does assignment need to free an old resource before taking a new value?</li>
+<li>Can a temporary's resource be transferred instead of copied?</li>
+</ul>
+<p>If the answer to any of these is yes, the compiler defaults need scrutiny.</p>
+<h3>Full destructor trace</h3>
+<p>Before destruction:</p>
+<pre><code>l.len = 3
+l.head --&gt; A(data=3) -&gt; B(data=2) -&gt; C(data=1) -&gt; nullptr</code></pre>
+<p><code>List::~List()</code> runs:</p>
+<pre><code>delete head;</code></pre>
+<p>Deleting A calls <code>Node::~Node()</code> on A:</p>
+<pre><code>delete next;</code></pre>
+<p>That deletes B, whose destructor deletes C, whose destructor deletes <code>nullptr</code>. Then the calls unwind. The ownership structure is recursive: each node owns the suffix of the list starting at <code>next</code>.</p>
+<p>This design is compact. An iterative destructor would also be valid and would avoid deep recursion for very long lists. The lecture version is chosen because it makes resource ownership visible in the type itself.</p>
+<h3>Full copy-constructor trace</h3>
+<p>Before:</p>
+<pre><code>l1.head --&gt; A(3) -&gt; B(2) -&gt; C(1) -&gt; null</code></pre>
+<p>Expression:</p>
+<pre><code>List l2 = l1;</code></pre>
+<p><code>List::List(const List &amp;o)</code> receives <code>o</code> as an alias to <code>l1</code>.</p>
+<p>It initializes:</p>
+<pre><code>len{o.len}
+head{o.head ? new Node{*o.head} : nullptr}</code></pre>
+<p>Since <code>o.head</code> is not null, it allocates a new node copied from A. <code>Node</code>'s copy constructor copies A's data and recursively allocates a copy of B, which recursively allocates a copy of C.</p>
+<p>After:</p>
+<pre><code>l1.head --&gt; A(3)  -&gt; B(2)  -&gt; C(1)  -&gt; null
+l2.head --&gt; A2(3) -&gt; B2(2) -&gt; C2(1) -&gt; null</code></pre>
+<p>Mutating <code>l2</code> changes A2/B2/C2, not A/B/C. Destroying <code>l1</code> deletes A/B/C. Destroying <code>l2</code> deletes A2/B2/C2.</p>
+<h3>Assignment return and chained assignment</h3>
+<p>Assignment should return the assigned object:</p>
+<pre><code>x = y = z;</code></pre>
+<p>groups as:</p>
+<pre><code>x = (y = z);</code></pre>
+<p>So <code>y = z</code> must evaluate to <code>y</code>. For a class method, the left-hand object is <code>*this</code>, so the copy assignment operator returns:</p>
+<pre><code>return *this;</code></pre>
+<p>with return type:</p>
+<pre><code>List &amp;operator=(const List &amp;o);</code></pre>
+<p>Returning by value would create an unnecessary copy. Returning <code>void</code> would break chained assignment.</p>
+<h3>Self-assignment and exception safety</h3>
+<p>The dangerous assignment pattern is:</p>
+<pre><code>delete head;
+head = o.head ? new Node{*o.head} : nullptr;</code></pre>
+<p>For <code>l = l</code>, <code>o.head</code> and <code>this-&gt;head</code> are the same pointer. The code deletes the chain and then tries to copy from the deleted chain.</p>
+<p>Even without self-assignment, this order is weak for allocation failure. If <code>new Node{*o.head}</code> fails after the old head has been deleted, the target object has lost its original value and may contain a dangling or inconsistent state.</p>
+<p>A safer hand-written order is:</p>
+<pre><code>Node *newHead = o.head ? new Node{*o.head} : nullptr;
+delete head;
+head = newHead;
+len = o.len;</code></pre>
+<p>This keeps the old value until the new chain exists. Copy-and-swap is a cleaner version of the same idea.</p>
+<h3>Copy-and-swap trace</h3>
+<p>For:</p>
+<pre><code>q = l;</code></pre>
+<p>implementation:</p>
+<pre><code>List tmp{o};
+swap(tmp);
+return *this;</code></pre>
+<p>Trace:</p>
+<pre><code>before:
+q.head --&gt; Q1 -&gt; Q2
+l.head --&gt; L1 -&gt; L2 -&gt; L3
+
+copy:
+tmp.head --&gt; L1copy -&gt; L2copy -&gt; L3copy
+
+swap:
+q.head   --&gt; L1copy -&gt; L2copy -&gt; L3copy
+tmp.head --&gt; Q1 -&gt; Q2
+
+tmp destructor:
+deletes Q1 -&gt; Q2</code></pre>
+<p>If copying <code>l</code> into <code>tmp</code> fails, the swap never happens and <code>q</code> remains unchanged. If it succeeds, <code>q</code> receives the new value and the temporary cleans up the old value. This is the strong exception-safety story behind the idiom.</p>
+<p>For self-assignment:</p>
+<pre><code>l = l;</code></pre>
+<p>copy-and-swap first makes an independent copy of <code>l</code>, swaps with it, and lets the temporary delete the old chain. It is correct, though it does extra work. A <code>this == &amp;o</code> check can be added as an optimization.</p>
+<h3>Move-constructor ownership transfer</h3>
+<p>Before moving:</p>
+<pre><code>temporary o.head --&gt; A -&gt; B -&gt; C -&gt; null
+destination not yet initialized</code></pre>
+<p>Move constructor:</p>
+<pre><code>List::List(List &amp;&amp;o) : len{o.len}, head{o.head} {
+  o.head = nullptr;
+  o.len = 0;
+}</code></pre>
+<p>After member initialization but before the body, both objects contain the same pointer. The body must reset the source:</p>
+<pre><code>destination.head --&gt; A -&gt; B -&gt; C -&gt; null
+o.head ----------&gt; null
+o.len = 0</code></pre>
+<p>Now the destination owns the chain. The source is valid and empty. Its destructor is safe.</p>
+<h3>Move-assignment by swap</h3>
+<p>Before:</p>
+<pre><code>dest.head --&gt; Old1 -&gt; Old2 -&gt; null
+temp.head --&gt; New1 -&gt; New2 -&gt; New3 -&gt; null</code></pre>
+<p>Move assignment:</p>
+<pre><code>List &amp;List::operator=(List &amp;&amp;o) {
+  swap(o);
+  return *this;
+}</code></pre>
+<p>After:</p>
+<pre><code>dest.head --&gt; New1 -&gt; New2 -&gt; New3 -&gt; null
+temp.head --&gt; Old1 -&gt; Old2 -&gt; null</code></pre>
+<p>If <code>o</code> is a temporary returned from a function, it is destroyed soon and frees <code>Old1 -&gt; Old2</code>. The destination has taken the useful chain without deep-copying it.</p>
+<p>If <code>o</code> is a named object explicitly cast to an rvalue, this swap-based implementation leaves it valid but not necessarily empty. That is allowed. A moved-from object must satisfy class invariants and be destructible; clients should not rely on its old value.</p>
+<h3>Value category selection table</h3>
+<pre><code>List make();
+List a;
+const List ca;</code></pre>
+<p>Typical member selection:</p>
+<pre><code>List b{a};      // copy constructor: a is an lvalue
+List c{ca};     // copy constructor: ca is a const lvalue
+List d{make()}; // move constructor or copy elision: make() is an rvalue
+
+b = a;          // copy assignment
+b = make();     // move assignment, unless elided in another context</code></pre>
+<p>Moving normally mutates the source object to transfer ownership, so move operations take non-const rvalue references: <code>List &amp;&amp;</code>, not <code>const List &amp;&amp;</code>.</p>
+<h3>Copy elision and constructor counts</h3>
+<p>For:</p>
+<pre><code>List incrementList(List p) {
+  p.cons(99);
+  return p;
+}
+
+List l2{incrementList(l1)};</code></pre>
+<p>without elision, you can reason about:</p>
+<ul>
+<li>a copy construction from <code>l1</code> into parameter <code>p</code></li>
+<li>a move construction from local <code>p</code> into the function return value</li>
+<li>a move construction from the return value into <code>l2</code></li>
+</ul>
+<p>Compilers often elide one or more of these moves by constructing directly in the final storage. This can make print-debugging constructor calls confusing. It does not change the design requirement: copy and move operations must be correct when called.</p>
+<h3>RAII connection</h3>
+<p>In the C list ADT, clients call <code>freeList</code>. In the C++ list, the destructor does that work automatically when the object lifetime ends:</p>
+<pre><code>void f() {
+  List l;
+  l.cons(1).cons(2);
+} // destructor releases nodes here</code></pre>
+<p>This is RAII: resource acquisition is tied to object initialization, and release is tied to object destruction. RAII prevents forgotten cleanup, but it makes shallow copies dangerous because every owner automatically cleans up. That is why destructor, copy constructor, copy assignment, move constructor, and move assignment belong together.</p>
+<h3>Dynamic array comparison</h3>
+<p>The dynamic-array list in <code>lecture_code/cpp/sepComp/dynArray/list.cc</code> owns <code>arr</code> instead of linked nodes:</p>
+<pre><code>List::List() : len{0}, cap{4}, arr{new int[cap]} {}
+List::~List() { delete[] arr; }</code></pre>
+<p>The same rules apply:</p>
+<pre><code>correct copy:
+a.arr --&gt; heap block A
+b.arr --&gt; separate heap block B with copied elements
+
+shallow copy:
+a.arr --+
+        +--&gt; same heap block
+b.arr --+</code></pre>
+<p>If two objects share the same <code>arr</code>, both destructors call <code>delete[]</code> on the same allocation. The resource shape differs from the linked list, but the Big 5 reasoning is identical.</p>
+<p>In the move constructor, resetting <code>o.arr = nullptr</code>, <code>o.len = 0</code>, and <code>o.cap = 0</code> keeps the moved-from array-list object internally consistent. A null array should not claim to have live elements.</p>
+<h3>What each special member protects against</h3>
+<p>Destructor protects against leaks:</p>
+<pre><code>owned heap nodes must be released when the owner dies</code></pre>
+<p>Copy constructor protects against shared ownership during initialization:</p>
+<pre><code>new object must receive its own nodes</code></pre>
+<p>Copy assignment protects against shared ownership and leaks in an already-live object:</p>
+<pre><code>old destination nodes must be released
+new destination value must be a deep copy
+self-assignment must not destroy the source before copying it</code></pre>
+<p>Move constructor protects performance and ownership when creating from a temporary:</p>
+<pre><code>new object takes the temporary's resource
+temporary is reset so destruction is harmless</code></pre>
+<p>Move assignment protects performance and old-resource cleanup when replacing an existing object with a temporary:</p>
+<pre><code>destination takes temporary's resource
+destination's old resource is transferred somewhere that will clean it up</code></pre>
+<h3>Reading Big 5 exam code</h3>
+<p>For every proposed implementation, ask:</p>
+<ol>
+<li>What resources did the object own before the operation?</li>
+<li>What resources should it own after the operation?</li>
+<li>Did any allocation become unreachable?</li>
+<li>Do two live objects now own the same allocation?</li>
+<li>Is every moved-from object still destructible?</li>
+<li>Does the operation still work for an empty list?</li>
+</ol>
+<p>Empty-list cases matter. A correct implementation handles <code>head == nullptr</code> naturally. The copy constructor uses a conditional expression to avoid dereferencing null. The destructor can call <code>delete nullptr</code>. Move construction can steal a null pointer and leave the source null.</p>
+<h3>Why lecture code keeps <code>swap</code> private</h3>
+<p><code>swap</code> is an implementation helper for assignment. It directly exchanges private fields:</p>
+<pre><code>std::swap(len, o.len);
+std::swap(head, o.head);</code></pre>
+<p>Client code does not need that operation as part of the public list abstraction in the lecture. Keeping it private reduces the public surface area. Internally, it is valuable because both copy assignment and move assignment can reuse the same small, reliable ownership transfer step.</p>
+<h2>Common failure modes</h2>
+<ul>
+<li>Relying on compiler-generated copy for a pointer-owning class.</li>
+<li>Deleting only one node of a chain.</li>
+<li>Forgetting <code>delete[]</code> for arrays.</li>
+<li>Copy assignment leaks old resources.</li>
+<li>Copy assignment deletes old resources before handling self-assignment.</li>
+<li>Copy assignment leaves the object broken if allocation fails.</li>
+<li>Move constructor steals a pointer but forgets to null out the source.</li>
+<li>Move constructor nulls the source pointer but leaves other invariants inconsistent.</li>
+<li>Move assignment overwrites the destination pointer and leaks the old resource.</li>
+<li>Assuming copy elision will always hide broken copy/move code.</li>
+</ul>
+<h2>Exam reasoning patterns</h2>
+<p>For a code line, decide which special member is called:</p>
+<ul>
+<li><code>List b = a;</code>: copy constructor.</li>
+<li><code>List b{a};</code>: copy constructor.</li>
+<li><code>List b; b = a;</code>: copy assignment.</li>
+<li><code>List b{returningList()};</code>: move constructor or elision.</li>
+<li><code>b = returningList();</code>: move assignment.</li>
+<li>Leaving scope: destructor.</li>
+</ul>
+<p>For ownership diagrams:</p>
+<ol>
+<li>Draw each object.</li>
+<li>Draw pointer fields.</li>
+<li>Mark who owns each allocation.</li>
+<li>After copy, verify duplicate values but separate allocations.</li>
+<li>After move, verify destination owns the resource and source is valid.</li>
+<li>At destruction, every allocation should be deleted exactly once.</li>
+</ol>
+<p>For copy assignment implementations:</p>
+<ol>
+<li>Does it handle existing destination resources?</li>
+<li>Does it handle <code>x = x</code>?</li>
+<li>Does it deep-copy owned memory?</li>
+<li>Does it return <code>*this</code>?</li>
+<li>Is the object unchanged if allocation fails before commit?</li>
+</ol>
+<p>For move implementations:</p>
+<ol>
+<li>Does it avoid deep copying?</li>
+<li>Does it transfer ownership?</li>
+<li>Is the moved-from object safe to destroy?</li>
+<li>Are invariants restored in the moved-from object?</li>
+</ol>
+<h2>Quick reference</h2>
+<ul>
+<li>Destructor: releases owned resources.</li>
+<li>Copy constructor: creates a new independent object from an lvalue source.</li>
+<li>Copy assignment: replaces an existing object's value with a deep copy.</li>
+<li>Move constructor: creates a new object by stealing from an rvalue source.</li>
+<li>Move assignment: replaces an existing object by taking resources from an rvalue source.</li>
+<li>Copy-and-swap: copy first, swap second, let destructor clean old resources.</li>
+<li>Moved-from object: valid but unspecified.</li>
+<li>Copy elision: compiler may skip copy/move construction by constructing directly in destination.</li>
+</ul>
+        </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/basic-classes.html"><span>Previous</span>Basic Classes</a>
+          <a href="/slides/?track=cpp-oop"><span>Back to Track</span>C++ OOP</a>
+          <a href="/exam-practice/"><span>Next</span>Exam Practice</a>
+        </nav>
+        <p class="callout">Built from <code>summaries/13_big5.md</code> and reviewed against <code>slides/13_big5.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/site.js" defer></script>
+
+</body>
+</html>

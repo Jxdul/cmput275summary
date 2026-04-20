@@ -1,0 +1,39 @@
+[Q-01_shell-1]
+Question: What is the difference between `wc file.txt` and `wc < file.txt`?
+Answer: The first passes a filename argument to `wc`; the second feeds the file contents into stdin.
+
+[Q-01_shell-2]
+Question: What does `2>` redirect?
+Answer: Standard error.
+
+[Q-01_shell-3]
+Question: Why might `./myProgram` be required instead of `myProgram`?
+Answer: Because the current directory is not automatically searched through `PATH`.
+
+[Q-01_shell-4]
+Question: What does a pipe do in `cmd1 | cmd2`?
+Answer: It sends stdout from `cmd1` into stdin of `cmd2`.
+
+[Q-01_shell-5]
+Question: Why does `printBoth.py > out.txt 2> err.txt` separate the outputs cleanly?
+Answer: Because stdout and stderr are independent streams.
+
+[Q-01_shell-6]
+Question: What does `$(mktemp)` do?
+Answer: It runs `mktemp` and substitutes the resulting filename into the command.
+
+[Q-01_shell-7]
+Question: Why does `echo "${x}275"` sometimes behave differently from `echo "$x275"`?
+Answer: Braces make the variable boundary explicit so Bash does not reinterpret the text as a different variable name.
+
+[Q-01_shell-8]
+Question: What does a shebang line do?
+Answer: It tells Unix which interpreter should execute the file.
+
+[Q-01_shell-9]
+Question: What does `Ctrl+D` signal on Unix when a program is reading from the keyboard?
+Answer: End of input, also called EOF.
+
+[Q-01_shell-10]
+Question: Why should you test each stage of a pipeline separately when debugging?
+Answer: So you can isolate whether the bug is in the producer, the consumer, or the pipe connection between them.

@@ -1,0 +1,55 @@
+[Q-MU-01]
+Question: Why does `maxInfo` use an output parameter for the index of the maximum value?
+Answer: Because C functions normally return only one value directly, so the index is written into caller-owned memory through a pointer parameter.
+
+[Q-MU-02]
+Question: Why is `return (maxSoFar, maxInd);` not a valid way to return two values in C?
+Answer: The comma expression evaluates to only one value, so it does not return both results.
+
+[Q-MU-03]
+Question: Why does `push(int *arr, ...)` fail when it tries to replace the array during growth?
+Answer: It only reassigns a local copy of the pointer, so the caller keeps the old address and never sees the new allocation.
+
+[Q-MU-04]
+Question: Why does `push` need a double pointer when it may reallocate the array?
+Answer: The function must be able to update the caller's pointer itself, not just the data the pointer references.
+
+[Q-MU-05]
+Question: What bug appears if a resized array is freed but the caller still holds the old pointer?
+Answer: The caller has a dangling pointer to freed memory, and later accesses become undefined behavior.
+
+[Q-MU-06]
+Question: Why can a function write multiple outputs through pointer parameters?
+Answer: Because the caller passes addresses of variables, and the function can mutate those variables directly.
+
+[Q-MU-07]
+Question: What is the difference between `size_t len` and `size_t *len` in a function parameter?
+Answer: `size_t len` is just a copied value, while `size_t *len` lets the function update the caller's length variable.
+
+[Q-MU-08]
+Question: Why is a double free serious?
+Answer: It means the same heap block was released more than once, which usually indicates broken ownership and leads to undefined behavior.
+
+[Q-MU-09]
+Question: Why does the fixed `append` function take `int **arr`, `int *len`, and `int *cap`?
+Answer: Because it may need to rebind the array pointer and also mutate the length and capacity counters in the caller.
+
+[Q-MU-10]
+Question: Why is mutation through pointers so common in C?
+Answer: It is the standard way to return more than one piece of information and to update caller-owned data structures in place.
+
+[Q-MU-11]
+Question: In `append(int **arr, int *len, int *cap, int v)`, what do `arr`, `*arr`, and `(*arr)[0]` refer to?
+Answer: `arr` is the address of the caller's array pointer, `*arr` is the caller's array pointer itself, and `(*arr)[0]` is the first integer in the active array.
+
+[Q-MU-12]
+Question: Why does the fixed append call use `append(&arr, &len, &cap, x)`?
+Answer: The function may need to mutate all three caller variables: the array pointer, the length, and the capacity.
+
+[Q-MU-13]
+Question: A `pop` function only decrements `len`. Does it need to erase the old last value from the array?
+Answer: No. Decrementing `len` makes the old slot outside the meaningful portion of the array, though a safe `pop` must first check that the array is not empty.
+
+[Q-MU-14]
+Question: Why is `(*arr)[i]` different from `*arr[i]` when `arr` is an `int **`?
+Answer: `(*arr)[i]` first gets the caller's `int *` and indexes it, while `*arr[i]` indexes the double-pointer variable first and then dereferences the result.

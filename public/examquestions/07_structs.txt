@@ -1,0 +1,55 @@
+[Q-ST-01]
+Question: What is a struct in C?
+Answer: A struct is an aggregate data type that groups named fields of potentially different types into one value.
+
+[Q-ST-02]
+Question: Why did the lecture introduce `struct Rect`?
+Answer: To show how related values like position and size can be bundled together instead of passed around as many separate parameters.
+
+[Q-ST-03]
+Question: Why did `translate(struct Rect r, ...)` fail to update the caller's rectangle?
+Answer: The struct was passed by value, so the function changed only its local copy.
+
+[Q-ST-04]
+Question: What does `r->x` mean when `r` is a pointer to a struct?
+Answer: It is shorthand for `(*r).x`.
+
+[Q-ST-05]
+Question: Why can the size of a struct be larger than the sum of its field sizes?
+Answer: The compiler may insert padding bytes to satisfy alignment requirements.
+
+[Q-ST-06]
+Question: Why is a pointer to a struct often preferred over copying the struct?
+Answer: It avoids copying potentially large objects and allows the function to mutate the original when needed.
+
+[Q-ST-07]
+Question: What is the core idea of an abstract data type?
+Answer: Users should rely on behavior through a public interface, not on the internal representation.
+
+[Q-ST-08]
+Question: Why is exposing `Node` and `List` internals a problem for a list ADT?
+Answer: It lets client code build invalid structures and couples programs to an implementation that should remain hidden.
+
+[Q-ST-09]
+Question: Why is indexed access on a linked list `O(n)`?
+Answer: The program must walk node by node from the head until it reaches the requested index.
+
+[Q-ST-10]
+Question: In what order should a linked list be freed?
+Answer: Free the nodes first, then free the list object itself.
+
+[Q-ST-11]
+Question: Why does removing index 0 from a linked list require different code than removing a later index?
+Answer: Removing index 0 changes the list's `head` pointer, while removing a later node changes the previous node's `next` pointer.
+
+[Q-ST-12]
+Question: What invariant should hold between a list's `len` field and its node chain?
+Answer: `len` should equal the number of nodes reachable by following `next` pointers from `head`.
+
+[Q-ST-13]
+Question: Why must linked-list deletion save or recurse on `next` before freeing the current node?
+Answer: After the current node is freed, reading its `next` field would access freed memory and invoke undefined behavior.
+
+[Q-ST-14]
+Question: Why is a struct useful for dynamic array state such as `data`, `len`, and `cap`?
+Answer: Those fields describe one logical object, so bundling them reduces parameter mistakes and keeps related state consistent.

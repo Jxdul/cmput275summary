@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Introduction to C++ | CMPUT 275 Summaries</title>
+  <meta name="description" content="Modern C++ style, g++, streams, stream state, manipulators, new/delete, function overloading, and operator overloading.">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-shell site-nav">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">275</span>
+        <span>CMPUT 275 Summaries</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/slides/" aria-current="page">Slides</a>
+        <a href="/exam-practice/">Exam Practice</a>
+        <a href="/code/">Code</a>
+      </nav>
+      <div class="nav-right">
+        <div class="theme-toggle" role="group" aria-label="Theme preference">
+          <button type="button" data-theme-option="auto" aria-pressed="false">Auto</button>
+          <button type="button" data-theme-option="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-option="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="page-main site-shell" id="main-content">
+    <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Introduction to C++</span></p>
+    <section class="study-layout">
+      <header class="study-page-header">
+        <p class="kicker">C++ Core</p>
+        <h1>Introduction to C++</h1>
+        <p>Modern C++ style, g++, streams, stream state, manipulators, new/delete, function overloading, and operator overloading.</p>
+        <div class="meta-grid">
+          <article class="meta-card">
+            <h2>Lecture File</h2>
+            <p>slides/09_cpp.pdf</p>
+          </article>
+          <article class="meta-card">
+            <h2>Prerequisites</h2>
+            <p>C compilation, C memory model, pointers, and basic ADT thinking.</p>
+          </article>
+          <article class="meta-card">
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=09_cpp">09_cpp.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpp/io, lecture_code/cpp/alloc, lecture_code/cpp/overload, lecture_code/cpp/stringsAndStreams</code></p>
+          </article>
+        </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/separate-compilation-and-headers.html">Previous: 08_sep_comp</a>
+          <a class="btn primary" href="/exam-practice/?deck=09_cpp">Practice 09_cpp</a>
+          <a class="btn" href="/slides/references-pass-by-reference.html">Next: 10_refs</a>
+        </div>
+      </header>
+      <div class="study-content-wrap">
+        <article class="study-article js-study-content">
+<h1>Introduction to C++</h1>
+<h2>What this deck is really about</h2>
+<p>C++ is not &quot;C plus a few conveniences.&quot; The lecture uses familiar C ideas as a starting point, then shifts to C++ idioms:</p>
+<ul>
+<li>streams instead of <code>printf</code>/<code>scanf</code></li>
+<li>namespaces instead of putting all library names in the global namespace</li>
+<li><code>new</code>/<code>delete</code> instead of <code>malloc</code>/<code>free</code></li>
+<li>overloads for type-directed interfaces</li>
+<li><code>std::string</code> and string streams instead of raw C strings for most text work</li>
+<li>lambdas, templates, iterators, and range-based loops as the beginning of generic C++ style</li>
+</ul>
+<p>For this course, compile C++ with:</p>
+<pre><code>g++ -std=c++17 -Wall -Wvla -Werror</code></pre>
+<h2>Standard namespace and headers</h2>
+<p>The standard library lives mostly in namespace <code>std</code>.</p>
+<pre><code>#include &lt;iostream&gt;
+
+int main() {
+  std::cout &lt;&lt; &quot;Hello world&quot; &lt;&lt; std::endl;
+}</code></pre>
+<p>The <code>::</code> operator is scope resolution. <code>std::cout</code> means &quot;the name <code>cout</code> inside namespace <code>std</code>.&quot;</p>
+<p><code>using namespace std;</code> appears in many lecture files to keep examples small, but it is a tradeoff. In headers it is especially bad because <code>#include</code> copies the header into client code and forces the client's global namespace to import standard-library names.</p>
+<p>C headers in C++ often have <code>c</code> names:</p>
+<ul>
+<li>C: <code>&lt;stdio.h&gt;</code>, C++: <code>&lt;cstdio&gt;</code></li>
+<li>C: <code>&lt;stdlib.h&gt;</code>, C++: <code>&lt;cstdlib&gt;</code></li>
+<li>C: <code>&lt;string.h&gt;</code>, C++: <code>&lt;cstring&gt;</code></li>
+</ul>
+<h2>Streams are objects with state</h2>
+<p><code>std::cin</code>, <code>std::cout</code>, and <code>std::cerr</code> are stream objects:</p>
+<ul>
+<li><code>std::cin</code>: standard input</li>
+<li><code>std::cout</code>: standard output</li>
+<li><code>std::cerr</code>: standard error</li>
+</ul>
+<p>The operators are chosen to show data flow:</p>
+<pre><code>std::cin &gt;&gt; n;       // input stream extracts into n
+std::cout &lt;&lt; n;      // output stream receives n</code></pre>
+<p>Unlike <code>scanf</code>, the stream operator knows the target type from the variable. <code>cin &gt;&gt; x</code> reads an <code>int</code> if <code>x</code> is an <code>int</code>, a <code>char</code> if <code>x</code> is a <code>char</code>, and so on.</p>
+<h3>Chaining works because operators return the stream</h3>
+<pre><code>std::cout &lt;&lt; &quot;Total: &quot; &lt;&lt; total &lt;&lt; std::endl;</code></pre>
+<p>This groups like:</p>
+<pre><code>((std::cout &lt;&lt; &quot;Total: &quot;) &lt;&lt; total) &lt;&lt; std::endl;</code></pre>
+<p>Each <code>operator&lt;&lt;</code> returns the output stream so the next insertion can continue. Input chaining works the same way:</p>
+<pre><code>std::cin &gt;&gt; x &gt;&gt; y;</code></pre>
+<p>A custom stream operator should follow this convention.</p>
+<h2>Stream failure state</h2>
+<p>Streams remember whether operations have failed.</p>
+<ul>
+<li><code>fail()</code> is true when the fail bit or bad bit is set.</li>
+<li><code>bad()</code> means a serious stream failure.</li>
+<li><code>eof()</code> becomes true after a read fails because it reached end-of-file.</li>
+<li><code>clear()</code> resets error bits.</li>
+<li><code>ignore()</code> removes input characters.</li>
+</ul>
+<p>When fail or bad is set, later reads do not proceed until the state is cleared.</p>
+<h3>Worked trace: reading all integers</h3>
+<p>Lecture code in <code>lecture_code/cpp/io/readAllInts.cc</code>:</p>
+<pre><code>int x = 0;
+int total = 0;
+while (1) {
+  if (cin &gt;&gt; x) {
+    total += x;
+    cout &lt;&lt; &quot;I saw &quot; &lt;&lt; x &lt;&lt; endl;
+  } else {
+    if (cin.eof()) break;
+    cin.clear();
+    cin.ignore();
+  }
+}
+cout &lt;&lt; &quot;Total: &quot; &lt;&lt; total &lt;&lt; endl;</code></pre>
+<p>Input:</p>
+<pre><code>10 a 20</code></pre>
+<p>Trace:</p>
+<ul>
+<li><code>cin &gt;&gt; x</code> reads <code>10</code>, succeeds, total becomes <code>10</code>.</li>
+<li>Next read sees <code>a</code>, cannot parse an <code>int</code>, sets fail.</li>
+<li>The <code>else</code> branch checks <code>eof()</code>. It is false.</li>
+<li><code>clear()</code> makes the stream usable again.</li>
+<li><code>ignore()</code> removes the bad character <code>a</code>.</li>
+<li>Later reads can reach <code>20</code>.</li>
+</ul>
+<p>If you forget <code>clear()</code>, future reads stay disabled. If you forget <code>ignore()</code>, the same bad character causes the same failure again. If you ignore after EOF without checking <code>eof()</code>, loops can become wrong or infinite.</p>
+<h2>Stream manipulators</h2>
+<p>Manipulators are sent to a stream through <code>&lt;&lt;</code> or <code>&gt;&gt;</code> to mutate stream behavior.</p>
+<pre><code>std::cout &lt;&lt; std::hex &lt;&lt; 237 &lt;&lt; std::endl;
+std::cout &lt;&lt; 1997 &lt;&lt; std::endl; // still hexadecimal
+std::cout &lt;&lt; std::dec;
+std::cout &lt;&lt; 777 &lt;&lt; std::endl;</code></pre>
+<p>The important exam point: manipulators such as <code>std::hex</code> stay active until changed.</p>
+<p>Input whitespace behavior also persists:</p>
+<pre><code>std::cin &gt;&gt; std::noskipws;
+while (std::cin &gt;&gt; c) {
+  std::cout &lt;&lt; c &lt;&lt; c;
+}</code></pre>
+<p>By default, formatted input skips leading whitespace. <code>std::noskipws</code> turns that off. If later code expects <code>cin &gt;&gt; x</code> to skip spaces before an integer, reset with <code>std::skipws</code>.</p>
+<p>Lecture warning from <code>lecture_code/cpp/io/noskipwsAndInts.cc</code>: after <code>noskipws</code>, reading an <code>int</code> can fail simply because the next input character is a space.</p>
+<h2><code>std::string</code> and <code>std::istringstream</code></h2>
+<p>C++ strings manage their own storage and know their length.</p>
+<p><code>lecture_code/cpp/stringsAndStreams/mulNumbers.cc</code> shows a useful parsing pattern:</p>
+<pre><code>std::string s{argv[1]};
+std::istringstream ss{s};
+int x;
+if (ss &gt;&gt; x) {
+  std::cout &lt;&lt; x * 2 &lt;&lt; std::endl;
+} else {
+  std::cout &lt;&lt; &quot;I expected an int: &quot; &lt;&lt; s &lt;&lt; std::endl;
+}</code></pre>
+<p>Reasoning:</p>
+<ul>
+<li>Command-line arguments are still C strings, but the program wraps one in <code>std::string</code>.</li>
+<li><code>std::istringstream</code> lets the program parse the string using the same <code>&gt;&gt;</code> rules as <code>cin</code>.</li>
+<li>The stream state tells whether parsing succeeded.</li>
+</ul>
+<p>For stricter validation, also check that the stream has no leftover non-whitespace input after reading the integer.</p>
+<h2><code>new</code> and <code>delete</code></h2>
+<p>C++ allocation is type-aware:</p>
+<pre><code>int *p = new int;
+int *arr = new int[100];
+
+delete p;
+delete[] arr;</code></pre>
+<p>Rules:</p>
+<ul>
+<li><code>new T</code> pairs with <code>delete</code>.</li>
+<li><code>new T[n]</code> pairs with <code>delete[]</code>.</li>
+<li>Do not use <code>free</code> on memory from <code>new</code>.</li>
+<li>Do not use <code>delete</code> on memory from <code>malloc</code>.</li>
+</ul>
+<p>The lecture code <code>lecture_code/cpp/alloc/newfree.cc</code> intentionally includes the classic mistake:</p>
+<pre><code>int *arr = new int[100];
+delete arr; // wrong; should be delete[] arr</code></pre>
+<p>This sets up RAII and the Big 5 later. Manual deletion is easy to get wrong, so resource-owning classes should release resources in destructors.</p>
+<h2>Function overloading</h2>
+<p>C++ allows functions with the same name when their parameter lists differ:</p>
+<pre><code>int max(int a, int b);
+float max(float a, float b);</code></pre>
+<p>Overload resolution uses the argument types and number of arguments. The return type alone is not enough to distinguish overloads.</p>
+<p>Good overloads represent the same concept for different types. Bad overloads make the same name do unrelated things.</p>
+<h2>Operator overloading</h2>
+<p>Operator overloading is function overloading with names such as <code>operator*</code> and <code>operator+</code>.</p>
+<p><code>lecture_code/cpp/overload/points/vec3d.cc</code> defines:</p>
+<pre><code>struct Vec3D {
+  int x, y, z;
+};
+
+Vec3D operator*(Vec3D v, int s) {
+  Vec3D result = v;
+  result.x *= s;
+  result.y *= s;
+  result.z *= s;
+  return result;
+}
+
+Vec3D operator*(int s, Vec3D v) {
+  return v * s;
+}
+
+Vec3D operator+(Vec3D lhs, Vec3D rhs) {
+  return Vec3D{lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z};
+}
+
+int operator*(Vec3D lhs, Vec3D rhs) {
+  return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+}</code></pre>
+<p>Operand order matters:</p>
+<ul>
+<li><code>v * 2</code> calls <code>operator*(Vec3D, int)</code>.</li>
+<li><code>2 * v</code> calls <code>operator*(int, Vec3D)</code>.</li>
+<li>Defining one does not automatically define the other.</li>
+</ul>
+<p>Return type matters for expression behavior:</p>
+<ul>
+<li>Vector-scalar multiplication returns a <code>Vec3D</code>.</li>
+<li>Dot product returns an <code>int</code>.</li>
+<li>Output operators return <code>std::ostream &amp;</code> so chaining works.</li>
+</ul>
+<h2>I/O operators for user-defined types</h2>
+<p>The reference deck finishes this, but the motivation begins here. A good custom input operator needs to mutate the target object:</p>
+<pre><code>std::istream &amp;operator&gt;&gt;(std::istream &amp;in, Vec3D &amp;v) {
+  return in &gt;&gt; v.x &gt;&gt; v.y &gt;&gt; v.z;
+}</code></pre>
+<p>A good output operator should not mutate the object:</p>
+<pre><code>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const Vec3D &amp;v) {
+  return out &lt;&lt; &quot;[&quot; &lt;&lt; v.x &lt;&lt; &quot;, &quot; &lt;&lt; v.y &lt;&lt; &quot;, &quot; &lt;&lt; v.z &lt;&lt; &quot;]&quot;;
+}</code></pre>
+<p>Do not print a newline inside <code>operator&lt;&lt;</code>. Let the caller decide whether to write <code>std::endl</code>, spaces, or more output.</p>
+<h2>Lambdas and capture lifetime</h2>
+<p><code>lecture_code/cpp/functional/closure.cc</code> contrasts capture-by-value and capture-by-reference:</p>
+<pre><code>auto g = [x]() { cout &lt;&lt; x &lt;&lt; endl; };      // copy x
+auto f = [&amp;x, &amp;y]() { cout &lt;&lt; x * y &lt;&lt; endl; }; // alias x and y</code></pre>
+<p>If <code>x</code> later changes:</p>
+<ul>
+<li><code>g</code> still uses its saved copy.</li>
+<li><code>f</code> sees the new value.</li>
+</ul>
+<p><code>lecture_code/cpp/functional/adderGenerator.cc</code> shows the lifetime hazard:</p>
+<pre><code>std::function&lt;int(int)&gt; badderGenerator(int x) {
+  return [&amp;x](int y) { return x + y; }; // dangling reference
+}</code></pre>
+<p><code>x</code> is a local parameter. After the function returns, a lambda that captured <code>x</code> by reference refers to a destroyed object. Capturing by value fixes the example:</p>
+<pre><code>return [x](int y) { return x + y; };</code></pre>
+<p>This is the same lifetime reasoning used for references and returned pointers.</p>
+<h2>Iterators, range loops, and <code>auto</code></h2>
+<p>Iterator loops expose the mechanics:</p>
+<pre><code>for (std::vector&lt;int&gt;::iterator it = v.begin(); it != v.end(); ++it) {
+  *it = *it + 1;
+}</code></pre>
+<p>Range loops are cleaner:</p>
+<pre><code>for (int x : v) {
+  std::cout &lt;&lt; x &lt;&lt; &quot; &quot;;
+}</code></pre>
+<p>But <code>x</code> is a copy. To mutate elements:</p>
+<pre><code>for (int &amp;x : v) {
+  x += 1;
+}</code></pre>
+<p><code>auto</code> asks the compiler to infer the type:</p>
+<pre><code>for (auto it = v.begin(); it != v.end(); ++it) { ... }
+for (auto &amp;x : v) { x += 1; }</code></pre>
+<p>Exam pattern:</p>
+<ul>
+<li><code>auto x</code>: copy</li>
+<li><code>auto &amp;x</code>: alias/mutate</li>
+<li><code>const auto &amp;x</code>: avoid copy and promise not to mutate</li>
+</ul>
+<h2>Templates and generic requirements</h2>
+<p>Templates let one definition work for many types:</p>
+<pre><code>template &lt;typename T&gt;
+T max(T a, T b) {
+  return a &lt; b ? b : a;
+}</code></pre>
+<p>A template is not magic. It compiles for a type only if the operations used in the template are valid for that type. If <code>max</code> uses <code>&lt;</code>, the type must support <code>&lt;</code>.</p>
+<p>This connects to operator overloading: user-defined types become usable in generic functions when they provide the expected operations.</p>
+<h2>Deeper traces and practical reasoning</h2>
+<h3>Stream state trace with bad input</h3>
+<p>Use <code>lecture_code/cpp/io/readAllInts.cc</code> as the model:</p>
+<pre><code>while (true) {
+  if (cin &gt;&gt; x) {
+    total += x;
+  } else {
+    if (cin.eof()) break;
+    cin.clear();
+    cin.ignore();
+  }
+}</code></pre>
+<p>For input:</p>
+<pre><code>12 x 7</code></pre>
+<p>the first read skips no important whitespace, parses <code>12</code>, stores it in <code>x</code>, and leaves the stream good. The second read skips the space after <code>12</code>, sees <code>x</code>, and cannot parse an integer. That sets the fail bit. Since a stream with fail set converts to false, the code enters the <code>else</code> branch.</p>
+<p>At that moment, two things are true:</p>
+<ul>
+<li>the stream state blocks future reads</li>
+<li>the bad character <code>x</code> is still sitting in the input buffer</li>
+</ul>
+<p><code>cin.clear()</code> fixes only the first problem. <code>cin.ignore()</code> fixes the second problem by removing one character. If the code clears but does not ignore, the next read sees the same <code>x</code> and fails again. If the code ignores but does not clear, the stream is still in a failed state and reads do not proceed.</p>
+<p>The EOF check must happen after a failed read. EOF is discovered by trying to read past available input. If a failed read happened because the stream reached EOF, clearing and ignoring is the wrong recovery; the loop should stop.</p>
+<h3>Manipulator persistence trace</h3>
+<p>In:</p>
+<pre><code>cout &lt;&lt; hex &lt;&lt; 237 &lt;&lt; endl;
+cout &lt;&lt; 1997 &lt;&lt; endl;
+cout &lt;&lt; dec &lt;&lt; 777 &lt;&lt; endl;</code></pre>
+<p><code>hex</code> mutates <code>cout</code>'s integer-formatting state. It is not an argument consumed only by the next integer. Therefore <code>1997</code> is also printed in hexadecimal. <code>dec</code> changes the same stream back to decimal.</p>
+<p>The same persistence applies to <code>noskipws</code>:</p>
+<pre><code>cin &gt;&gt; noskipws;
+cin &gt;&gt; c;
+cin &gt;&gt; x;</code></pre>
+<p>For input <code>A 42</code>, reading <code>c</code> gets <code>A</code>. Reading <code>x</code> then sees a space. With ordinary <code>skipws</code>, the integer read would skip that space. With <code>noskipws</code>, it does not, so the integer extraction can fail before it ever sees <code>42</code>.</p>
+<h3>Overload-resolution trace</h3>
+<p>For the Vec3D lecture code:</p>
+<pre><code>Vec3D operator*(Vec3D v, int s);
+Vec3D operator*(int s, Vec3D v);
+Vec3D operator+(Vec3D lhs, Vec3D rhs);
+int operator*(Vec3D lhs, Vec3D rhs);</code></pre>
+<p>Analyze expressions by writing operand types:</p>
+<pre><code>v * 2</code></pre>
+<p>has operands <code>(Vec3D, int)</code>, so it selects <code>operator*(Vec3D, int)</code>.</p>
+<pre><code>2 * v</code></pre>
+<p>has operands <code>(int, Vec3D)</code>, so it needs the second overload. The compiler does not know scalar multiplication is mathematically commutative.</p>
+<pre><code>v1 * v2</code></pre>
+<p>has operands <code>(Vec3D, Vec3D)</code>, so it selects the dot-product overload returning <code>int</code>.</p>
+<pre><code>3 * v1 + v2</code></pre>
+<p>is evaluated through overloaded operations:</p>
+<ul>
+<li><code>3 * v1</code> returns a <code>Vec3D</code></li>
+<li>that result plus <code>v2</code> calls <code>operator+(Vec3D, Vec3D)</code></li>
+<li>the final result is a <code>Vec3D</code></li>
+</ul>
+<p>Return type alone does not choose an overload. The parameter types are the main matching information.</p>
+<h3>Stream operator chaining trace</h3>
+<p>A custom output operator should look like:</p>
+<pre><code>ostream &amp;operator&lt;&lt;(ostream &amp;out, const Vec3D &amp;v);</code></pre>
+<p>because:</p>
+<pre><code>cout &lt;&lt; v &lt;&lt; &quot; done&quot; &lt;&lt; endl;</code></pre>
+<p>groups like:</p>
+<pre><code>(((cout &lt;&lt; v) &lt;&lt; &quot; done&quot;) &lt;&lt; endl);</code></pre>
+<p>After <code>cout &lt;&lt; v</code>, the next operation still needs an output stream on the left. Returning <code>ostream &amp;</code> provides that stream. Returning <code>void</code> would break chaining immediately.</p>
+<p>The input operator follows the same idea:</p>
+<pre><code>istream &amp;operator&gt;&gt;(istream &amp;in, Vec3D &amp;v);</code></pre>
+<p>The stream is passed by reference because streams have state and should not be copied. The vector is passed by mutable reference because extraction writes into it.</p>
+<h3>Lambda capture lifetime trace</h3>
+<p>In <code>lecture_code/cpp/functional/closure.cc</code>:</p>
+<pre><code>auto g = [x]() { cout &lt;&lt; x &lt;&lt; endl; };
+auto f = [&amp;x, &amp;y]() { cout &lt;&lt; x * y &lt;&lt; endl; };</code></pre>
+<p><code>g</code> stores a copy of <code>x</code> at the time the lambda is created. Later changes to <code>x</code> do not affect <code>g</code>. <code>f</code> stores references to <code>x</code> and <code>y</code>, so later calls read the current values.</p>
+<p>In <code>lecture_code/cpp/functional/adderGenerator.cc</code>:</p>
+<pre><code>return [&amp;x](int y) { return x + y; };</code></pre>
+<p>is unsafe because <code>x</code> is local to <code>badderGenerator</code>. The returned function object can outlive that stack frame. Capturing by value:</p>
+<pre><code>return [x](int y) { return x + y; };</code></pre>
+<p>stores an independent copy in the lambda object.</p>
+<h3>Iterator and range-loop trace</h3>
+<p><code>lecture_code/cpp/iterator/list/rangeForLoop.cc</code> uses:</p>
+<pre><code>for (vector&lt;int&gt;::iterator it = v.begin(); it != v.end(); ++it) {
+  *it = *it + 1;
+}</code></pre>
+<p><code>it</code> is a position. <code>*it</code> is the actual element. Assigning through <code>*it</code> mutates the vector.</p>
+<p>The range-loop version must preserve that aliasing if mutation is intended:</p>
+<pre><code>for (auto &amp;x : v) {
+  x += 1;
+}</code></pre>
+<p>Without <code>&amp;</code>, <code>x</code> is a copy:</p>
+<pre><code>for (auto x : v) {
+  x += 1;
+}</code></pre>
+<p>This changes only the local variable created for each iteration.</p>
+<h3>C++ style transition</h3>
+<p>The lecture examples are deliberately moving away from C habits:</p>
+<ul>
+<li><code>std::string</code> replaces many raw character-array tasks.</li>
+<li><code>std::istringstream</code> parses a string with stream rules.</li>
+<li><code>new</code> and <code>delete</code> are type-aware, but manual ownership is still risky.</li>
+<li>references replace many pointer parameters when null and reseating are not intended.</li>
+<li>overloads let one operation name work naturally across types.</li>
+<li>templates and iterators are the bridge toward generic container algorithms.</li>
+</ul>
+<p>Good C++ answers should explain both the abstraction and the mechanism: streams are objects with state; <code>&gt;&gt;</code> and <code>&lt;&lt;</code> are overloadable functions; range loops may copy or alias; lambdas may own values or hold references.</p>
+<h3>Allocation trace with arrays</h3>
+<p>For:</p>
+<pre><code>int *p = new int;
+int *arr = new int[100];</code></pre>
+<p>there are two different allocation forms. The scalar allocation creates one <code>int</code>; the array allocation creates storage for one hundred <code>int</code> objects. The matching cleanup forms are part of the contract:</p>
+<pre><code>delete p;
+delete[] arr;</code></pre>
+<p><code>lecture_code/cpp/alloc/newfree.cc</code> uses <code>delete arr</code> after <code>new int[100]</code> as the warning example. The program may appear to run in a small test, but it is still wrong. C++ requires the deallocation form to match the allocation form. This is one of the early signals that manual resource management does not scale well and motivates RAII classes in the later Big 5 material.</p>
+<h2>Common failure modes</h2>
+<ul>
+<li>Treating streams as stateless functions and forgetting <code>clear()</code>.</li>
+<li>Calling <code>ignore()</code> without checking whether failure was EOF.</li>
+<li>Forgetting manipulators persist on the stream.</li>
+<li>Using <code>delete</code> for <code>new[]</code>.</li>
+<li>Defining only <code>Vec3D * int</code> and expecting <code>int * Vec3D</code> to work.</li>
+<li>Writing output operators that print newlines or return <code>void</code>, breaking chaining.</li>
+<li>Capturing local variables by reference in lambdas that outlive the function.</li>
+<li>Using <code>auto</code> in range loops and accidentally copying instead of mutating.</li>
+<li>Putting <code>using namespace std;</code> in a header.</li>
+</ul>
+<h2>Exam reasoning patterns</h2>
+<p>For stream questions:</p>
+<ul>
+<li>Identify the next unread character.</li>
+<li>Decide whether the extraction type can parse it.</li>
+<li>If a read fails, remember the stream is stuck until <code>clear()</code>.</li>
+<li>If the bad character remains, the next read fails again.</li>
+<li>Check <code>eof()</code> only after an attempted read fails.</li>
+</ul>
+<p>For overload questions:</p>
+<ul>
+<li>Write the actual operand types in order.</li>
+<li>Find the overload with matching parameter types.</li>
+<li>If no overload matches, decide whether a built-in operation exists.</li>
+</ul>
+<p>For memory questions:</p>
+<ul>
+<li>Match allocation and deallocation forms.</li>
+<li>Ask who owns the pointer.</li>
+<li>Ask what happens if an exception or early return skips <code>delete</code>.</li>
+</ul>
+<p>For lambda/range-loop questions:</p>
+<ul>
+<li>By value means copy at the time of capture or iteration.</li>
+<li>By reference means alias the original object.</li>
+<li>Aliasing is unsafe if the original object dies first.</li>
+</ul>
+<h2>Quick reference</h2>
+<ul>
+<li>Output: <code>std::cout &lt;&lt; value</code></li>
+<li>Input: <code>std::cin &gt;&gt; variable</code></li>
+<li>Stream state: <code>fail()</code>, <code>bad()</code>, <code>eof()</code>, <code>clear()</code>, <code>ignore()</code></li>
+<li>Persistent output base: <code>std::hex</code>, <code>std::dec</code></li>
+<li>Persistent whitespace behavior: <code>std::noskipws</code>, <code>std::skipws</code></li>
+<li>Allocation: <code>new</code>, <code>delete</code>, <code>new[]</code>, <code>delete[]</code></li>
+<li>String parsing: <code>std::string</code>, <code>std::istringstream</code></li>
+<li>Function overload: same name, different parameter list</li>
+<li>Operator overload: function named <code>operatorX</code></li>
+<li>Range mutation: <code>for (auto &amp;x : container)</code></li>
+</ul>
+        </article>
+        <nav class="toc" aria-label="On this page">
+          <h2>On this page</h2>
+          <ul data-toc-list></ul>
+        </nav>
+        <nav class="page-nav" aria-label="Lecture sequence">
+          <a href="/slides/separate-compilation-and-headers.html"><span>Previous</span>Separate Compilation and Headers</a>
+          <a href="/slides/?track=cpp-core"><span>Back to Track</span>C++ Core</a>
+          <a href="/slides/references-pass-by-reference.html"><span>Next</span>References and Pass by Reference</a>
+        </nav>
+        <p class="callout">Built from <code>summaries/09_cpp.md</code> and reviewed against <code>slides/09_cpp.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
+      </div>
+    </section>
+  </main>
+  <script src="/site.js" defer></script>
+
+</body>
+</html>

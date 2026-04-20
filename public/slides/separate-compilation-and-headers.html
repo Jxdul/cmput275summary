@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Separate Compilation and Headers | CMPUT 275 Summaries</title>
-  <meta name="description" content="Compilation pipeline, declarations vs definitions, and modular C/C++ design.">
+  <meta name="description" content="Declarations versus definitions, preprocessing, object files, linking, headers, incomplete types, and C encapsulation.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -32,381 +31,405 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
     <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>Separate Compilation and Headers</span></p>
-
     <section class="study-layout">
       <header class="study-page-header">
-        <p class="kicker">Build & Modularity</p>
+        <p class="kicker">Build and Modularity</p>
         <h1>Separate Compilation and Headers</h1>
-        <p>Compilation pipeline, declarations vs definitions, and modular C/C++ design.</p>
-
+        <p>Declarations versus definitions, preprocessing, object files, linking, headers, incomplete types, and C encapsulation.</p>
         <div class="meta-grid">
           <article class="meta-card">
             <h2>Lecture File</h2>
-            <p>sep_comp.pdf (Separate Compilation)</p>
+            <p>slides/08_sep_comp.pdf</p>
           </article>
           <article class="meta-card">
             <h2>Prerequisites</h2>
-            <p>Basic C syntax and gcc command-line familiarity.</p>
+            <p>C functions, structs, linked-list ADT implementation.</p>
           </article>
           <article class="meta-card">
-            <h2>What You Can Do After This</h2>
-            <ul>
-            <li>Explain preprocessor, compile, assemble, and link stages.</li>
-            <li>Resolve undefined reference linker errors systematically.</li>
-            <li>Design clean .h/.c boundaries with include guards.</li>
-            <li>Apply separate compilation in multi-file projects.</li>
-            </ul>
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=08_sep_comp">08_sep_comp.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpl/sep_comp</code></p>
           </article>
         </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/structs-and-adts.html">Previous: 07_structs</a>
+          <a class="btn primary" href="/exam-practice/?deck=08_sep_comp">Practice 08_sep_comp</a>
+          <a class="btn" href="/slides/intro-to-cpp.html">Next: 09_cpp</a>
+        </div>
       </header>
-
       <div class="study-content-wrap">
         <article class="study-article js-study-content">
-<h1>Lecture Identity</h1>
-<p><strong>File/lecture name:</strong> <code>sep_comp.pdf</code> (Separate Compilation)
-<strong>Main theme:</strong> Understanding the C/C++ compilation pipeline, managing declarations vs. definitions, and implementing modular programming using header files and separate compilation.
-<strong>Prereqs assumed by slides:</strong> Basic C syntax (variables, functions, structs), familiarity with <code>gcc</code> command line usage, understanding of memory (stack vs. heap).
-<strong>What this lecture enables you to do:</strong></p>
+<h1>Separate Compilation and Headers</h1>
+<h2>What this deck is really about</h2>
+<p>Separate compilation is how a real C or C++ program stops being one giant file. Each source file is compiled as its own translation unit, headers describe the interfaces between those units, and the linker later combines object files into one executable.</p>
+<p>The central skill is diagnosing what information is needed at each stage:</p>
 <ul>
-<li>Resolve &quot;undefined reference&quot; linker errors by understanding the compilation pipeline.</li>
-<li>Write modular C/C++ programs using separate compilation (<code>.c</code> and <code>.o</code> files).</li>
-<li>Create header files (<code>.h</code>) that provide interfaces without exposing implementation details.</li>
-<li>Use preprocessor directives (<code>#define</code>, <code>#ifdef</code>) to control code inclusion.</li>
-<li>Manage incomplete types to enforce encapsulation in Abstract Data Types (ADTs).</li>
+<li>The preprocessor needs file names, macro names, and conditional compilation directives.</li>
+<li>The compiler needs declarations and enough type information to check each translation unit.</li>
+<li>The assembler produces object code.</li>
+<li>The linker needs one definition for every referenced function or global object and one program entry point, <code>main</code>.</li>
 </ul>
-<h1>Big Picture Map (High-Level)</h1>
+<p>This is why the lecture spends so much time on the difference between declarations and definitions. A declaration says &quot;this exists and has this type.&quot; A definition supplies the body, storage, or complete representation.</p>
+<h2>Build pipeline</h2>
+<p>The command <code>gcc file.c</code> hides several stages:</p>
 <ol>
-<li><strong>Declarations vs. Definitions:</strong> Distinguishing between promising an entity exists (declaration) and allocating space for it (definition).</li>
-<li><strong>Forward Declarations:</strong> Using declarations to allow function calls before the function definition is seen.</li>
-<li><strong>Compilation Pipeline:</strong> The four steps: Preprocessor -&gt; Compiler -&gt; Assembler -&gt; Linker.</li>
-<li><strong>Preprocessor Directives:</strong> Using <code>#include</code>, <code>#define</code>, and <code>#ifdef</code> to manipulate source text before compilation.</li>
-<li><strong>Separate Compilation:</strong> Compiling individual files into object files (<code>.o</code>) using the <code>-c</code> flag.</li>
-<li><strong>Linking:</strong> Combining object files into a final executable using the linker.</li>
-<li><strong>Header Files:</strong> Creating <code>.h</code> files to declare interfaces for modules.</li>
-<li><strong>Incomplete Types:</strong> Understanding when the compiler needs the full struct definition vs. just a pointer.</li>
-<li><strong>Encapsulation:</strong> Using incomplete types to hide implementation details (e.g., <code>struct List</code> internals) from the client.</li>
-<li><strong>Stack vs. Heap:</strong> How incomplete types prevent stack allocation of complex ADTs.</li>
+<li>Preprocessing: handles directives such as <code>#include</code>, <code>#define</code>, <code>#ifdef</code>, and <code>#ifndef</code>.</li>
+<li>Compilation: translates preprocessed C into assembly.</li>
+<li>Assembly: translates assembly into a binary object file.</li>
+<li>Linking: combines object files and libraries into an executable.</li>
 </ol>
-<h1>Key Concepts &amp; Definitions</h1>
-<h3>1. Declaration vs. Definition</h3>
+<p><code>gcc -c printArray.c</code> stops after producing <code>printArray.o</code>. That object file can contain compiled functions even though it cannot run by itself. Running <code>gcc printArray.c</code> tries to link an executable, and that fails if there is no <code>main</code>.</p>
+<h3>Compile error vs linker error</h3>
+<p>Use this exam pattern:</p>
 <ul>
-<li><strong>Definition:</strong> The full details of an entity (e.g., variable type, function body, struct layout). Space is allocated. Can only be defined once.</li>
-<li><strong>Declaration:</strong> Asserts that an entity of a given type and name exists. Does not allocate space. Can be declared multiple times.</li>
-<li><strong>Why it matters:</strong> The compiler needs a definition to allocate memory (stack/heap), but only needs a declaration to check types and generate jump instructions.</li>
-<li><strong>Common confusion:</strong> Thinking <code>void foo(int x);</code> is a definition. It is a declaration.</li>
-<li><strong>Tiny example:</strong><pre><code class="language-c">// Declaration
-void foo(int x); 
+<li>If one <code>.c</code> or <code>.cc</code> file cannot be understood on its own, it is a compiler problem.</li>
+<li>If all files compile but the final program cannot be assembled, it is a linker problem.</li>
+</ul>
+<p>Examples:</p>
+<pre><code>/* main.c */
+int main() {
+  int a[] = {1, 2, 3};
+  printArray(a, 3, '\n');
+}</code></pre>
+<p>Without a declaration for <code>printArray</code>, the compiler sees a call to an unknown function. In modern settings this is a compile failure or at least a serious warning. Add the declaration:</p>
+<pre><code>void printArray(int *arr, int len, char end);</code></pre>
+<p>Now <code>main.c</code> can compile to <code>main.o</code>. But if the link command is only <code>gcc main.o -o prog</code>, the linker still fails because it cannot find the definition of <code>printArray</code>. The correct final link includes both object files:</p>
+<pre><code>gcc -c printArray.c
+gcc -c main.c
+gcc main.o printArray.o -o builtProgram</code></pre>
+<h2>Declarations and definitions</h2>
+<p>These are declarations:</p>
+<pre><code>void printArray(int *arr, int len, char end);
+struct List;
+extern int globalCount;</code></pre>
+<p>These are definitions:</p>
+<pre><code>void printArray(int *arr, int len, char end) {
+  /* function body */
+}
 
-// Definition
-void foo(int x) { printf(&quot;%d&quot;, x); }
-</code></pre>
-</li>
-</ul>
-<h3>2. Forward Declaration</h3>
+struct Node {
+  int data;
+  struct Node *next;
+};
+
+int globalCount = 0;</code></pre>
+<p>A function declaration can appear in many translation units. A function definition should appear once in the linked program. Multiple compatible declarations give the compiler type information. Multiple definitions create duplicate-symbol problems at link time.</p>
+<h2>Preprocessor directives</h2>
+<p>Preprocessor directives are not ordinary C statements. They run before the compiler sees the program.</p>
+<p><code>#include</code> literally copies another file's text into the current file:</p>
 <ul>
-<li><strong>Definition:</strong> A declaration of a function or type that appears before its definition in the code.</li>
-<li><strong>Why it matters:</strong> Allows the compiler to generate placeholder code for function calls before the function body is encountered.</li>
-<li><strong>Common confusion:</strong> Believing a forward declaration provides the function&#39;s implementation.</li>
-<li><strong>Tiny example:</strong><pre><code class="language-c">void bar(int x); // Forward declaration
-void foo(int x) { bar(x); } // foo can call bar
-void bar(int x) { ... } // Definition comes later
-</code></pre>
-</li>
+<li><code>#include &lt;stdio.h&gt;</code> searches compiler/system include paths.</li>
+<li><code>#include &quot;list.h&quot;</code> searches project-oriented include paths first.</li>
 </ul>
-<h3>3. Object File (<code>.o</code>)</h3>
+<p><code>#define</code> creates preprocessor names:</p>
+<pre><code>#define MAX_SIZE 1000
+#define DEBUG</code></pre>
+<p>Compiler flags can define names too:</p>
+<pre><code>gcc -DDEBUG debug.c
+gcc -DPREX=5 define.c</code></pre>
+<p><code>#ifdef DEBUG</code> includes a block only when <code>DEBUG</code> is defined. <code>#ifndef DEBUG</code> includes a block only when it is not defined. The important point is that omitted code is not merely skipped at runtime; it is absent from the text the compiler receives.</p>
+<h3>Practical debugging use</h3>
+<pre><code>#ifdef DEBUG
+printf(&quot;i=%d len=%d\n&quot;, i, len);
+#endif</code></pre>
+<p>Compiled normally, the debugging print statements are not in the program. Compiled with <code>-DDEBUG</code>, they are included. This is useful for lecture-sized debugging, though production systems usually use more structured logging.</p>
+<h2>Headers as contracts</h2>
+<p>A header should contain the public interface of a module:</p>
 <ul>
-<li><strong>Definition:</strong> A binary file containing machine code generated by the assembler, but not yet linked into an executable.</li>
-<li><strong>Why it matters:</strong> Allows separate compilation of modules. The linker combines these later.</li>
-<li><strong>Common confusion:</strong> Thinking <code>gcc file.c</code> produces an executable immediately (it does, but it also links).</li>
-<li><strong>Tiny example:</strong> <code>gcc -c file.c</code> produces <code>file.o</code>.</li>
+<li>type declarations clients need</li>
+<li>function declarations clients may call</li>
+<li>constants or macros intentionally exposed</li>
+<li>comments describing required behavior</li>
 </ul>
-<h3>4. Preprocessor Directives</h3>
+<p>A <code>.c</code> file should contain implementation details:</p>
 <ul>
-<li><strong>Definition:</strong> Lines starting with <code>#</code> processed before compilation. They manipulate the source text (copy, paste, define, conditionally include).</li>
-<li><strong>Why it matters:</strong> Enables <code>#include</code> for libraries, <code>#define</code> for constants, and <code>#ifdef</code> for build configurations.</li>
-<li><strong>Common confusion:</strong> Thinking <code>#define</code> creates a variable. It creates a text replacement token.</li>
-<li><strong>Tiny example:</strong><pre><code class="language-c">#define MAX 100
-int x = MAX; // x becomes 100
-</code></pre>
-</li>
+<li>private helper functions</li>
+<li>private struct layouts</li>
+<li>algorithms</li>
+<li>memory-management details</li>
 </ul>
-<h3>5. Incomplete Type</h3>
+<p>The header is a promise to client code. The implementation is allowed to change as long as that promise remains true.</p>
+<h2>Lecture code: <code>printArray</code></h2>
+<p><code>lecture_code/cpl/sep_comp/printarray/printArray.c</code> defines:</p>
+<pre><code>char defaultEnd = '\n';
+
+void printArray(int *arr, int len, char end) {
+  if (len == 0) {
+    printf(&quot;[]&quot;);
+    return;
+  }
+  printf(&quot;[%d&quot;, arr[0]);
+  for (int i = 1; i &lt; len; ++i) {
+    printf(&quot;, %d&quot;, arr[i]);
+  }
+  printf(&quot;]&quot;);
+  if (end) {
+    printf(&quot;%c&quot;, end);
+  }
+}</code></pre>
+<p>The client file does not need the body to type-check a call. It needs the declaration. The linker needs the object file containing the body.</p>
+<p>Exam reasoning:</p>
 <ul>
-<li><strong>Definition:</strong> A type (usually a struct) that has been declared but not defined (compiler doesn&#39;t know its size).</li>
-<li><strong>Why it matters:</strong> Allows pointers to the type to exist on the stack without knowing the struct&#39;s internal layout.</li>
-<li><strong>Common confusion:</strong> Trying to declare a variable of an incomplete type on the stack (e.g., <code>struct List l;</code>).</li>
-<li><strong>Tiny example:</strong><pre><code class="language-c">struct List; // Declaration only (Incomplete)
-struct List *l; // Valid pointer
-struct List l;  // Error: storage size not known
-</code></pre>
-</li>
+<li><code>gcc -c printArray.c</code> succeeds because no executable is being produced.</li>
+<li><code>gcc printArray.c</code> fails at link time because there is no <code>main</code>.</li>
+<li><code>gcc -c main.c</code> needs a declaration of <code>printArray</code>.</li>
+<li><code>gcc main.o printArray.o -o prog</code> gives the linker both compiled pieces.</li>
 </ul>
-<h3>6. Encapsulation</h3>
-<ul>
-<li><strong>Definition:</strong> Hiding the internal details of a module (like an ADT) so clients can only interact via a defined interface.</li>
-<li><strong>Why it matters:</strong> Prevents clients from breaking invariants (e.g., modifying <code>next</code> pointers directly).</li>
-<li><strong>Common confusion:</strong> Believing header files must contain all struct definitions.</li>
-<li><strong>Tiny example:</strong><pre><code class="language-c">// Header only declares struct List
-struct List; 
-// Client cannot access l-&gt;len directly
-</code></pre>
-</li>
-</ul>
-<h1>Core Mechanics / How-To</h1>
-<h3>How to Compile a Single File into an Executable</h3>
-<ol>
-<li>Write <code>main.c</code> containing <code>main()</code>.</li>
-<li>Run <code>gcc main.c</code>.</li>
-<li><strong>Result:</strong> <code>gcc</code> runs all 4 steps (preprocess, compile, assemble, link).</li>
-<li><strong>Warning:</strong> If <code>main</code> is missing, the linker will fail with &quot;undefined reference to <code>_start</code>&quot;.</li>
-</ol>
-<h3>How to Compile into an Object File (Separate Compilation)</h3>
-<ol>
-<li>Write <code>module.c</code> (no <code>main</code>).</li>
-<li>Run <code>gcc -c module.c</code>.</li>
-<li><strong>Result:</strong> Produces <code>module.o</code>.</li>
-<li><strong>Why:</strong> Allows you to compile this module independently of <code>main</code>.</li>
-</ol>
-<h3>How to Link Object Files</h3>
-<ol>
-<li>Ensure you have object files (e.g., <code>main.o</code>, <code>module.o</code>).</li>
-<li>Run <code>gcc main.o module.o -o executable_name</code>.</li>
-<li><strong>Result:</strong> Linker combines object files into a final executable.</li>
-<li><strong>Note:</strong> <code>gcc</code> assumes <code>.o</code> files are object files and skips compilation steps.</li>
-</ol>
-<h3>How to Write a Header File (<code>.h</code>)</h3>
-<ol>
-<li>Create <code>module.h</code>.</li>
-<li>Include only <strong>declarations</strong> (function prototypes, incomplete struct types).</li>
-<li>Do <strong>not</strong> include full struct definitions or implementation details.</li>
-<li>Use <code>#include &quot;module.h&quot;</code> in client files.</li>
-<li><strong>Why:</strong> Provides the interface without exposing the implementation.</li>
-</ol>
-<h3>How to Use Preprocessor Conditionals</h3>
-<ol>
-<li>Define a flag: <code>#define DEBUG</code>.</li>
-<li>Wrap code:<pre><code class="language-c">#ifdef DEBUG
-printf(&quot;Debug info\n&quot;);
-#endif
-</code></pre>
-</li>
-<li>Compile with flag: <code>gcc -DDEBUG file.c</code>.</li>
-<li><strong>Result:</strong> Code inside <code>#ifdef</code> is included only if the flag is passed.</li>
-</ol>
-<h3>How to Handle Incomplete Types Safely</h3>
-<ol>
-<li>Declare the struct in the header: <code>struct List;</code>.</li>
-<li>In client code, only use pointers: <code>struct List *l = createList();</code>.</li>
-<li><strong>Never</strong> try to allocate the struct on the stack: <code>struct List l;</code> (Error).</li>
-<li><strong>Reason:</strong> The compiler doesn&#39;t know the size of <code>struct List</code> in the header.</li>
-</ol>
-<h1>Code Patterns &amp; Idioms</h1>
-<h3>Pattern: Forward Declaration</h3>
-<ul>
-<li><strong>When to use:</strong> When a function calls another function defined later in the file or in another file.</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">void bar(int x); // Forward declaration
-void foo(int x) { bar(x); }
-void bar(int x) { ... }
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Forgetting the forward declaration, causing &quot;implicit declaration&quot; warnings or errors.</li>
-</ul>
-<h3>Pattern: Header File Interface</h3>
-<ul>
-<li><strong>When to use:</strong> When creating a library or module to be reused.</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">// List.h
-struct List; // Incomplete type
+<h2>Lecture code: opaque <code>List</code></h2>
+<p><code>lecture_code/cpl/sep_comp/list/list.h</code> exposes only:</p>
+<pre><code>struct List;
+
+int length(struct List *);
+struct List *empty();
+struct List *cons(int, struct List *);
 void printList(struct List *);
-struct List *createList();
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Including the full struct definition in the header, breaking encapsulation.</li>
-</ul>
-<h3>Pattern: <code>#include</code> Syntax</h3>
+int ith(struct List *, int);
+void setIth(struct List *l, int index, int elem);
+void removeIth(struct List *l, int i);
+struct List *freeList(struct List *l);
+int findElem(struct List *l, int elem);</code></pre>
+<p>The implementation file defines the representation:</p>
+<pre><code>struct Node {
+  int data;
+  struct Node *next;
+};
+
+struct List {
+  struct Node *head;
+  int len;
+};</code></pre>
+<p>This split is the ADT boundary. Client code can hold <code>struct List *</code> and call functions. It cannot inspect <code>head</code>, change <code>len</code>, create fake nodes, or form a cyclic structure that breaks <code>freeList</code>.</p>
+<h3>Why incomplete types work</h3>
+<p><code>struct List;</code> tells the compiler that <code>struct List</code> is a type. The compiler does not know its size or fields.</p>
+<p>This is enough:</p>
+<pre><code>struct List *l = empty();</code></pre>
+<p>The compiler knows the size of a pointer.</p>
+<p>This is not enough:</p>
+<pre><code>struct List l;</code></pre>
+<p>The compiler must allocate a full <code>struct List</code> on the stack, but the header does not say how large it is. The lecture error is &quot;storage size of 'l' isn't known.&quot;</p>
+<h3>Invariants hidden by the header</h3>
+<p>The list implementation relies on invariants:</p>
 <ul>
-<li><strong>When to use:</strong> <code>#include &lt;...&gt;</code> for standard libraries, <code>#include &quot;...&quot;</code> for custom headers.</li>
-<li><strong>Correct minimal example:</strong><pre><code class="language-c">#include &lt;stdio.h&gt;   // Standard library
-#include &quot;mylib.h&quot;   // Custom header
-</code></pre>
-</li>
-<li><strong>Common bug:</strong> Using <code>&lt; &gt;</code> for custom headers (compiler looks in system paths, not current directory).</li>
+<li><code>l-&gt;head</code> is either <code>NULL</code> or points to a valid heap-allocated node.</li>
+<li>Every node's <code>next</code> is either <code>NULL</code> or another valid heap-allocated node.</li>
+<li>The node chain is acyclic.</li>
+<li><code>l-&gt;len</code> matches the number of nodes.</li>
+<li>Client code frees the list through <code>freeList</code>, not by guessing its internals.</li>
 </ul>
-<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<p>If clients could write <code>l-&gt;head</code> directly, they could put stack addresses into the list, create cycles, or make <code>len</code> lie. Hiding the struct is not decoration; it protects correctness.</p>
+<h2>Stack allocation and the PIMPL variant</h2>
+<p>The fully opaque header prevents stack allocation of <code>struct List</code>. The PIMPL variant in <code>lecture_code/cpl/sep_comp/pimpl/list.h</code> exposes:</p>
+<pre><code>struct listImpl;
+struct List {
+  struct listImpl *pimpl;
+};</code></pre>
+<p>Now the compiler knows the size of <code>struct List</code>: it contains one pointer. Clients can write:</p>
+<pre><code>struct List l;
+initList(&amp;l);</code></pre>
+<p>The implementation details remain hidden in <code>struct listImpl</code>. The linked-list implementation and array-backed implementation can both satisfy the same public interface by changing only the <code>.c</code> file and relinking.</p>
+<p>Tradeoff:</p>
 <ul>
-<li><strong>Symptom:</strong> <code>undefined reference to &#39;main&#39;</code><ul>
-<li><strong>Likely cause:</strong> Compiled a file without <code>main</code> as an executable entry point.</li>
-<li><strong>Fix:</strong> Ensure <code>main.c</code> contains <code>main</code>, or link against a library that provides it.</li>
+<li>Fully opaque <code>struct List;</code>: strongest hiding, client must receive a pointer from constructor-like functions.</li>
+<li>PIMPL <code>struct List { struct listImpl *pimpl; }</code>: stack-friendly public object, representation still hidden behind an implementation pointer.</li>
+<li>Public <code>struct Point { int x; int y; };</code>: appropriate when field access is the abstraction.</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>implicit declaration of function &#39;foo&#39;</code><ul>
-<li><strong>Likely cause:</strong> Used a function before declaring it.</li>
-<li><strong>Fix:</strong> Add a forward declaration before usage.</li>
+<h2>Worked build example</h2>
+<p>Suppose the files are:</p>
+<pre><code>/* list.h */
+struct List;
+struct List *empty();
+struct List *cons(int, struct List *);
+void printList(struct List *);
+struct List *freeList(struct List *);</code></pre>
+<pre><code>/* main.c */
+#include &quot;list.h&quot;
+
+int main() {
+  struct List *l = empty();
+  cons(3, l);
+  printList(l);
+  l = freeList(l);
+}</code></pre>
+<p>Correct build:</p>
+<pre><code>gcc -c list.c
+gcc -c main.c
+gcc main.o list.o -o listprog</code></pre>
+<p>Reasoning:</p>
+<ul>
+<li><code>main.c</code> compiles because <code>list.h</code> declares the functions and the incomplete type.</li>
+<li><code>list.c</code> compiles because it includes both the header and the private definitions.</li>
+<li>The final link succeeds only if <code>list.o</code> is included.</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>storage size of &#39;l&#39; isn&#39;t known</code><ul>
-<li><strong>Likely cause:</strong> Trying to declare a struct variable on the stack using an incomplete type.</li>
-<li><strong>Fix:</strong> Use a pointer (<code>struct List *l</code>) or include the full definition in the header.</li>
+<p>Wrong build:</p>
+<pre><code>gcc main.o -o listprog</code></pre>
+<p>Likely error: undefined references to <code>empty</code>, <code>cons</code>, <code>printList</code>, and <code>freeList</code>.</p>
+<h2>Header design checklist</h2>
+<p>Before putting something in a header, ask:</p>
+<ul>
+<li>Does client code need this name to compile?</li>
+<li>Is this part of the abstraction's public contract?</li>
+<li>Would exposing this make it harder to change the implementation later?</li>
+<li>Could a client break invariants if they see or write this field?</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>ld returned 1 exit status</code><ul>
-<li><strong>Likely cause:</strong> Linker error (missing symbols).</li>
-<li><strong>Fix:</strong> Ensure all object files are linked, or use <code>gcc</code> to link automatically.</li>
+<p>Keep in the header:</p>
+<ul>
+<li>public function declarations</li>
+<li>intentionally public struct definitions</li>
+<li>incomplete type declarations for opaque ADTs</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>PREX is not undeclared</code><ul>
-<li><strong>Likely cause:</strong> Using a preprocessor constant without defining it.</li>
-<li><strong>Fix:</strong> Use <code>#define PREX 5</code> or <code>gcc -DPREX=5</code>.</li>
+<p>Keep out of the header:</p>
+<ul>
+<li>private helper functions such as <code>freeNode</code></li>
+<li>private node structures</li>
+<li>implementation-specific fields</li>
+<li>global variables unless they are deliberately part of the interface</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> <code>#include</code> not finding custom header<ul>
-<li><strong>Likely cause:</strong> Using <code>&lt; &gt;</code> instead of <code>&quot; &quot;</code>.</li>
-<li><strong>Fix:</strong> Use <code>#include &quot;header.h&quot;</code> for local files.</li>
+<h2>Deeper command and interface traces</h2>
+<h3>Trace: from source files to a working executable</h3>
+<p>Suppose a small program uses the lecture's print-array module:</p>
+<pre><code>main.c          calls printArray
+printArray.c    defines printArray</code></pre>
+<p>The clean build is:</p>
+<pre><code>gcc -c lecture_code/cpl/sep_comp/printarray/printArray.c
+gcc -c main.c
+gcc main.o printArray.o -o builtProgram</code></pre>
+<p>The first command produces an object file that provides the symbol <code>printArray</code>. It does not need <code>main</code>, because <code>-c</code> says &quot;compile only.&quot; The second command produces an object file that provides <code>main</code> and contains an unresolved reference to <code>printArray</code>. The third command invokes the linker. The linker sees that <code>main.o</code> needs <code>printArray</code>, sees that <code>printArray.o</code> provides it, and connects the reference.</p>
+<p>Now compare common wrong builds:</p>
+<pre><code>gcc lecture_code/cpl/sep_comp/printarray/printArray.c</code></pre>
+<p>This asks for an executable from a source file with no <code>main</code>. The compiler can translate the function body, but the linker cannot find the program entry point.</p>
+<pre><code>gcc -c main.c
+gcc main.o -o builtProgram</code></pre>
+<p>This compiles the client but omits the implementation object at link time. The likely failure is an undefined reference to <code>printArray</code>. The declaration was enough for compilation; it was not enough for linking.</p>
+<h3>Trace: a header is not an implementation</h3>
+<p>For <code>lecture_code/cpl/sep_comp/list/</code>, the client includes:</p>
+<pre><code>#include &quot;list.h&quot;</code></pre>
+<p>That copies declarations such as:</p>
+<pre><code>struct List;
+struct List *empty();
+struct List *cons(int, struct List *);</code></pre>
+<p>into the client's translation unit. It does not copy <code>list.c</code>. It does not compile <code>list.c</code>. It does not link <code>list.o</code>.</p>
+<p>The client can compile because the compiler knows:</p>
+<ul>
+<li><code>struct List</code> is a type</li>
+<li>pointers to <code>struct List</code> are valid</li>
+<li><code>empty</code> returns <code>struct List *</code></li>
+<li><code>cons</code> takes an <code>int</code> and a <code>struct List *</code></li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> Client modifies struct fields directly (e.g., <code>l-&gt;len = 10</code>).<ul>
-<li><strong>Likely cause:</strong> Header included full struct definition.</li>
-<li><strong>Fix:</strong> Use incomplete type (<code>struct List;</code>) in header to hide fields.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>gcc</code> produces executable but crashes on <code>deleteList</code>.<ul>
-<li><strong>Likely cause:</strong> Client stored pointers to heap nodes on the stack.</li>
-<li><strong>Fix:</strong> Ensure all pointers to ADT internals are managed via the API.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>#ifdef</code> code not compiling.<ul>
-<li><strong>Likely cause:</strong> Flag not passed during compilation.</li>
-<li><strong>Fix:</strong> Add <code>-DDEBUG</code> to <code>gcc</code> command.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>gcc</code> complains about <code>#define</code> inside string.<ul>
-<li><strong>Likely cause:</strong> <code>#define</code> does not replace text inside quotes.</li>
-<li><strong>Fix:</strong> Accept this behavior; <code>#define</code> is for code, not strings.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>gcc</code> treats <code>.o</code> file as source.<ul>
-<li><strong>Likely cause:</strong> Forgetting <code>-c</code> flag or passing <code>.o</code> to <code>gcc</code> without <code>-o</code>.</li>
-<li><strong>Fix:</strong> Use <code>gcc -c file.c</code> for object files, or <code>gcc file.o -o exe</code> for linking.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>gcc</code> produces warning about <code>implicit-function-declaration</code>.<ul>
-<li><strong>Likely cause:</strong> Missing header or forward declaration.</li>
-<li><strong>Fix:</strong> Add <code>void printArray(int *, size_t);</code> before usage.</li>
-</ul>
-</li>
-</ul>
-<h1>Exam-Style Questions (with answers)</h1>
+<p>The final executable still needs:</p>
+<pre><code>gcc main.o list.o -o listprog</code></pre>
+<p>If <code>list.o</code> is missing, the linker has promises but no definitions.</p>
+<h3>Object files as symbol tables</h3>
+<p>An object file is not just machine instructions. It also contains symbol information. A useful mental model is:</p>
+<pre><code>main.o
+  provides: main
+  needs: empty, cons, printList, freeList
+
+list.o
+  provides: empty, cons, printList, freeList, length, ith, ...
+  needs: malloc, free, printf, assert support</code></pre>
+<p>The linker merges these tables. When every needed symbol has exactly one suitable definition, the executable can be produced. If a needed symbol has no definition, you get an undefined reference. If two object files define the same global function or variable, you can get a multiple-definition error.</p>
+<h3>Why opaque types are a teaching point, not a trick</h3>
+<p>The list header uses:</p>
+<pre><code>struct List;</code></pre>
+<p>This is enough to let the client hold <code>struct List *</code>, because all object pointers have known pointer size. It is not enough to create <code>struct List l;</code>, because allocating a full object requires knowing its field layout and total size.</p>
+<p>That limitation is intentional. It forces clients through functions such as <code>empty</code>, <code>cons</code>, and <code>freeList</code>. The implementation in <code>lecture_code/cpl/sep_comp/list/list.c</code> can maintain invariants about heap-owned nodes, acyclic <code>next</code> links, and correct <code>len</code>.</p>
+<h3>PIMPL and replaceable implementations</h3>
+<p>The PIMPL version in <code>lecture_code/cpl/sep_comp/pimpl/</code> exposes a small wrapper:</p>
+<pre><code>struct listImpl;
+struct List {
+  struct listImpl *pimpl;
+};</code></pre>
+<p>Now a client can put the wrapper on the stack because its size is known: one pointer. The real representation remains hidden. One implementation stores linked nodes. Another stores a growing array and maps list index <code>i</code> to array index <code>len - 1 - i</code>. The same public operations can be implemented with different private invariants.</p>
+<p>This is the deeper reason headers matter. A good header lets client code depend on behavior instead of storage decisions. A poor header exposes storage decisions and makes every client sensitive to implementation changes.</p>
+<h3>Exam diagnostic checklist</h3>
+<p>When given a build problem, answer in this order:</p>
 <ol>
-<li><strong>Q:</strong> What is the difference between <code>void foo(int x);</code> and <code>void foo(int x) { ... }</code>?
-<strong>A:</strong> The first is a declaration (promise of existence), the second is a definition (implementation + space allocation).</li>
-<li><strong>Q:</strong> Why does <code>gcc file.c</code> produce a linker error if <code>main</code> is missing?
-<strong>A:</strong> The linker needs an entry point (<code>main</code>) to build an executable. Without it, it fails.</li>
-<li><strong>Q:</strong> What does the <code>-c</code> flag do in <code>gcc</code>?
-<strong>A:</strong> It compiles the source file into an object file (<code>.o</code>) without linking.</li>
-<li><strong>Q:</strong> Can you declare a variable of an incomplete type on the stack?
-<strong>A:</strong> No. The compiler doesn&#39;t know the size, so it cannot allocate space.</li>
-<li><strong>Q:</strong> What is the purpose of <code>#include &quot;file.h&quot;</code> vs <code>#include &lt;file.h&gt;</code>?
-<strong>A:</strong> Double quotes look in the current directory; angle brackets look in system paths.</li>
-<li><strong>Q:</strong> What happens if you use <code>#define FLAG</code> without a value?
-<strong>A:</strong> It defines the identifier <code>FLAG</code> as an empty token (true/false check).</li>
-<li><strong>Q:</strong> Why is <code>struct List;</code> called an incomplete type?
-<strong>A:</strong> It declares the name but not the members/size, so the compiler doesn&#39;t know how much space to allocate.</li>
-<li><strong>Q:</strong> How do you fix &quot;undefined reference to <code>bar</code>&quot;?
-<strong>A:</strong> Add a forward declaration <code>void bar(int x);</code> before <code>foo</code> calls it.</li>
-<li><strong>Q:</strong> What is the role of the linker?
-<strong>A:</strong> It combines object files (<code>.o</code>) into a single executable, resolving references between them.</li>
-<li><strong>Q:</strong> Why can&#39;t a client modify <code>struct List</code> fields directly if the header only declares <code>struct List;</code>?
-<strong>A:</strong> The compiler doesn&#39;t know the fields exist, so it rejects direct access (encapsulation).</li>
-<li><strong>Q:</strong> What is the output of <code>gcc -DDEBUG file.c</code>?
-<strong>A:</strong> The preprocessor includes code inside <code>#ifdef DEBUG</code> blocks.</li>
-<li><strong>Q:</strong> Can you define a preprocessor constant in the command line?
-<strong>A:</strong> Yes, using <code>-DNAME=value</code> (e.g., <code>gcc -DPREX=5 file.c</code>).</li>
+<li>Which command failed?</li>
+<li>Was <code>-c</code> used, or was an executable being linked?</li>
+<li>Did the source file have declarations for names it used?</li>
+<li>Did the final link include object files for all definitions?</li>
+<li>Is the error about syntax/type/size, or about missing/duplicate symbols?</li>
 </ol>
-<h1>Quick Reference / Cheat Sheet</h1>
+<p>This usually identifies whether the fix is &quot;include the right header,&quot; &quot;add a forward declaration,&quot; &quot;compile another source file,&quot; or &quot;include another object file in the link command.&quot;</p>
+<h2>Common failure modes</h2>
 <ul>
-<li><strong>Compilation Steps:</strong> Preprocessor -&gt; Compiler -&gt; Assembler -&gt; Linker.</li>
-<li><strong>Object File:</strong> <code>gcc -c file.c</code> -&gt; <code>file.o</code>.</li>
-<li><strong>Linking:</strong> <code>gcc file.o -o exe</code> or <code>gcc file.c -o exe</code> (auto-links).</li>
-<li><strong>Preprocessor:</strong><ul>
-<li><code>#include &lt;stdio.h&gt;</code> (System)</li>
-<li><code>#include &quot;file.h&quot;</code> (Local)</li>
-<li><code>#define MAX 100</code> (Constant)</li>
-<li><code>#ifdef FLAG</code> (Conditional)</li>
+<li>Missing declaration: compiler cannot type-check the call.</li>
+<li>Missing object file at link time: linker reports undefined reference.</li>
+<li>Function declared with one signature and defined with another: compiler or linker confusion, depending on language and name mangling.</li>
+<li>Function defined in a header included by multiple <code>.c</code> files: duplicate definitions at link time.</li>
+<li>Trying to allocate an incomplete type directly: compiler error because size is unknown.</li>
+<li>Exposing internal fields: client code can break invariants and make later implementation changes harder.</li>
+<li>Thinking <code>#include</code> links code: it does not. It only copies text before compilation.</li>
 </ul>
-</li>
-<li><strong>Declaration:</strong> <code>void foo(int x);</code> (No space allocated).</li>
-<li><strong>Definition:</strong> <code>void foo(int x) { ... }</code> (Space allocated).</li>
-<li><strong>Incomplete Type:</strong> <code>struct List;</code> (Pointer only, no stack allocation).</li>
-<li><strong>Linker Error:</strong> &quot;undefined reference&quot; -&gt; Missing definition or <code>main</code>.</li>
-<li><strong>Compiler Warning:</strong> &quot;implicit declaration&quot; -&gt; Missing forward declaration.</li>
-</ul>
-<h1>Mini Glossary</h1>
-<ol>
-<li><strong>Declaration:</strong> Asserts an entity exists (type + name).</li>
-<li><strong>Definition:</strong> Full details of an entity; space is allocated.</li>
-<li><strong>Forward Declaration:</strong> Declaration of a function/type before its definition.</li>
-<li><strong>Object File:</strong> Binary machine code (<code>.o</code>) ready for linking.</li>
-<li><strong>Linker:</strong> Combines object files into an executable.</li>
-<li><strong>Preprocessor:</strong> Tool that processes <code>#</code> directives before compilation.</li>
-<li><strong>Header File:</strong> File containing declarations for a module (<code>.h</code>).</li>
-<li><strong>Incomplete Type:</strong> Type declared but not defined (unknown size).</li>
-<li><strong>Encapsulation:</strong> Hiding implementation details from the client.</li>
-<li><strong>Invariant:</strong> A property that must always hold true for the code to work.</li>
-<li><strong>Stack Allocation:</strong> Placing variables in memory with known size.</li>
-<li><strong>Heap Allocation:</strong> Placing variables in memory with dynamic size.</li>
-<li><strong><code>#define</code>:</strong> Macro definition for text replacement.</li>
-<li><strong><code>#ifdef</code>:</strong> Conditional compilation based on defined flags.</li>
-<li><strong><code>-c</code> Flag:</strong> Compile only, do not link.</li>
-<li><strong><code>-D</code> Flag:</strong> Define a preprocessor constant.</li>
-<li><strong><code>-o</code> Flag:</strong> Specify output filename.</li>
-<li><strong><code>_start</code>:</strong> Entry point symbol for the linker.</li>
-<li><strong><code>printf</code>:</strong> Standard output function (from <code>stdio.h</code>).</li>
-<li><strong><code>scanf</code>:</strong> Standard input function (from <code>stdio.h</code>).</li>
-</ol>
-<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<h2>Exam reasoning patterns</h2>
+<p>When shown an error, identify the stage:</p>
 <ul>
-<li><strong>C++ Classes:</strong> While the course is C++, these slides focus on C structs and pointers. C++ classes (inheritance, polymorphism) are not covered here.</li>
-<li><strong>Dynamic Memory Management:</strong> <code>malloc</code>/<code>free</code> are not explicitly detailed, though <code>createList</code> implies heap usage.</li>
-<li><strong>Graph Algorithms:</strong> Shortest paths or divide-and-conquer are mentioned in the course description but not in these slides.</li>
-<li><strong>Client-Server Computing:</strong> Mentioned in course description, not in these slides.</li>
-<li><strong>Recursion:</strong> Mentioned in course description, not in these slides.</li>
-<li><strong>C++ Specifics:</strong> <code>std::</code> namespace, templates, or <code>class</code> keyword are not used in these slides.</li>
+<li>&quot;implicit declaration&quot;, &quot;unknown type&quot;, &quot;storage size is not known&quot;: compile-time translation unit problem.</li>
+<li>&quot;undefined reference to <code>main</code>&quot;: link-time executable problem.</li>
+<li>&quot;undefined reference to <code>foo</code>&quot;: declaration was probably visible, but the object file or library containing <code>foo</code> was not linked.</li>
+<li>&quot;multiple definition of <code>foo</code>&quot;: a definition appears in more than one linked object file.</li>
 </ul>
-<h1>Slide Anchors (Traceability)</h1>
+<p>When shown a header, decide whether it is an interface or an implementation leak:</p>
 <ul>
-<li><strong>Declarations vs. Definitions:</strong> Slide 2 (&quot;Declarations and Definitions&quot;) - &quot;A declaration only asserts that an entity... exists.&quot;</li>
-<li><strong>Forward Declarations:</strong> Slide 3 (&quot;Forward declarations, a necessity&quot;) - &quot;Declarations allow us to make a promise to the compiler...&quot;</li>
-<li><strong>Compilation Steps:</strong> Slide 6 (&quot;The four steps of C/C++ compilation&quot;) - &quot;The C preprocessor... The compiler... The assembler... The linker...&quot;</li>
-<li><strong>Preprocessor Directives:</strong> Slide 8 (&quot;Preprocessor directives&quot;) - &quot;Preprocessor directives are the lines of our code that begin with a #.&quot;</li>
-<li><strong>Defining Constants:</strong> Slide 10 (&quot;Defining preprocessor constants&quot;) - &quot;We can also define preprocessor constants with compiler flags.&quot;</li>
-<li><strong>Conditional Compilation:</strong> Slide 12 (&quot;ifdef and ifndef&quot;) - &quot;We can also write simple conditionals that check if a preprocessor flag has been defined.&quot;</li>
-<li><strong>Separate Compilation:</strong> Slide 17 (&quot;Compiling printArray.c&quot;) - &quot;This is not a compilation error. This is a linker error.&quot;</li>
-<li><strong>Object Files:</strong> Slide 18 (&quot;Compiling without linking&quot;) - &quot;A C file that has been compiled into machine code without linking it into a final executable is called an object file.&quot;</li>
-<li><strong>Header Files:</strong> Slide 24 (&quot;Header files&quot;) - &quot;Header files are files that include the declarations of entities our module provides.&quot;</li>
-<li><strong>Incomplete Types:</strong> Slide 31 (&quot;Incomplete types&quot;) - &quot;At the point of compiling stackList.c the type struct List is known as an incomplete type.&quot;</li>
-<li><strong>Encapsulation:</strong> Slide 33 (&quot;Encapsulation&quot;) - &quot;The concept of encapsulation is that our ADTs should be black boxes...&quot;</li>
-<li><strong>Stack vs. Heap:</strong> Slide 32 (&quot;Incomplete types | How to use them&quot;) - &quot;Our code for printLargest.c works because while we use struct List as a type, we never ask the compiler to allocate one!&quot;</li>
+<li><code>struct List;</code> supports pointers and hides representation.</li>
+<li><code>struct List { struct Node *head; int len; };</code> exposes representation.</li>
+<li><code>struct Point { int x; int y; };</code> may be fine if points are just data.</li>
+</ul>
+<p>When asked whether stack allocation is allowed:</p>
+<ul>
+<li>Complete type visible: yes.</li>
+<li>Only incomplete declaration visible: no.</li>
+<li>PIMPL wrapper visible: wrapper can be on stack, implementation is still heap allocated.</li>
+</ul>
+<h2>Quick reference</h2>
+<ul>
+<li>Declaration: promises a name and type.</li>
+<li>Definition: provides body, storage, or full layout.</li>
+<li>Translation unit: one source file after preprocessing.</li>
+<li>Object file: compiled output before final linking.</li>
+<li>Linker: resolves references across object files.</li>
+<li>Header: public interface copied into clients by <code>#include</code>.</li>
+<li>Incomplete type: known to exist, but size and fields are hidden.</li>
+<li>Opaque ADT: clients manipulate values only through interface functions.</li>
 </ul>
         </article>
-
         <nav class="toc" aria-label="On this page">
           <h2>On this page</h2>
           <ul data-toc-list></ul>
         </nav>
-
         <nav class="page-nav" aria-label="Lecture sequence">
-          <a href="/slides/mutation-and-double-pointers.html"><span>Previous</span>Mutation and Double Pointers</a>
-          <a href="/slides/?track=build"><span>Back to Track</span>Build & Modularity</a>
-          <a href="/slides/"><span>Next</span>Slides Hub</a>
+          <a href="/slides/structs-and-adts.html"><span>Previous</span>Structs and ADTs</a>
+          <a href="/slides/?track=build"><span>Back to Track</span>Build and Modularity</a>
+          <a href="/slides/intro-to-cpp.html"><span>Next</span>Introduction to C++</a>
         </nav>
-
-        <p class="callout">Manually curated from <code>summaries/sep_comp.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+        <p class="callout">Built from <code>summaries/08_sep_comp.md</code> and reviewed against <code>slides/08_sep_comp.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

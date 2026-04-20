@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exam Practice | CMPUT 275 Summaries</title>
-  <meta name="description" content="Practice exam-style questions by slide deck. One question at a time with reveal and known/unknown tracking.">
+  <meta name="description" content="Practice exam-style questions by slide deck.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -31,28 +31,70 @@
       </div>
     </div>
   </header>
-
-  <main class="page-main site-shell" id="main-content" data-exam-practice-page>
+  <main class="page-main site-shell" id="main-content">
+<div data-exam-practice-page>
     <section class="hero" data-exam-deck-selector>
       <p class="kicker">Exam Practice</p>
       <h1>Practice by slide deck.</h1>
-      <p>Choose a deck to load its questions. You’ll see one question at a time with reveal answer and known/unknown tracking.</p>
-
-      <div class="section" style="margin-top: 1.5rem;">
+      <p>Choose a deck after reading its lecture page. Mark missed cards as unknown, then repeat until the deck is mostly known.</p>
+      <div class="section deck-picker">
         <h2 id="deck-heading">Choose a deck</h2>
         <div class="path-grid" role="group" aria-labelledby="deck-heading" data-deck-grid>
-          <button type="button" class="path-card deck-card" data-deck-id="shell" data-deck-file="shell.txt" data-deck-name="Shell and Bash Basics">
-            <h3>Shell and Bash Basics</h3>
-            <p>Shell, pipes, redirection, variables, and debugging.</p>
+          <button type="button" class="path-card deck-card" data-deck-id="00_intro" data-deck-file="00_intro.txt" data-deck-name="Course Intro">
+            <h3>00_intro: Course Intro</h3>
+            <p>Course logistics, grading, slip days, excused absences, and support workflow.</p>
           </button>
-          <button type="button" class="path-card deck-card" data-deck-id="c_pl" data-deck-file="c_pl.txt" data-deck-name="C Programming Foundations">
-            <h3>C Programming Foundations</h3>
-            <p>C fundamentals, compilation, data types, memory, functions, and control flow.</p>
+          <button type="button" class="path-card deck-card" data-deck-id="01_shell" data-deck-file="01_shell.txt" data-deck-name="Shell and Bash Basics">
+            <h3>01_shell: Shell and Bash Basics</h3>
+            <p>Operating systems, shell commands, paths, streams, redirection, pipes, permissions, SSH, and Bash scripts.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="02_c_pl" data-deck-file="02_c_pl.txt" data-deck-name="C Programming Foundations">
+            <h3>02_c_pl: C Programming Foundations</h3>
+            <p>C as a compiled, statically typed language; number systems; basic syntax; functions; and memory layout.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="03_pointers" data-deck-file="03_pointers.txt" data-deck-name="Pointers, Arrays, Input, and Strings">
+            <h3>03_pointers: Pointers, Arrays, Input, and Strings</h3>
+            <p>Pointers, address-of and dereference, scanf, robust input loops, array decay, pointer arithmetic, and C strings.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="04_dynamic_mem" data-deck-file="04_dynamic_mem.txt" data-deck-name="Dynamic Memory Management">
+            <h3>04_dynamic_mem: Dynamic Memory Management</h3>
+            <p>Heap allocation, malloc/free, lifetimes, dangling pointers, leaks, growing arrays, and doubling capacity.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="05_cmd_line" data-deck-file="05_cmd_line.txt" data-deck-name="Command Line Args and Multi-Dimensional Arrays">
+            <h3>05_cmd_line: Command Line Args and Multi-Dimensional Arrays</h3>
+            <p>argc/argv, double pointers, strings from the OS, pointer-to-pointer 2D arrays, and flat 1D matrix storage.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="06_mutation" data-deck-file="06_mutation.txt" data-deck-name="Mutation and Double Pointers">
+            <h3>06_mutation: Mutation and Double Pointers</h3>
+            <p>Returning extra values through pointer parameters, output parameters, and using double pointers to mutate caller-owned pointers.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="07_structs" data-deck-file="07_structs.txt" data-deck-name="Structs and ADTs">
+            <h3>07_structs: Structs and ADTs</h3>
+            <p>C structs, member access, struct pointers, arrow operator, linked lists, ADT design, and encapsulation motivation.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="08_sep_comp" data-deck-file="08_sep_comp.txt" data-deck-name="Separate Compilation and Headers">
+            <h3>08_sep_comp: Separate Compilation and Headers</h3>
+            <p>Declarations versus definitions, preprocessing, object files, linking, headers, incomplete types, and C encapsulation.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="09_cpp" data-deck-file="09_cpp.txt" data-deck-name="Introduction to C++">
+            <h3>09_cpp: Introduction to C++</h3>
+            <p>Modern C++ style, g++, streams, stream state, manipulators, new/delete, function overloading, and operator overloading.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="10_refs" data-deck-file="10_refs.txt" data-deck-name="References and Pass by Reference">
+            <h3>10_refs: References and Pass by Reference</h3>
+            <p>References as aliases, reference rules, pass-by-reference, const references, returning references, and stream operators.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="11_classes" data-deck-file="11_classes.txt" data-deck-name="Basic Classes">
+            <h3>11_classes: Basic Classes</h3>
+            <p>Classes, objects, methods, constructors, member initialization lists, access control, headers, getters/setters, and friends.</p>
+          </button>
+          <button type="button" class="path-card deck-card" data-deck-id="13_big5" data-deck-file="13_big5.txt" data-deck-name="The Big 5">
+            <h3>13_big5: The Big 5</h3>
+            <p>Destructors, copy constructors, copy assignment, move operations, copy elision, and the rule of five for resource-owning classes.</p>
           </button>
         </div>
       </div>
     </section>
-
     <section class="section" data-exam-session hidden>
       <div class="exam-session-header">
         <p class="exam-session-title" data-exam-deck-name></p>
@@ -72,20 +114,15 @@
           </div>
         </div>
       </div>
-      <div class="exam-nav" style="margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem;">
+      <div class="exam-nav">
         <button type="button" class="exam-btn" data-exam-prev>Previous</button>
         <button type="button" class="exam-btn" data-exam-next>Next</button>
       </div>
     </section>
-
-    <div class="section" data-exam-loading hidden>
-      <p>Loading questions…</p>
-    </div>
-    <div class="section" data-exam-error hidden>
-      <p class="exam-error-message" data-exam-error-message></p>
+    <div class="section" data-exam-loading hidden><p>Loading questions...</p></div>
+    <div class="section" data-exam-error hidden><p class="exam-error-message" data-exam-error-message></p></div>
     </div>
   </main>
-
   <script src="/site.js" defer></script>
   <script src="/exam-practice.js" defer></script>
 </body>

@@ -4,13 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>C Programming Foundations | CMPUT 275 Summaries</title>
-  <meta name="description" content="C syntax, number systems, memory representation, and function mechanics.">
+  <meta name="description" content="C as a compiled, statically typed language; number systems; basic syntax; functions; and memory layout.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
   <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
-
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -32,447 +31,505 @@
       </div>
     </div>
   </header>
-
   <main class="page-main site-shell" id="main-content">
     <p class="breadcrumb"><a href="/slides/">Slides</a> / <span>C Programming Foundations</span></p>
-
     <section class="study-layout">
       <header class="study-page-header">
         <p class="kicker">C Core</p>
         <h1>C Programming Foundations</h1>
-        <p>C syntax, number systems, memory representation, and function mechanics.</p>
-
+        <p>C as a compiled, statically typed language; number systems; basic syntax; functions; and memory layout.</p>
         <div class="meta-grid">
           <article class="meta-card">
             <h2>Lecture File</h2>
-            <p>c_pl.pdf (The C Programming Language)</p>
+            <p>slides/02_c_pl.pdf</p>
           </article>
           <article class="meta-card">
             <h2>Prerequisites</h2>
-            <p>Basic computing literacy and Python-level syntax familiarity.</p>
+            <p>Basic programming experience from CMPUT 274 or equivalent.</p>
           </article>
           <article class="meta-card">
-            <h2>What You Can Do After This</h2>
-            <ul>
-            <li>Compile and run C programs with gcc.</li>
-            <li>Reason about binary, ASCII, and integer representation.</li>
-            <li>Use functions, control flow, and scope correctly.</li>
-            <li>Debug common formatting and signed/unsigned pitfalls.</li>
-            </ul>
+            <h2>Practice Deck</h2>
+            <p><a href="/exam-practice/?deck=02_c_pl">02_c_pl.txt</a></p>
+          </article>
+          <article class="meta-card">
+            <h2>Lecture Code</h2>
+            <p><code>lecture_code/cpl/smallExamples</code></p>
           </article>
         </div>
+        <div class="learning-flow" aria-label="How to study this lecture">
+          <article>
+            <strong>1. Read</strong>
+            <span>Start with Big picture, then Deep study notes.</span>
+          </article>
+          <article>
+            <strong>2. Trace</strong>
+            <span>Open the listed lecture-code files and follow the memory or stream state.</span>
+          </article>
+          <article>
+            <strong>3. Check</strong>
+            <span>Use Pitfalls and Quick reference to catch common mistakes.</span>
+          </article>
+          <article>
+            <strong>4. Practice</strong>
+            <span>Finish with the matching exam-practice deck.</span>
+          </article>
+        </div>
+        <div class="lecture-actions">
+          <a class="btn" href="/slides/shell-bash-basics.html">Previous: 01_shell</a>
+          <a class="btn primary" href="/exam-practice/?deck=02_c_pl">Practice 02_c_pl</a>
+          <a class="btn" href="/slides/pointers-arrays-strings.html">Next: 03_pointers</a>
+        </div>
       </header>
-
       <div class="study-content-wrap">
         <article class="study-article js-study-content">
-<h1>Lecture Identity</h1>
-<p><strong>File/lecture name:</strong> c_pl.pdf (The C Programming Language)
-<strong>Main theme:</strong> Introduction to C syntax, number systems, memory layout, and function mechanics.
-<strong>Prereqs assumed by slides:</strong> Basic computer literacy, familiarity with Python (for comparison), understanding of binary logic (1s and 0s).
-<strong>What this lecture enables you to do:</strong></p>
+<h1>02 C Programming Language</h1>
+<h2>Big Picture</h2>
 <ul>
-<li>Compile and run C programs using <code>gcc</code>.</li>
-<li>Understand how integers and characters are stored in memory (binary, ASCII, Two&#39;s Complement).</li>
-<li>Write functions with correct signatures, manage scope, and understand pass-by-value.</li>
-<li>Debug common issues related to memory layout, signed/unsigned confusion, and <code>printf</code> formatting.</li>
+<li>This lecture introduces C as a compiled, statically typed language that sits much closer to the machine than Python.</li>
+<li>The important shift is that C makes representation visible: type, size, signedness, control flow, and function calls all connect to storage and bits.</li>
+<li>It also introduces the memory model that the rest of the course depends on: text, data, heap, and stack.</li>
 </ul>
-<h1>Big Picture Map (High-Level)</h1>
-<ol>
-<li><strong>Introduction to C:</strong> History, classification (high-level, compiled, statically typed), and entry point (<code>main</code>).</li>
-<li><strong>First Program:</strong> Anatomy of <code>main</code>, <code>#include</code>, <code>printf</code>, and return values.</li>
-<li><strong>Number Systems:</strong> Base-10, Base-8, Base-2 (Binary), and Radix concepts.</li>
-<li><strong>Integer Storage:</strong> Unsigned binary, overflow, and the evolution of Signed Binary (Sign bit  Ones&#39; Complement  Two&#39;s Complement).</li>
-<li><strong>Characters:</strong> <code>char</code> type, ASCII encoding, and string literals vs. character literals.</li>
-<li><strong>Formatted Output:</strong> <code>printf</code> format specifiers (<code>%d</code>, <code>%f</code>, <code>%c</code>, <code>%s</code>).</li>
-<li><strong>Control Flow:</strong> <code>if</code>, <code>while</code>, and <code>for</code> loops (syntax differences from Python).</li>
-<li><strong>Scope:</strong> Variable lifetime within curly braces <code>{}</code>.</li>
-<li><strong>Functions:</strong> Declaration vs. Definition, parameters vs. arguments, and stack frames.</li>
-<li><strong>Memory Layout:</strong> Segments (Text, Data, Heap, Stack) and how they relate to variable lifetime.</li>
-<li><strong>Mutation &amp; Pass-by-Value:</strong> Why modifying a parameter inside a function does not affect the caller.</li>
-<li><strong>Recursion Example:</strong> <code>gcd</code> function demonstrating stack growth.</li>
-</ol>
-<h1>Key Concepts &amp; Definitions</h1>
-<table>
-<thead>
-<tr>
-<th align="left">Name</th>
-<th align="left">Definition</th>
-<th align="left">Why it matters</th>
-<th align="left">Common confusion / misconception</th>
-<th align="left">Tiny example</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Compiled Language</strong></td>
-<td align="left">A language where a compiler (e.g., <code>gcc</code>) generates machine code (binary) from source code.</td>
-<td align="left">Allows direct execution by CPU; faster than interpreted languages.</td>
-<td align="left">Confusing <code>gcc</code> with an interpreter; <code>gcc</code> invokes preprocessor, compiler, assembler, linker.</td>
-<td align="left"><code>gcc hello.c</code>  <code>./a.out</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Statically Typed</strong></td>
-<td align="left">Types of variables must be specified at declaration and cannot change.</td>
-<td align="left">Catches type errors at compile time; memory layout is known.</td>
-<td align="left">Thinking C types are like Python classes; C types are primitive (int, char).</td>
-<td align="left"><code>int x = 5;</code> (cannot change to string).</td>
-</tr>
-<tr>
-<td align="left"><strong>Entry Point</strong></td>
-<td align="left">The specific function where execution begins (always <code>main</code> in C).</td>
-<td align="left">OS loads program and jumps here; defines program exit status.</td>
-<td align="left">Thinking <code>main</code> is optional; unlike Python, C requires <code>main</code>.</td>
-<td align="left"><code>int main(int argc, char **argv)</code></td>
-</tr>
-<tr>
-<td align="left"><strong>Two&#39;s Complement</strong></td>
-<td align="left">Method for storing signed integers: flip bits and add 1 to negative numbers.</td>
-<td align="left">Standard for signed integers; handles addition/subtraction uniformly.</td>
-<td align="left">Confusing with Ones&#39; Complement (which has two zeros).</td>
-<td align="left"><code>1111 1111</code> is -1 in 8-bit.</td>
-</tr>
-<tr>
-<td align="left"><strong>Stack Frame</strong></td>
-<td align="left">A portion of the stack allocated for a function call (parameters + locals).</td>
-<td align="left">Explains variable lifetime and isolation between function calls.</td>
-<td align="left">Thinking parameters modify the original argument; they are copies.</td>
-<td align="left"><code>times2(x)</code> modifies local <code>x</code>, not caller&#39;s <code>x</code>.</td>
-</tr>
-<tr>
-<td align="left"><strong>Memory Segments</strong></td>
-<td align="left">Regions of RAM: Text (code), Data (globals), Heap (dynamic), Stack (locals).</td>
-<td align="left">Determines where variables live and how long they persist.</td>
-<td align="left">Assuming all variables live in the same place; <code>main</code> args are on stack.</td>
-<td align="left"><code>static</code> vars go in Data; <code>malloc</code> goes in Heap.</td>
-</tr>
-<tr>
-<td align="left"><strong><code>printf</code> Specifiers</strong></td>
-<td align="left">Placeholders in format string (<code>%d</code>, <code>%f</code>, <code>%c</code>, <code>%s</code>) for arguments.</td>
-<td align="left">Allows printing different types in a single call.</td>
-<td align="left">Mismatching specifier and argument type (e.g., <code>%d</code> with <code>float</code>).</td>
-<td align="left"><code>printf(&quot;%d&quot;, 3.14)</code> prints garbage.</td>
-</tr>
-<tr>
-<td align="left"><strong>Scope</strong></td>
-<td align="left">The region of code where a variable is accessible (defined by <code>{}</code>).</td>
-<td align="left">Prevents name collisions; variables die when scope ends.</td>
-<td align="left">Thinking variables persist after function returns; they don&#39;t.</td>
-<td align="left"><code>int y</code> inside <code>{}</code> is inaccessible outside.</td>
-</tr>
-</tbody></table>
-<h1>Core Mechanics / How-To</h1>
-<ol>
-<li><p><strong>How to Compile and Run a C Program</strong></p>
+<h2>What C Is</h2>
 <ul>
-<li><strong>Step 1:</strong> Save code to a file (e.g., <code>hello.c</code>).</li>
-<li><strong>Step 2:</strong> Run <code>gcc filename.c</code>.<ul>
-<li><em>Default:</em> Output is <code>a.out</code>.</li>
-<li><em>Custom Name:</em> Use <code>-o</code> flag (<code>gcc filename.c -o myprog</code>).</li>
+<li>C was developed at Bell Labs by Dennis Ritchie and Ken Thompson.</li>
+<li>It was built for Unix and later became foundational for kernels, systems tools, and performance-sensitive software.</li>
+<li>C is high-level because it is written in source code, but low-level compared with Python because it exposes the machine model more directly.</li>
+<li>In C, you cannot ignore representation for long; the language is constantly telling you where bits live and how they are interpreted.</li>
 </ul>
-</li>
-<li><strong>Step 3:</strong> Run the binary using <code>./binary_name</code>.</li>
-<li><strong>Warning:</strong> Do not overwrite existing files with <code>-o</code> output.</li>
-</ul>
-</li>
-<li><p><strong>How to Reason About Signed Integers</strong></p>
+<h2>Compilation and Execution</h2>
 <ul>
-<li><strong>Step 1:</strong> Identify if the type is <code>int</code> (signed) or <code>unsigned int</code>.</li>
-<li><strong>Step 2:</strong> For negative numbers, assume Two&#39;s Complement (flip bits + 1).</li>
-<li><strong>Step 3:</strong> Remember the left-most bit is the sign bit (0 = positive, 1 = negative).</li>
-<li><strong>Decision:</strong> If adding two numbers causes a carry out of the MSB, it is an <strong>Overflow</strong> (lost bit).</li>
+<li>C uses a compiler, not an interpreter.</li>
+<li><code>gcc</code> turns source code into a binary executable.</li>
+<li>One <code>gcc</code> invocation normally covers preprocessing, compilation, assembly, and linking.</li>
+<li>The compiler does not just “run” your code; it transforms your source into machine code that the operating system can load.</li>
 </ul>
-</li>
-<li><p><strong>How to Use <code>printf</code> Safely</strong></p>
+<h3>What the toolchain is doing</h3>
 <ul>
-<li><strong>Step 1:</strong> Write the format string first (e.g., <code>&quot;x: %d\n&quot;</code>).</li>
-<li><strong>Step 2:</strong> Match the specifier to the argument type (<code>%d</code> for <code>int</code>, <code>%f</code> for <code>float</code>).</li>
-<li><strong>Step 3:</strong> Ensure the number of arguments matches the number of specifiers.</li>
-<li><strong>Tip:</strong> Use <code>%.2f</code> to limit decimal places for floats.</li>
+<li>The preprocessor handles directives such as <code>#include</code>.</li>
+<li>The compiler translates C into lower-level representation.</li>
+<li>The assembler turns that representation into machine instructions.</li>
+<li>The linker combines object files and libraries into a final executable.</li>
+<li>You usually invoke <code>gcc</code>, but several tools are involved behind the scenes.</li>
 </ul>
-</li>
-<li><p><strong>How to Manage Loop Variables</strong></p>
+<h3>What the machine does</h3>
 <ul>
-<li><strong>Step 1:</strong> Use <code>for</code> loop syntax: <code>for (init; cond; update) { ... }</code>.</li>
-<li><strong>Step 2:</strong> Declare loop variables inside the <code>init</code> part (e.g., <code>int i = 0</code>).</li>
-<li><strong>Step 3:</strong> Ensure <code>cond</code> evaluates to non-zero (true) to continue.</li>
-<li><strong>Step 4:</strong> Ensure <code>update</code> modifies the variable to prevent infinite loops.</li>
+<li>The operating system loads the binary into memory.</li>
+<li>It chooses the program’s starting point.</li>
+<li>It arranges the initial runtime state.</li>
+<li>Then execution begins at the entry point, which in C is <code>main</code>.</li>
 </ul>
-</li>
-<li><p><strong>How to Understand Function Calls</strong></p>
+<h2>Entry Point and Program Structure</h2>
 <ul>
-<li><strong>Step 1:</strong> Check the function signature (return type, parameter types).</li>
-<li><strong>Step 2:</strong> Pass arguments by value (copies are made).</li>
-<li><strong>Step 3:</strong> Understand that changes to parameters inside the function do not affect the caller&#39;s variables.</li>
-<li><strong>Step 4:</strong> Return values are passed back to the caller (or OS for <code>main</code>).</li>
+<li>The operating system needs a starting address when it launches a program.</li>
+<li>In C, that entry point is <code>main</code>.</li>
+<li>Unlike Python, a C program must define <code>main</code>.</li>
+<li><code>#include &lt;stdio.h&gt;</code> gives access to standard I/O functions.</li>
+<li><code>int main(int argc, char **argv)</code> declares the entry function.</li>
+<li><code>argc</code> counts the command-line arguments.</li>
+<li><code>argv</code> stores the argument strings.</li>
+<li><code>return 0;</code> sends an exit status back to the operating system.</li>
 </ul>
-</li>
-</ol>
-<h1>Code Patterns &amp; Idioms</h1>
-<table>
-<thead>
-<tr>
-<th align="left">Pattern Name</th>
-<th align="left">When to use it</th>
-<th align="left">Correct minimal example</th>
-<th align="left">Common bug + how to avoid it</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><strong>Standard <code>main</code></strong></td>
-<td align="left">Entry point for every C program.</td>
-<td align="left"><code>int main(int argc, char **argv) { ... return 0; }</code></td>
-<td align="left">Forgetting <code>return 0;</code> (exit status undefined).</td>
-</tr>
-<tr>
-<td align="left"><strong><code>printf</code> Formatting</strong></td>
-<td align="left">Printing mixed types.</td>
-<td align="left"><code>printf(&quot;%d %c %f\n&quot;, x, c, z);</code></td>
-<td align="left">Using <code>%s</code> for a <code>char</code> (prints address) or <code>%d</code> for <code>float</code>.</td>
-</tr>
-<tr>
-<td align="left"><strong><code>for</code> Loop</strong></td>
-<td align="left">Iterating with known count or state change.</td>
-<td align="left"><code>for (int i=0; i&lt;10; ++i) { ... }</code></td>
-<td align="left">Declaring <code>i</code> outside loop if not needed; forgetting <code>++i</code>.</td>
-</tr>
-<tr>
-<td align="left"><strong>Function Call</strong></td>
-<td align="left">Reusing logic.</td>
-<td align="left"><code>int result = gcd(a, b);</code></td>
-<td align="left">Passing wrong number of arguments; mismatched types.</td>
-</tr>
-<tr>
-<td align="left"><strong>Character Literal</strong></td>
-<td align="left">Storing a single character.</td>
-<td align="left"><code>char c = &#39;A&#39;;</code></td>
-<td align="left">Using double quotes <code>&quot;A&quot;</code> (creates a string, not a char).</td>
-</tr>
-</tbody></table>
-<h1>Pitfalls, Edge Cases, and Debugging</h1>
+<h3>Why <code>main</code> matters</h3>
 <ul>
-<li><strong>Symptom:</strong> Program crashes immediately on run.<ul>
-<li><strong>Likely cause:</strong> <code>printf</code> format specifier mismatch (e.g., <code>%d</code> with <code>float</code>).</li>
-<li><strong>Fix:</strong> Check <code>printf</code> arguments against format string.</li>
+<li>The OS needs a defined place to begin execution.</li>
+<li>The compiler arranges for <code>main</code> to be that place.</li>
+<li>The return value of <code>main</code> is not just a local result; it becomes the program’s exit status.</li>
 </ul>
-</li>
-<li><strong>Symptom:</strong> Output shows garbage values for uninitialized variables.<ul>
-<li><strong>Likely cause:</strong> Variable declared but not assigned before use.</li>
-<li><strong>Fix:</strong> Initialize variables (<code>int x = 0;</code>).</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>main</code> function returns non-zero exit code.<ul>
-<li><strong>Likely cause:</strong> <code>return</code> statement in <code>main</code> returns value other than 0.</li>
-<li><strong>Fix:</strong> Ensure <code>return 0</code> for success (standard convention).</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>printf</code> prints nothing or wrong number.<ul>
-<li><strong>Likely cause:</strong> Missing newline <code>\n</code> or wrong specifier.</li>
-<li><strong>Fix:</strong> Add <code>\n</code> or correct <code>%d</code>/<code>%f</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> &quot;Undefined reference to <code>main</code>&quot;.<ul>
-<li><strong>Likely cause:</strong> Missing <code>main</code> function or typo in signature.</li>
-<li><strong>Fix:</strong> Ensure <code>int main(...)</code> exists.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Negative number arithmetic fails.<ul>
-<li><strong>Likely cause:</strong> Signed overflow or using <code>unsigned</code> with negative logic.</li>
-<li><strong>Fix:</strong> Use <code>signed int</code> for negative values.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> Variable <code>y</code> not accessible outside function.<ul>
-<li><strong>Likely cause:</strong> Variable defined inside <code>{}</code> (local scope).</li>
-<li><strong>Fix:</strong> Move declaration outside or pass as parameter.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>times2</code> function doesn&#39;t change caller&#39;s variable.<ul>
-<li><strong>Likely cause:</strong> Pass-by-value (parameter is a copy).</li>
-<li><strong>Fix:</strong> Use pointers (not covered in these slides) or return new value.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>printf</code> prints address of char instead of char.<ul>
-<li><strong>Likely cause:</strong> Using <code>%s</code> for <code>char</code> or <code>%d</code> for <code>char</code>.</li>
-<li><strong>Fix:</strong> Use <code>%c</code> for <code>char</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>return</code> in <code>main</code> returns garbage.<ul>
-<li><strong>Likely cause:</strong> Missing <code>return</code> statement.</li>
-<li><strong>Fix:</strong> Add <code>return 0;</code>.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>for</code> loop infinite loop.<ul>
-<li><strong>Likely cause:</strong> <code>update</code> statement missing or condition never false.</li>
-<li><strong>Fix:</strong> Ensure <code>update</code> modifies loop variable.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>gcd</code> recursion causes stack overflow.<ul>
-<li><strong>Likely cause:</strong> Infinite recursion (base case never met).</li>
-<li><strong>Fix:</strong> Ensure <code>b</code> decreases in recursive call.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>char</code> arithmetic results in unexpected values.<ul>
-<li><strong>Likely cause:</strong> ASCII encoding confusion.</li>
-<li><strong>Fix:</strong> Remember <code>&#39;A&#39;</code> is a number (65), not a string.</li>
-</ul>
-</li>
-<li><strong>Symptom:</strong> <code>return</code> value ignored by caller.<ul>
-<li><strong>Likely cause:</strong> Caller doesn&#39;t assign return value to a variable.</li>
-<li><strong>Fix:</strong> <code>int x = gcd(a, b);</code>.</li>
-</ul>
-</li>
-</ul>
-<h1>Exam-Style Questions (with answers)</h1>
-<ol>
-<li><strong>Q:</strong> What is the exit status of a C program if <code>main</code> returns <code>0</code>?
-<strong>A:</strong> The program exits successfully (standard convention).</li>
-<li><strong>Q:</strong> What does <code>int main(int argc, char **argv)</code> imply about command line arguments?
-<strong>A:</strong> <code>argc</code> is the count of arguments; <code>argv</code> is an array of pointers to strings containing the arguments.</li>
-<li><strong>Q:</strong> In C, what is the difference between <code>&#39;A&#39;</code> and <code>&quot;A&quot;</code>?
-<strong>A:</strong> <code>&#39;A&#39;</code> is a single character (type <code>char</code>), <code>&quot;A&quot;</code> is a string literal (type <code>char[]</code>).</li>
-<li><strong>Q:</strong> If <code>int x = 5;</code> and <code>int y = 10;</code>, what is the result of <code>x = x + y;</code>?
-<strong>A:</strong> <code>x</code> becomes <code>15</code>.</li>
-<li><strong>Q:</strong> Why does <code>times2(x)</code> not change <code>x</code> in <code>main</code>?
-<strong>A:</strong> Because C uses pass-by-value; the parameter <code>x</code> in the function is a copy.</li>
-<li><strong>Q:</strong> What is the binary representation of <code>-1</code> in an 8-bit Two&#39;s Complement system?
-<strong>A:</strong> <code>1111 1111</code> (flip <code>0000 0001</code> to <code>1111 1110</code>, add 1).</li>
-<li><strong>Q:</strong> What happens if you use <code>%d</code> to print a <code>float</code>?
-<strong>A:</strong> Undefined behavior (likely prints garbage or crashes).</li>
-<li><strong>Q:</strong> What is the entry point of a C program?
-<strong>A:</strong> The <code>main</code> function.</li>
-<li><strong>Q:</strong> What is the purpose of the <code>#include &lt;stdio.h&gt;</code> directive?
-<strong>A:</strong> It includes the standard I/O library, making functions like <code>printf</code> available.</li>
-<li><strong>Q:</strong> What is the lifetime of a variable declared inside a function?
-<strong>A:</strong> It exists only while the function is executing (stack frame).</li>
-<li><strong>Q:</strong> What is the result of <code>100 + 1</code> in binary if the result overflows an 8-bit container?
-<strong>A:</strong> The carry bit is lost (overflow), resulting in <code>100</code> (4) in binary (modulo 256).</li>
-<li><strong>Q:</strong> What does <code>return 0</code> in <code>main</code> signify to the Operating System?
-<strong>A:</strong> It signifies successful completion of the program.</li>
-</ol>
-<h1>Quick Reference / Cheat Sheet</h1>
+<h3>Worked trace: <code>helloWorld.c</code></h3>
 <ul>
-<li><strong><code>gcc</code> Compilation:</strong><ul>
-<li><code>gcc file.c</code>  outputs <code>a.out</code></li>
-<li><code>gcc file.c -o name</code>  outputs <code>name</code></li>
+<li class="list-subheading">Source:</li>
+<li><code>printf(&quot;Hello world!\n&quot;);</code></li>
+<li><code>return 45;</code></li>
+<li class="list-subheading">Trace:</li>
+<li>the program starts in <code>main</code>;</li>
+<li><code>printf</code> writes to stdout;</li>
+<li><code>main</code> returns <code>45</code>;</li>
+<li>the OS receives that exit status.</li>
+<li class="list-subheading">Lesson:</li>
+<li><code>main</code> can communicate success or failure through its return value.</li>
+<li>In practice, <code>0</code> usually means success, and nonzero usually means failure.</li>
 </ul>
-</li>
-<li><strong><code>printf</code> Specifiers:</strong><ul>
-<li><code>%d</code>  <code>int</code></li>
-<li><code>%f</code>  <code>float</code></li>
-<li><code>%c</code>  <code>char</code></li>
-<li><code>%s</code>  <code>string</code> (array of chars)</li>
-</ul>
-</li>
-<li><strong><code>main</code> Signature:</strong><ul>
-<li><code>int main(int argc, char **argv)</code></li>
-<li><code>argc</code>: count of arguments</li>
-<li><code>argv</code>: array of argument strings</li>
-</ul>
-</li>
-<li><strong>Memory Segments:</strong><ul>
-<li><strong>Text:</strong> Code</li>
-<li><strong>Data:</strong> Global/Static variables</li>
-<li><strong>Heap:</strong> Dynamic allocation (not detailed in code examples)</li>
-<li><strong>Stack:</strong> Local variables, function parameters</li>
-</ul>
-</li>
-<li><strong>Boolean Logic:</strong><ul>
-<li><code>0</code>  <code>false</code></li>
-<li>Non-zero  <code>true</code></li>
-<li><code>&amp;&amp;</code>  AND</li>
-<li><code>||</code>  OR</li>
-<li><code>!</code>  NOT</li>
-</ul>
-</li>
-<li><strong><code>for</code> Loop:</strong><ul>
-<li><code>for (init; cond; update) { ... }</code></li>
-</ul>
-</li>
-<li><strong><code>return</code> in <code>main</code>:</strong><ul>
-<li><code>return 0</code>  Success</li>
-<li><code>return 1</code>  Error (convention)</li>
-</ul>
-</li>
-</ul>
-<h1>Mini Glossary</h1>
-<ol>
-<li><strong>Compiled:</strong> Source code converted to machine code by a compiler.</li>
-<li><strong>Interpreted:</strong> Code executed directly by an interpreter without pre-compilation.</li>
-<li><strong>Statically Typed:</strong> Types are known at compile time.</li>
-<li><strong>Entry Point:</strong> The function where execution begins (<code>main</code>).</li>
-<li><strong>Binary:</strong> Base-2 number system (0s and 1s).</li>
-<li><strong>Radix:</strong> The base of a number system (e.g., 10 for decimal, 2 for binary).</li>
-<li><strong>Overflow:</strong> When a calculation exceeds the storage capacity of a type.</li>
-<li><strong>Two&#39;s Complement:</strong> Standard method for representing signed integers in binary.</li>
-<li><strong>ASCII:</strong> Encoding scheme mapping numbers to characters.</li>
-<li><strong>Scope:</strong> The region of code where a variable is accessible.</li>
-<li><strong>Stack Frame:</strong> Memory allocated for a function call on the stack.</li>
-<li><strong>Pass-by-Value:</strong> Passing a copy of the argument to a function.</li>
-<li><strong><code>argc</code>:</strong> Argument count (integer).</li>
-<li><strong><code>argv</code>:</strong> Argument vector (array of strings).</li>
-<li><strong><code>printf</code>:</strong> Standard output function with formatting.</li>
-<li><strong><code>#include</code>:</strong> Preprocessor directive to include libraries.</li>
-<li><strong><code>return</code>:</strong> Exits a function and optionally returns a value.</li>
-<li><strong><code>char</code>:</strong> Type representing a single byte/character.</li>
-<li><strong><code>int</code>:</strong> Type representing an integer.</li>
-<li><strong><code>float</code>:</strong> Type representing a floating-point number.</li>
-<li><strong><code>unsigned</code>:</strong> Type modifier indicating non-negative integers.</li>
-<li><strong><code>static</code>:</strong> Type modifier indicating data stored in the Data segment.</li>
-<li><strong><code>heap</code>:</strong> Memory segment for dynamic allocation.</li>
-<li><strong><code>text</code>:</strong> Memory segment for executable code.</li>
-<li><strong><code>data</code>:</strong> Memory segment for global/static variables.</li>
-</ol>
-<h1>What This Lecture Does NOT Cover (Boundary)</h1>
+<h3>Why this is different from Python</h3>
 <ul>
-<li><strong>Pointers:</strong> While <code>char **argv</code> is shown, pointer arithmetic and dereferencing are not explicitly taught in these slides.</li>
-<li><strong>Dynamic Memory Allocation:</strong> The <code>heap</code> segment is mentioned, but <code>malloc</code>, <code>calloc</code>, and <code>free</code> are not covered.</li>
-<li><strong>Structs/Unions:</strong> Composite types are not covered.</li>
-<li><strong>C++ Specifics:</strong> Classes, inheritance, or C++ syntax are not covered (this is C).</li>
-<li><strong>File I/O:</strong> Reading/writing files (<code>fopen</code>, <code>fread</code>) is not covered.</li>
-<li><strong>Advanced Algorithms:</strong> Sorting, searching, or graph algorithms are not covered (beyond <code>gcd</code> example).</li>
-<li><strong>Preprocessor Directives:</strong> Only <code>#include</code> is shown; <code>#define</code>, <code>#ifdef</code> are not covered.</li>
-<li><strong>Error Handling:</strong> <code>errno</code>, <code>strerror</code>, or signal handling are not covered.</li>
-<li><strong>Multithreading:</strong> Concurrency concepts are not covered.</li>
+<li>In Python, the interpreter is the active program.</li>
+<li>In C, the compiled binary is the active program.</li>
+<li>The source file is not what the CPU executes.</li>
+<li>That is why compilation is a required step before execution.</li>
 </ul>
-<h1>Slide Anchors (Traceability)</h1>
+<h3>Worked trace: <code>exitStatus.c</code></h3>
 <ul>
-<li><strong>C History &amp; Classification:</strong> (Slide 2) &quot;Originally developed at Bell Labs... high-level, compiled, and statically typed.&quot;</li>
-<li><strong>Entry Point:</strong> (Slide 6) &quot;Our entry point in C will always be the function main.&quot;</li>
-<li><strong>First Program:</strong> (Slide 7) <code>#include &lt;stdio.h&gt;</code>, <code>int main(int argc, char **argv)</code>, <code>printf</code>.</li>
-<li><strong>Return Value:</strong> (Slide 11) &quot;The operating system! ... is the exit status of our program!&quot;</li>
-<li><strong>Types:</strong> (Slide 12) &quot;int, char, float... not classes like Python.&quot;</li>
-<li><strong>Compilation:</strong> (Slide 13) &quot;gcc hello_world.c ... ./a.out&quot;</li>
-<li><strong>Number Systems:</strong> (Slide 17) &quot;Base 10... 2357 really mean?&quot;</li>
-<li><strong>Binary:</strong> (Slide 20) &quot;Binary is the name given to the base-2 number system.&quot;</li>
-<li><strong>Unsigned Binary:</strong> (Slide 22) &quot;Unsigned integers... stored as binary numbers.&quot;</li>
-<li><strong>Signed Binary (Two&#39;s Complement):</strong> (Slide 30) &quot;set the sign bit, flip the rest of the bits, and add one to it.&quot;</li>
-<li><strong>Characters:</strong> (Slide 32) &quot;Type char is one byte long... ASCII... single quotes.&quot;</li>
-<li><strong>Formatted Strings:</strong> (Slide 34) &quot;printf... formatting specifiers... %d, %f, %c, %s.&quot;</li>
-<li><strong>Conditionals:</strong> (Slide 37) &quot;if (expr) { ... }&quot;</li>
-<li><strong>Loops:</strong> (Slide 41) &quot;for (init_stmts; cond; update_stmts) { ... }&quot;</li>
-<li><strong>Scope:</strong> (Slide 44) &quot;Curly braces in C form a scope.&quot;</li>
-<li><strong>Functions:</strong> (Slide 46) &quot;int gcd(int a, int b) { ... }&quot;</li>
-<li><strong>Memory Layout:</strong> (Slide 56) &quot;text, data, heap, stack.&quot;</li>
-<li><strong>Stack Frames:</strong> (Slide 58) &quot;When a function is called a portion of the stack is allocated... stackframe.&quot;</li>
-<li><strong>Mutation:</strong> (Slide 61) &quot;The value of the argument is copied into the functions stackframe... local copy.&quot;</li>
-<li><strong>Recursion:</strong> (Slide 59) &quot;gcd - recursive... stack growth.&quot;</li>
+<li>The program reads two integers with <code>scanf</code>.</li>
+<li>It returns <code>x + y</code> as the exit status.</li>
+<li>That example is intentionally unusual.</li>
+<li>It shows that a C program’s return value is an actual program result, not just syntax.</li>
 </ul>
+<h2>Formatted Output</h2>
+<ul>
+<li><code>printf</code> prints according to a format string.</li>
+<li><code>%d</code> prints decimal integers.</li>
+<li><code>%u</code> prints unsigned integers.</li>
+<li><code>%f</code> prints floating-point values.</li>
+<li><code>%c</code> prints characters.</li>
+<li><code>%s</code> prints strings.</li>
+<li>Precision such as <code>%.2f</code> limits decimal places.</li>
+</ul>
+<h3>Mental model</h3>
+<ul>
+<li><code>printf</code> is not a generic printer that guesses types.</li>
+<li>The format string tells it how to interpret the following values.</li>
+<li>If the format specifier does not match the value, C will not protect you from the mismatch.</li>
+</ul>
+<h3>Worked trace: <code>printf</code> with character data</h3>
+<ul>
+<li>In <code>chars.c</code>, values like <code>'H'</code>, <code>101</code>, <code>c1 + 36</code>, and <code>'z' - 11</code> are all just numbers.</li>
+<li><code>%c</code> asks <code>printf</code> to interpret those numbers as characters.</li>
+<li>That is why arithmetic on <code>char</code> values can still produce printable output.</li>
+</ul>
+<h2>Types and Representation</h2>
+<ul>
+<li>C’s built-in types are not classes.</li>
+<li>The lecture focuses on <code>int</code>, <code>char</code>, and <code>float</code>.</li>
+<li><code>signed</code> and <code>unsigned</code> change how integer bits are interpreted.</li>
+<li><code>char</code> is one byte.</li>
+<li>Characters are numeric values interpreted through ASCII or another encoding.</li>
+<li>Character literals use single quotes.</li>
+</ul>
+<h3>Common mistaken model</h3>
+<ul>
+<li>In Python, a name can be rebound to a value of a totally different type.</li>
+<li>In C, the declared type of a variable matters for the rest of its lifetime.</li>
+<li>C is not dynamically typed; the declared type is part of the contract.</li>
+</ul>
+<h2>Number Systems and Why Binary Matters</h2>
+<ul>
+<li>Base 10 is positional notation in powers of 10.</li>
+<li>Binary is base 2 and uses bits.</li>
+<li>Octal and hexadecimal are useful alternate radices.</li>
+<li>Hex is convenient because four bits map cleanly to one hex digit.</li>
+</ul>
+<h3>Why binary matters in C</h3>
+<ul>
+<li>Computer storage is built from fixed-size hardware units.</li>
+<li>Those units naturally behave like bits and bytes.</li>
+<li>C exposes those details instead of hiding them behind a heavily abstracted runtime.</li>
+<li>That is why number systems are not side material; they are the foundation.</li>
+</ul>
+<h3>Reading a positional number</h3>
+<ul>
+<li class="list-subheading"><code>2357</code> in base 10 means:</li>
+<li><code>2 × 10^3</code></li>
+<li><code>3 × 10^2</code></li>
+<li><code>5 × 10^1</code></li>
+<li><code>7 × 10^0</code></li>
+<li>Binary works the same way, but the base is 2.</li>
+<li class="list-subheading"><code>1011_2</code> means:</li>
+<li><code>1 × 2^3</code></li>
+<li><code>0 × 2^2</code></li>
+<li><code>1 × 2^1</code></li>
+<li><code>1 × 2^0</code></li>
+</ul>
+<h3>Worked trace: <code>bitwise.c</code></h3>
+<ul>
+<li>The program reads an integer.</li>
+<li>It starts a mask at the highest bit.</li>
+<li>It uses <code>bit &amp; x</code> to test whether each bit is set.</li>
+<li>It prints <code>1</code> or <code>0</code> for each position.</li>
+<li>It shifts the mask right one bit at a time.</li>
+<li>The idea is that binary is not just notation; it is directly inspectable with bitwise operations.</li>
+</ul>
+<h3>Worked trace: <code>powersOfTwo.c</code></h3>
+<ul>
+<li>The program searches for the largest power of two not greater than the input.</li>
+<li>It then walks downward, subtracting powers of two when they fit.</li>
+<li>Each subtraction determines whether the current bit is <code>1</code> or <code>0</code>.</li>
+<li>This is a more arithmetic view of the same binary representation.</li>
+</ul>
+<h3>Worked trace: <code>repeatedDiv.c</code></h3>
+<ul>
+<li>The helper recursively prints the binary digits of <code>x/2</code>.</li>
+<li>After the recursive call returns, it prints <code>x % 2</code>.</li>
+<li>This produces the bits from most significant to least significant.</li>
+<li>The <code>printBinaryFirst</code> version fails because it prints least significant bits first and cannot recover the earlier order.</li>
+<li>That example is a reminder that output order matters in recursive decomposition.</li>
+</ul>
+<h3>Why hex shows up in memory diagrams</h3>
+<ul>
+<li>Addresses are large binary numbers.</li>
+<li>Hex shortens them without losing the binary structure.</li>
+<li>Every hex digit corresponds to four bits.</li>
+<li>That makes it easier to inspect bit patterns and memory addresses.</li>
+</ul>
+<h2>Fixed-Width Integers and Overflow</h2>
+<ul>
+<li>Computer integers are finite-width.</li>
+<li>Overflow happens when a value does not fit in the available bits.</li>
+<li>Unsigned integers behave like ordinary fixed-width binary.</li>
+<li>Signed integers on modern systems use two’s complement.</li>
+</ul>
+<h3>What overflow actually means</h3>
+<ul>
+<li>The machine does not have infinite bits.</li>
+<li>When the stored result cannot fit, the high bits are lost.</li>
+<li>That is why the same arithmetic expression can produce different results depending on the type.</li>
+<li>Overflow is not “just a bug”; it is part of the finite storage model.</li>
+</ul>
+<h3>What the machine is doing</h3>
+<ul>
+<li>The hardware stores a fixed number of bits.</li>
+<li>Arithmetic is performed on those bits.</li>
+<li>If the true mathematical result does not fit, the extra bits are lost.</li>
+<li>That is why fixed-width integer arithmetic has boundaries.</li>
+</ul>
+<h3>Unsigned versus signed interpretation</h3>
+<ul>
+<li>The underlying bits can be identical.</li>
+<li><code>%u</code> interprets them as an unsigned integer.</li>
+<li><code>%d</code> interprets them as a signed integer.</li>
+<li>This is why one variable can print as a large positive number under one format and as a negative number under another.</li>
+</ul>
+<h3>Worked trace: <code>intsize.c</code></h3>
+<ul>
+<li><code>unsigned int x = 4294967295;</code></li>
+<li>That value is at or near the maximum for a 32-bit unsigned integer.</li>
+<li>Printing with <code>%u</code> shows the unsigned interpretation.</li>
+<li>Printing with <code>%d</code> interprets the same bits as signed.</li>
+<li>After <code>x = x + 13554;</code>, the value wraps because the width is fixed.</li>
+<li>The lesson is not “C is weird”; the lesson is that the hardware representation is finite.</li>
+</ul>
+<h3>Signed representations</h3>
+<ul>
+<li>A sign-bit approach causes double zero and awkward arithmetic.</li>
+<li>One’s complement improves some things but still keeps double zero.</li>
+<li>Two’s complement is the representation used on modern machines.</li>
+<li>Two’s complement is attractive because addition works uniformly and the representation is efficient.</li>
+</ul>
+<h2>Control Flow</h2>
+<ul>
+<li><code>if (expr) { ... }</code> uses parentheses around the condition.</li>
+<li><code>while (expr) { ... }</code> repeats while the condition remains true.</li>
+<li>Zero is false; nonzero is true.</li>
+<li>Logical operators are <code>&amp;&amp;</code>, <code>||</code>, and <code>!</code>.</li>
+<li>C’s <code>for</code> loops have initialization, condition, and update sections.</li>
+<li>They are not the same shape as Python loops.</li>
+</ul>
+<h3>Exact syntax habits</h3>
+<ul>
+<li>C conditions are written inside parentheses.</li>
+<li>Blocks are written with braces.</li>
+<li>Statements end with semicolons.</li>
+<li>This matters because the language is far less forgiving than Python about punctuation.</li>
+</ul>
+<h3>Worked example: boolean versus bitwise thinking</h3>
+<ul>
+<li>In the course examples, <code>&amp;&amp;</code> is logical conjunction.</li>
+<li><code>&amp;</code> is bitwise AND.</li>
+<li>Those are not interchangeable.</li>
+<li>If you want boolean control flow, use boolean operators.</li>
+<li>If you want to combine bits, use bitwise operators.</li>
+</ul>
+<h3>Worked trace: <code>booleanOperatorsvsBitwise.c</code></h3>
+<ul>
+<li>The program reads two integers.</li>
+<li><code>if (x &amp;&amp; y)</code> tests logical truthiness.</li>
+<li><code>if (x &amp; y)</code> tests whether the bitwise AND is nonzero.</li>
+<li>The two conditions can produce different answers for the same values.</li>
+<li>That example is a direct warning not to confuse logical and bitwise operators.</li>
+</ul>
+<h3>Loop tracing habit</h3>
+<ul>
+<li>Read the initialization first.</li>
+<li>Then ask what condition keeps the loop running.</li>
+<li>Then ask what update changes the loop variable.</li>
+<li>Then trace one iteration at a time until the stopping condition.</li>
+</ul>
+<h3>Why the <code>while</code> example uses <code>scanf</code></h3>
+<ul>
+<li>The integer-reading examples show that control flow often depends on input.</li>
+<li>The loop is not just “repeat until true.”</li>
+<li>It is “repeat while the program has not yet obtained the input it needs.”</li>
+<li>That style of loop is common in robust C programs.</li>
+</ul>
+<h2>Scope and Functions</h2>
+<ul>
+<li>Curly braces define scope.</li>
+<li>Variables are only visible in their own block and nested blocks.</li>
+<li>A function has a return type, a name, parameters, and a body.</li>
+<li>Calls in C look familiar, but the type contracts are strict.</li>
+<li>Parameters receive copies of arguments.</li>
+<li>Changing a parameter usually changes only the callee’s local copy.</li>
+<li>Shared mutation requires a pointer or another shared handle.</li>
+</ul>
+<h3>Why pass-by-value matters</h3>
+<ul>
+<li>If a function takes <code>int x</code>, it receives a copy.</li>
+<li>If the function changes <code>x</code>, it changes the copy.</li>
+<li>The caller’s variable is unchanged unless you pass a pointer or another shared object.</li>
+</ul>
+<h3>Function reasoning habit</h3>
+<ul>
+<li>Ask what the function receives.</li>
+<li>Ask what storage the function may legally modify.</li>
+<li>Ask what value the function returns.</li>
+<li>Separate those three ideas in your head; many C bugs come from mixing them together.</li>
+</ul>
+<h3>Worked trace: <code>increments.c</code></h3>
+<ul>
+<li>Prefix <code>++x</code> mutates first, then yields the new value.</li>
+<li>Postfix <code>x++</code> yields the old value, then mutates.</li>
+<li>That distinction matters because expressions can both produce a value and change storage.</li>
+<li>The code shows that <code>res1 = ++x1</code> and <code>res2 = x2++</code> are not the same thing.</li>
+</ul>
+<h3>Worked trace: <code>unspecified.c</code></h3>
+<ul>
+<li>The program calls <code>printThree(++x, addFive(&amp;x), doubleNum(&amp;x));</code></li>
+<li>The order of evaluation of the arguments is unspecified.</li>
+<li>That means the compiler may evaluate them in different orders.</li>
+<li>Because the arguments have side effects on the same variable, the result is not portable.</li>
+<li>The lesson is to avoid writing expressions that depend on evaluation order.</li>
+</ul>
+<h2>Memory Layout</h2>
+<ul>
+<li>Program memory is divided into text, data, heap, and stack.</li>
+<li>Text stores code.</li>
+<li>Data stores globals and statics.</li>
+<li>Heap stores programmer-managed dynamic memory.</li>
+<li>Stack stores locals and stack frames.</li>
+</ul>
+<h3>What each region means</h3>
+<ul>
+<li>Text is where the executable code lives.</li>
+<li>Data is where global and static storage live.</li>
+<li>Heap is where you later ask the program to allocate memory dynamically.</li>
+<li>Stack is where function-local automatic variables live.</li>
+<li>The lecture is not yet about dynamic allocation, but this layout is the frame for that later topic.</li>
+</ul>
+<h3>Stack frames</h3>
+<ul>
+<li>Each function call gets its own frame.</li>
+<li>Local data disappears when the function returns.</li>
+<li>Recursive calls create multiple live frames.</li>
+<li>This model is crucial later when you reason about pointers, arrays, and dynamic memory.</li>
+</ul>
+<h3>How to think about a call</h3>
+<ul>
+<li>A function call creates a new working area.</li>
+<li>When the function returns, that working area goes away.</li>
+<li>Returning a pointer to a local variable is dangerous because the referenced storage no longer exists after return.</li>
+<li>Even before later pointer lectures, the stack-frame model explains why that kind of bug is fatal.</li>
+</ul>
+<h2>Lecture Code Connections</h2>
+<ul>
+<li><code>lecture_code/cpl/smallExamples/helloWorld.c</code></li>
+<li>Shows a minimal <code>main</code> with <code>printf</code> and an explicit return value.</li>
+<li>Useful for entry-point reasoning and exit status.</li>
+<li><code>lecture_code/cpl/smallExamples/exitStatus.c</code></li>
+<li>Returns the sum of two integers as the process status.</li>
+<li>Reinforces that <code>main</code>’s return value goes to the OS.</li>
+<li><code>lecture_code/cpl/smallExamples/intsize.c</code></li>
+<li>Shows unsigned wraparound and different format specifiers for the same bit pattern.</li>
+<li>Good for signed-versus-unsigned interpretation.</li>
+<li><code>lecture_code/cpl/smallExamples/chars.c</code></li>
+<li>Demonstrates that characters are numbers.</li>
+<li>Good for ASCII and literal interpretation.</li>
+<li><code>lecture_code/cpl/smallExamples/increments.c</code></li>
+<li>Demonstrates prefix and postfix increment and decrement.</li>
+<li>Good for evaluating expression side effects.</li>
+<li><code>lecture_code/cpl/smallExamples/unspecified.c</code></li>
+<li>Shows that side-effect-heavy argument lists are not portable.</li>
+<li>Good warning for exam reasoning.</li>
+<li><code>lecture_code/cpl/smallExamples/printBinary/bitwise.c</code></li>
+<li>Uses bitwise operations and shifting to print a binary representation.</li>
+<li>Good for thinking in bits instead of decimal intuition.</li>
+<li><code>lecture_code/cpl/smallExamples/printBinary/powersOfTwo.c</code></li>
+<li>Builds binary output using powers of two and subtraction.</li>
+<li>Reinforces the positional view of binary.</li>
+<li><code>lecture_code/cpl/smallExamples/printBinary/repeatedDiv.c</code></li>
+<li>Uses recursion and repeated division to print binary.</li>
+<li>Helps connect recursion with representation.</li>
+</ul>
+<h2>Common Failure Narratives</h2>
+<ul>
+<li>A student expects C variables to change type like Python variables. They do not.</li>
+<li>A student forgets to define <code>main</code> and wonders why the program cannot start.</li>
+<li>A student uses <code>%d</code> where <code>%u</code> is needed, or vice versa, and reads the same bits under the wrong interpretation.</li>
+<li>A student assumes <code>int</code> has a universal size. It does not.</li>
+<li>A student writes code that depends on argument evaluation order and sees different behavior on different compilers.</li>
+<li>A student forgets that local variables live on the stack and vanish when the function returns.</li>
+</ul>
+<h2>Exam Solution Patterns</h2>
+<ul>
+<li>If a question asks about compilation, explain the toolchain and the resulting binary.</li>
+<li>If a question asks about <code>main</code>, explain program startup and exit status.</li>
+<li>If a question asks about binary, connect the answer to fixed-width hardware storage.</li>
+<li>If a question asks about <code>printf</code>, match the format specifier to the interpretation of the bits.</li>
+<li>If a question asks about a loop, trace the initialization, condition, and update separately.</li>
+<li>If a question asks about a function, separate the parameters, local copies, return value, and side effects.</li>
+</ul>
+<h2>Quick Reference</h2>
+<ul>
+<li>Compile: <code>gcc file.c</code></li>
+<li>Compile with output name: <code>gcc file.c -o program</code></li>
+<li>Run: <code>./program</code></li>
+<li>Entry point: <code>main</code></li>
+<li>Integer format: <code>%d</code></li>
+<li>Unsigned integer format: <code>%u</code></li>
+<li>Floating-point format: <code>%f</code></li>
+<li>Character format: <code>%c</code></li>
+<li>String format: <code>%s</code></li>
+<li>Zero is false, nonzero is true</li>
+<li>Logical operators: <code>&amp;&amp;</code>, <code>||</code>, <code>!</code></li>
+<li>Common integer types: <code>int</code>, <code>signed int</code>, <code>unsigned int</code></li>
+<li><code>char</code> is one byte</li>
+<li>Two’s complement is the standard signed integer representation</li>
+</ul>
+<h2>Exam Questions</h2>
+<ul>
+<li>Q: Why does C use <code>main</code> as the program entry point?</li>
+</ul>
+<p>A: The OS needs a defined place to start execution, and the compiler arranges for <code>main</code> to be that entry point.</p>
+<ul>
+<li>Q: What is the difference between <code>signed int</code> and <code>unsigned int</code>?</li>
+</ul>
+<p>A: They interpret the same fixed-width bit pattern differently; signed values use two’s complement while unsigned values are treated as ordinary binary.</p>
+<ul>
+<li>Q: Why can <code>char</code> hold numeric values and printable characters?</li>
+</ul>
+<p>A: Because a character is just a one-byte number interpreted through an encoding such as ASCII.</p>
+<ul>
+<li>Q: What does <code>return 0;</code> from <code>main</code> mean?</li>
+</ul>
+<p>A: It returns an exit status of 0 to the operating system, which usually indicates success.</p>
+<ul>
+<li>Q: Why is binary important for C?</li>
+</ul>
+<p>A: C exposes the machine-level representation of values, so understanding bits, bytes, and fixed width matters.</p>
+<ul>
+<li>Q: Why can a function parameter not normally change the caller’s variable?</li>
+</ul>
+<p>A: Function arguments are copied into the callee’s stack frame, so the callee mutates its own local copy.</p>
+<ul>
+<li>Q: What is overflow in unsigned arithmetic?</li>
+</ul>
+<p>A: When the result exceeds the fixed-width range, the extra bits are discarded and the value wraps.</p>
+<ul>
+<li>Q: What does <code>sizeof</code> measure?</li>
+</ul>
+<p>A: The size of its operand in bytes.</p>
         </article>
-
         <nav class="toc" aria-label="On this page">
           <h2>On this page</h2>
           <ul data-toc-list></ul>
         </nav>
-
         <nav class="page-nav" aria-label="Lecture sequence">
-          <a href="/slides/command-line-args-and-2d-arrays.html"><span>Previous</span>Command Line Args & 2D Arrays</a>
+          <a href="/slides/shell-bash-basics.html"><span>Previous</span>Shell and Bash Basics</a>
           <a href="/slides/?track=c-core"><span>Back to Track</span>C Core</a>
-          <a href="/slides/pointers-arrays-strings.html"><span>Next</span>Pointers, Arrays, and Strings</a>
+          <a href="/slides/pointers-arrays-strings.html"><span>Next</span>Pointers, Arrays, Input, and Strings</a>
         </nav>
-
-        <p class="callout">Manually curated from <code>summaries/c_pl.txt</code>. Use this page as a study aid and cross-check official slides for grading-critical details.</p>
+        <p class="callout">Built from <code>summaries/02_c_pl.md</code> and reviewed against <code>slides/02_c_pl.pdf</code> plus matching files in <code>lecture_code/</code>.</p>
       </div>
     </section>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

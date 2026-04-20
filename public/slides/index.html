@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Slides | CMPUT 275 Summaries</title>
-  <meta name="description" content="CMPUT 275 slide summaries organized by study track.">
+  <meta name="description" content="CMPUT 275 lecture summaries organized by study track.">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
-
+  <div class="reading-progress" data-reading-progress aria-hidden="true"></div>
   <header class="site-header">
     <div class="site-shell site-nav">
       <a class="brand" href="/">
@@ -31,125 +31,131 @@
       </div>
     </div>
   </header>
-
-  <main class="page-main site-shell" id="main-content" data-slides-hub>
+  <main class="page-main site-shell" id="main-content">
+    <div data-slides-hub>
     <section class="hero">
       <p class="kicker">Slides Hub</p>
-      <h1>Lecture summaries in a connected learning order.</h1>
-      <p>Search by keyword and filter by track to focus your revision quickly.</p>
-
+      <h1>Lecture summaries from 00 upward.</h1>
+      <p>Work top to bottom the first time. Each lecture page gives you a read, trace, check, and practice loop tied back to the lecture code.</p>
       <div class="slides-controls">
         <label class="sr-only" for="slides-search">Search lecture summaries</label>
         <input id="slides-search" class="search-input" type="search" placeholder="Search topics, terms, or file names..." data-search-input>
         <div class="filter-row" role="group" aria-label="Filter by track">
           <button type="button" class="filter-chip active" data-track-filter="all" aria-pressed="true">All Tracks</button>
           <button type="button" class="filter-chip" data-track-filter="orientation" aria-pressed="false">Orientation</button>
-          <button type="button" class="filter-chip" data-track-filter="shell-cli" aria-pressed="false">Shell &amp; CLI</button>
+          <button type="button" class="filter-chip" data-track-filter="shell-cli" aria-pressed="false">Shell and CLI</button>
           <button type="button" class="filter-chip" data-track-filter="c-core" aria-pressed="false">C Core</button>
-          <button type="button" class="filter-chip" data-track-filter="data-memory" aria-pressed="false">Data &amp; Memory</button>
-          <button type="button" class="filter-chip" data-track-filter="build" aria-pressed="false">Build &amp; Modularity</button>
+          <button type="button" class="filter-chip" data-track-filter="data-memory" aria-pressed="false">Data and Memory</button>
+          <button type="button" class="filter-chip" data-track-filter="build" aria-pressed="false">Build and Modularity</button>
+          <button type="button" class="filter-chip" data-track-filter="cpp-core" aria-pressed="false">C++ Core</button>
+          <button type="button" class="filter-chip" data-track-filter="cpp-oop" aria-pressed="false">C++ OOP</button>
         </div>
-        <p class="results-line" data-results-count>9 lectures shown</p>
+        <p class="results-line" data-results-count>13 lectures shown</p>
       </div>
     </section>
-
+    <section class="section learning-panel" aria-labelledby="learn-method-heading">
+      <h2 id="learn-method-heading">Use the same method for every lecture</h2>
+      <div class="learning-flow">
+        <article><strong>Read</strong><span>Build the concept from the summary before opening questions.</span></article>
+        <article><strong>Trace</strong><span>Follow the related files in <code>lecture_code/</code> line by line.</span></article>
+        <article><strong>Recall</strong><span>Close the summary and answer the embedded questions out loud.</span></article>
+        <article><strong>Practice</strong><span>Use Exam Practice until missed cards become known.</span></article>
+      </div>
+    </section>
     <section class="track-grid section" aria-label="Lecture tracks">
       <article class="track-card" data-track-section>
         <div class="track-header">
-          <h2 class="track-title">Orientation</h2>
-          <p class="track-rationale">Start here for policies and study constraints.</p>
+          <h2 class="track-title">Lecture Order</h2>
+          <p class="track-rationale">The slide decks appear in numeric order from 00 through 13.</p>
         </div>
         <div class="slide-grid">
-          <a class="slide-card" href="/slides/course-intro.html" data-slide-card data-track="orientation" data-title="course intro syllabus evaluation slip days" data-tags="intro grading policies communication">
-            <h3>Course Intro</h3>
-            <p>Syllabus rules, grading weights, slip days, and communication workflow.</p>
-            <div class="slide-meta"><span class="tag">Orientation</span><span class="tag">Policies</span></div>
+          <a class="slide-card lecture-card" href="/slides/course-intro.html" data-slide-card data-track="orientation" data-title="course intro" data-tags="policies grading slip days forum">
+            <span class="lecture-number">00</span>
+            <h3>00_intro: Course Intro</h3>
+            <p>Course logistics, grading, slip days, excused absences, and support workflow.</p>
+            <div class="slide-meta"><span class="tag">Orientation</span><span class="tag">slides/00_intro.pdf</span></div>
           </a>
-        </div>
-      </article>
-
-      <article class="track-card" data-track-section>
-        <div class="track-header">
-          <h2 class="track-title">Shell &amp; CLI</h2>
-          <p class="track-rationale">Command-line environment before deeper C tooling.</p>
-        </div>
-        <div class="slide-grid">
-          <a class="slide-card" href="/slides/shell-bash-basics.html" data-slide-card data-track="shell-cli" data-title="shell bash pipes redirection stdin stdout stderr" data-tags="shell bash io redirection">
-            <h3>Shell and Bash Basics</h3>
-            <p>UNIX shell concepts, pipes, stream redirection, and command discovery.</p>
-            <div class="slide-meta"><span class="tag">Shell</span><span class="tag">Bash</span></div>
+          <a class="slide-card lecture-card" href="/slides/shell-bash-basics.html" data-slide-card data-track="shell-cli" data-title="shell and bash basics" data-tags="bash stdin stdout stderr pipes permissions">
+            <span class="lecture-number">01</span>
+            <h3>01_shell: Shell and Bash Basics</h3>
+            <p>Operating systems, shell commands, paths, streams, redirection, pipes, permissions, SSH, and Bash scripts.</p>
+            <div class="slide-meta"><span class="tag">Shell and CLI</span><span class="tag">slides/01_shell.pdf</span></div>
           </a>
-          <a class="slide-card" href="/slides/command-line-args-and-2d-arrays.html" data-slide-card data-track="shell-cli" data-title="command line arguments argc argv 2d arrays" data-tags="argc argv spiral rule matrix allocation">
-            <h3>Command Line Args &amp; 2D Arrays</h3>
-            <p>Parse `argc/argv`, understand pointer types, and manage dynamic 2D arrays.</p>
-            <div class="slide-meta"><span class="tag">CLI</span><span class="tag">2D Arrays</span></div>
+          <a class="slide-card lecture-card" href="/slides/c-programming-foundations.html" data-slide-card data-track="c-core" data-title="c programming foundations" data-tags="c gcc binary types functions stack">
+            <span class="lecture-number">02</span>
+            <h3>02_c_pl: C Programming Foundations</h3>
+            <p>C as a compiled, statically typed language; number systems; basic syntax; functions; and memory layout.</p>
+            <div class="slide-meta"><span class="tag">C Core</span><span class="tag">slides/02_c_pl.pdf</span></div>
           </a>
-        </div>
-      </article>
-
-      <article class="track-card" data-track-section>
-        <div class="track-header">
-          <h2 class="track-title">C Core</h2>
-          <p class="track-rationale">Core language mechanics needed for memory-safe coding.</p>
-        </div>
-        <div class="slide-grid">
-          <a class="slide-card" href="/slides/c-programming-foundations.html" data-slide-card data-track="c-core" data-title="c programming basics binary ascii functions scope" data-tags="c syntax loops functions binary ascii">
-            <h3>C Programming Foundations</h3>
-            <p>C syntax, number systems, memory basics, and function behavior.</p>
-            <div class="slide-meta"><span class="tag">C Basics</span><span class="tag">Number Systems</span></div>
+          <a class="slide-card lecture-card" href="/slides/pointers-arrays-strings.html" data-slide-card data-track="c-core" data-title="pointers, arrays, input, and strings" data-tags="pointers arrays scanf strings array decay">
+            <span class="lecture-number">03</span>
+            <h3>03_pointers: Pointers, Arrays, Input, and Strings</h3>
+            <p>Pointers, address-of and dereference, scanf, robust input loops, array decay, pointer arithmetic, and C strings.</p>
+            <div class="slide-meta"><span class="tag">C Core</span><span class="tag">slides/03_pointers.pdf</span></div>
           </a>
-          <a class="slide-card" href="/slides/pointers-arrays-strings.html" data-slide-card data-track="c-core" data-title="pointers arrays strings scanf const eof" data-tags="pointer decay arrays strings scanf">
-            <h3>Pointers, Arrays, and Strings</h3>
-            <p>Addressing, pointer safety, array decay, robust input, and C strings.</p>
-            <div class="slide-meta"><span class="tag">Pointers</span><span class="tag">Input</span></div>
+          <a class="slide-card lecture-card" href="/slides/dynamic-memory-management.html" data-slide-card data-track="data-memory" data-title="dynamic memory management" data-tags="malloc free heap lifetime doubling">
+            <span class="lecture-number">04</span>
+            <h3>04_dynamic_mem: Dynamic Memory Management</h3>
+            <p>Heap allocation, malloc/free, lifetimes, dangling pointers, leaks, growing arrays, and doubling capacity.</p>
+            <div class="slide-meta"><span class="tag">Data and Memory</span><span class="tag">slides/04_dynamic_mem.pdf</span></div>
           </a>
-        </div>
-      </article>
-
-      <article class="track-card" data-track-section>
-        <div class="track-header">
-          <h2 class="track-title">Data &amp; Memory</h2>
-          <p class="track-rationale">Data modeling and dynamic memory ownership patterns.</p>
-        </div>
-        <div class="slide-grid">
-          <a class="slide-card" href="/slides/structs-and-adts.html" data-slide-card data-track="data-memory" data-title="structs adt linked list arrow operator" data-tags="struct adt list encapsulation">
-            <h3>Structs and ADTs</h3>
-            <p>Struct layout, passing semantics, and abstract data type design.</p>
-            <div class="slide-meta"><span class="tag">Structs</span><span class="tag">ADT</span></div>
+          <a class="slide-card lecture-card" href="/slides/command-line-args-and-2d-arrays.html" data-slide-card data-track="shell-cli" data-title="command line args and multi-dimensional arrays" data-tags="argc argv char** 2d arrays matrix">
+            <span class="lecture-number">05</span>
+            <h3>05_cmd_line: Command Line Args and Multi-Dimensional Arrays</h3>
+            <p>argc/argv, double pointers, strings from the OS, pointer-to-pointer 2D arrays, and flat 1D matrix storage.</p>
+            <div class="slide-meta"><span class="tag">Shell and CLI</span><span class="tag">slides/05_cmd_line.pdf</span></div>
           </a>
-          <a class="slide-card" href="/slides/dynamic-memory-management.html" data-slide-card data-track="data-memory" data-title="dynamic memory malloc free heap doubling strategy" data-tags="heap malloc free resizing">
-            <h3>Dynamic Memory Management</h3>
-            <p>Heap allocation, safe freeing, pointer lifetime, and growth strategies.</p>
-            <div class="slide-meta"><span class="tag">Heap</span><span class="tag">Ownership</span></div>
+          <a class="slide-card lecture-card" href="/slides/mutation-and-double-pointers.html" data-slide-card data-track="data-memory" data-title="mutation and double pointers" data-tags="mutation output parameter double pointer push">
+            <span class="lecture-number">06</span>
+            <h3>06_mutation: Mutation and Double Pointers</h3>
+            <p>Returning extra values through pointer parameters, output parameters, and using double pointers to mutate caller-owned pointers.</p>
+            <div class="slide-meta"><span class="tag">Data and Memory</span><span class="tag">slides/06_mutation.pdf</span></div>
           </a>
-          <a class="slide-card" href="/slides/mutation-and-double-pointers.html" data-slide-card data-track="data-memory" data-title="mutation double pointers resize arrays" data-tags="double pointer return multiple values">
-            <h3>Mutation and Double Pointers</h3>
-            <p>Mutate caller state safely, especially during dynamic array resizing.</p>
-            <div class="slide-meta"><span class="tag">Mutation</span><span class="tag">Double Ptr</span></div>
+          <a class="slide-card lecture-card" href="/slides/structs-and-adts.html" data-slide-card data-track="data-memory" data-title="structs and adts" data-tags="struct adt linked list encapsulation">
+            <span class="lecture-number">07</span>
+            <h3>07_structs: Structs and ADTs</h3>
+            <p>C structs, member access, struct pointers, arrow operator, linked lists, ADT design, and encapsulation motivation.</p>
+            <div class="slide-meta"><span class="tag">Data and Memory</span><span class="tag">slides/07_structs.pdf</span></div>
           </a>
-        </div>
-      </article>
-
-      <article class="track-card" data-track-section>
-        <div class="track-header">
-          <h2 class="track-title">Build &amp; Modularity</h2>
-          <p class="track-rationale">Compile, link, and structure codebases with clean interfaces.</p>
-        </div>
-        <div class="slide-grid">
-          <a class="slide-card" href="/slides/separate-compilation-and-headers.html" data-slide-card data-track="build" data-title="separate compilation headers linker declarations definitions" data-tags="gcc linker header object files">
-            <h3>Separate Compilation and Headers</h3>
-            <p>Declarations vs definitions, object files, include guards, and linking.</p>
-            <div class="slide-meta"><span class="tag">Build</span><span class="tag">Headers</span></div>
+          <a class="slide-card lecture-card" href="/slides/separate-compilation-and-headers.html" data-slide-card data-track="build" data-title="separate compilation and headers" data-tags="headers linker preprocessor object files incomplete types">
+            <span class="lecture-number">08</span>
+            <h3>08_sep_comp: Separate Compilation and Headers</h3>
+            <p>Declarations versus definitions, preprocessing, object files, linking, headers, incomplete types, and C encapsulation.</p>
+            <div class="slide-meta"><span class="tag">Build and Modularity</span><span class="tag">slides/08_sep_comp.pdf</span></div>
+          </a>
+          <a class="slide-card lecture-card" href="/slides/intro-to-cpp.html" data-slide-card data-track="cpp-core" data-title="introduction to c++" data-tags="c++ iostream new delete overloading">
+            <span class="lecture-number">09</span>
+            <h3>09_cpp: Introduction to C++</h3>
+            <p>Modern C++ style, g++, streams, stream state, manipulators, new/delete, function overloading, and operator overloading.</p>
+            <div class="slide-meta"><span class="tag">C++ Core</span><span class="tag">slides/09_cpp.pdf</span></div>
+          </a>
+          <a class="slide-card lecture-card" href="/slides/references-pass-by-reference.html" data-slide-card data-track="cpp-core" data-title="references and pass by reference" data-tags="references const reference operator overloading istream ostream">
+            <span class="lecture-number">10</span>
+            <h3>10_refs: References and Pass by Reference</h3>
+            <p>References as aliases, reference rules, pass-by-reference, const references, returning references, and stream operators.</p>
+            <div class="slide-meta"><span class="tag">C++ Core</span><span class="tag">slides/10_refs.pdf</span></div>
+          </a>
+          <a class="slide-card lecture-card" href="/slides/basic-classes.html" data-slide-card data-track="cpp-oop" data-title="basic classes" data-tags="classes constructors mil private friend">
+            <span class="lecture-number">11</span>
+            <h3>11_classes: Basic Classes</h3>
+            <p>Classes, objects, methods, constructors, member initialization lists, access control, headers, getters/setters, and friends.</p>
+            <div class="slide-meta"><span class="tag">C++ OOP</span><span class="tag">slides/11_classes.pdf</span></div>
+          </a>
+          <a class="slide-card lecture-card" href="/slides/the-big-5.html" data-slide-card data-track="cpp-oop" data-title="the big 5" data-tags="destructor copy constructor copy assignment move raii">
+            <span class="lecture-number">13</span>
+            <h3>13_big5: The Big 5</h3>
+            <p>Destructors, copy constructors, copy assignment, move operations, copy elision, and the rule of five for resource-owning classes.</p>
+            <div class="slide-meta"><span class="tag">C++ OOP</span><span class="tag">slides/13_big5.pdf</span></div>
           </a>
         </div>
       </article>
     </section>
-
     <div class="empty-state" data-empty-state hidden>
-      No lectures match the current filters. Try a broader keyword or switch to "All Tracks."
+      No lectures match the current filters. Try a broader keyword or switch to All Tracks.
+    </div>
     </div>
   </main>
-
   <script src="/site.js" defer></script>
+
 </body>
 </html>

@@ -1,0 +1,63 @@
+[Q-09-01]
+Question: What are `std::cout`, `std::cin`, and `std::cerr`?
+Answer: They are stream objects representing standard output, standard input, and standard error.
+
+[Q-09-02]
+Question: What does the `>>` operator do in C++ streams?
+Answer: It extracts data from an input stream into a variable or object.
+
+[Q-09-03]
+Question: What does the `<<` operator do in C++ streams?
+Answer: It inserts data into an output stream.
+
+[Q-09-04]
+Question: What is the difference between `fail()` and `eof()`?
+Answer: `fail()` reports a failed read or broken stream state, while `eof()` reports that the stream hit end-of-file.
+
+[Q-09-05]
+Question: Why must `delete[]` be used for arrays allocated with `new[]`?
+Answer: Because array allocation and single-object allocation use different forms of deletion, and using the wrong one is incorrect.
+
+[Q-09-06]
+Question: What is function overloading?
+Answer: It is defining multiple functions with the same name as long as they differ in parameter count or parameter types.
+
+[Q-09-07]
+Question: What is operator overloading?
+Answer: It is giving a user-defined meaning to an operator by defining a function named `operator` followed by that operator.
+
+[Q-09-08]
+Question: Why is `Vec3D operator*(Vec3D v, int scalar)` not enough by itself?
+Answer: Because it handles only `Vec3D * int`, not `int * Vec3D`.
+
+[Q-09-09]
+Question: Why is `std::istringstream` useful?
+Answer: It lets you treat a string as an input stream so you can parse and validate text with stream operators.
+
+[Q-09-10]
+Question: What is the key difference between iterating with `auto x` and `auto &x`?
+Answer: `auto x` copies each element, while `auto &x` aliases the actual element.
+
+[Q-09-11]
+Question: After `cin >> x` fails because the next character is `a`, why are both `cin.clear()` and `cin.ignore()` needed before trying to read another integer?
+Answer: `clear()` resets the fail state so reads can happen again, while `ignore()` removes the offending character; without `ignore()`, the next integer read sees the same `a` and fails again.
+
+[Q-09-12]
+Question: Why can `cout << hex << 237 << endl; cout << 1997 << endl;` print both numbers in hexadecimal?
+Answer: `std::hex` mutates the stream state and remains active until another manipulator such as `std::dec` changes it back.
+
+[Q-09-13]
+Question: Why should a custom `operator<<` usually return `ostream &` and avoid printing a newline?
+Answer: Returning the stream preserves chaining, and avoiding a forced newline lets the caller control formatting.
+
+[Q-09-14]
+Question: Why is returning a lambda that captures a local variable by reference unsafe?
+Answer: The lambda may outlive the function call, leaving it with a dangling reference to a destroyed local variable.
+
+[Q-09-15]
+Question: A class allocates `arr` with `new int[cap]`. Which deallocation form is correct, and why is the scalar form wrong?
+Answer: It must use `delete[] arr`; array allocation must be paired with array deletion so the runtime uses the correct deallocation form for the allocation.
+
+[Q-09-16]
+Question: With `cin >> noskipws; cin >> c; cin >> x;` and input `A 42`, why can the integer read fail?
+Answer: After `noskipws`, formatted extraction no longer skips whitespace. `c` reads `A`, then the integer read sees the following space and fails instead of skipping to `42`.

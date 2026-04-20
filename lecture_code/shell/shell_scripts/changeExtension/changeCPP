@@ -1,0 +1,18 @@
+#!/bin/bash
+# This script takes a directory as an argument
+# and locates every file in that directory that ends in .cpp
+# and renames it to be .cc
+
+if [ $# -ne 1 ]; then
+  echo "Usage: ${0} dirName"
+  exit 1
+fi
+
+# Keep in mind $1 was given by the user, and may contain spaces.
+# if it does, then without the quotes where they are we would have
+# problems, because expanding $1 into a string in place with spaces would
+# make our loop iterate over two separate files.
+for file in "$1"/*.cpp; do
+  # Similarly, if the filename contains spaces we must handle that here as well.
+  mv "${file}" "${file%.cpp}.cc"
+done

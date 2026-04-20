@@ -239,4 +239,12 @@
       }
     }
   });
+
+  const initialDeck = new URLSearchParams(window.location.search).get('deck');
+  if (initialDeck) {
+    const btn = Array.from(DECK_GRID.querySelectorAll('[data-deck-id]')).find((candidate) => candidate.dataset.deckId === initialDeck);
+    if (btn) {
+      loadDeck(btn.dataset.deckId, btn.dataset.deckName, btn.dataset.deckFile);
+    }
+  }
 })();

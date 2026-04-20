@@ -1,0 +1,68 @@
+[Q-11-01]
+Question: What is a class in C++?
+Answer: A type that groups data and behavior together.
+
+[Q-11-02]
+Question: What does the implicit `this` pointer represent?
+Answer: It points to the object on which the method was called.
+
+[Q-11-03]
+Question: Why is aggregate initialization often a bad fit for an ADT?
+Answer: It allows the client to create invalid field combinations and bypass invariants.
+
+[Q-11-04]
+Question: Why should constructors use the member initialization list?
+Answer: Because fields are initialized before the constructor body runs, and the MIL is the right place to control that initialization.
+
+[Q-11-05]
+Question: What is the difference between `struct` and `class` in C++?
+Answer: Their only difference is default access: `struct` defaults to public, while `class` defaults to private.
+
+[Q-11-06]
+Question: Why should fields usually be private?
+Answer: To prevent clients from breaking invariants by writing directly to internal representation.
+
+[Q-11-07]
+Question: Why is `Rect::area()` defined with scope resolution in the `.cc` file?
+Answer: Because it is a method declared inside the class but defined outside it.
+
+[Q-11-08]
+Question: Why might a friend output operator be preferable to getters?
+Answer: It lets the class expose a behavior like printing without broadly exposing its internal fields.
+
+[Q-11-09]
+Question: Why should friend functions be used sparingly?
+Answer: Because they weaken encapsulation and increase the number of places that can violate invariants.
+
+[Q-11-10]
+Question: Why is the member initialization list required for const fields?
+Answer: Const fields must be initialized before the constructor body runs; assigning to them inside the body is too late.
+
+
+[Q-11-11]
+Question: Why can a friend output operator access private fields even though it is not a method?
+Answer: The class declaration explicitly grants that standalone function access to its private members.
+
+[Q-11-12]
+Question: In `struct Foo { int x, y; Foo(int yp) : y{yp}, x{y} {} };`, why can `x` be initialized incorrectly?
+Answer: Fields initialize in declaration order, so `x` initializes before `y` even though `y{yp}` appears first in the member initialization list.
+
+[Q-11-13]
+Question: Why is returning `int &getWidth()` from a `Rect` with private fields usually a bad design?
+Answer: It gives client code a mutable alias to the private field, letting the client bypass setters and break invariants such as positive width.
+
+[Q-11-14]
+Question: Why is `operator<<` for `Rect` usually implemented as a non-member friend instead of a member method?
+Answer: The desired syntax has the stream as the left operand, so a non-member has the right operand order; friendship lets it access private fields without exposing getters just for printing.
+
+[Q-11-15]
+Question: What should you check before adding a default constructor to an ADT?
+Answer: Check whether there is a meaningful valid default object; otherwise the default constructor may create misleading or invalid states.
+
+[Q-11-16]
+Question: A client includes `rect.h`, compiles successfully, but linking fails with an undefined reference to `Rect::area()`. What is the likely issue?
+Answer: The client saw the method declaration in the header, but the final link did not include the object file containing the method definition, such as `rect.o`.
+
+[Q-11-17]
+Question: Does making fields private change where they are stored in each object?
+Answer: No. Private fields are still part of the object layout; access control only restricts which code may name and access them directly.
